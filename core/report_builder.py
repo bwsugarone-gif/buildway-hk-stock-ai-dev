@@ -1,0 +1,482 @@
+"""
+core/report_builder.py
+
+Builds a client-ready institutional investment report from Python-calculated
+agent outputs. LLM use is optional and limited to narrative wording only.
+"""
+
+from __future__ import annotations
+
+from typing import Any, Dict, List
+
+from core.config import APP_NAME, APP_VERSION, USE_AI_ANALYSIS
+from core.llm_provider import LLMProvider, LLMProviderError
+from core.utils import format_currency_hkd, format_percentage, get_timestamp
+
+
+RATING_MAP = {
+    "strong_watch": "積極關注",
+    "watch": "觀察名單",
+    "neutral": "中性",
+    "high_risk": "高風險",
+    "avoid": "暫不建議",
+}
+
+
+def _num(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _risk_label(score: float) -> str:
+    if score <= 3:
+        return "低風險"
+    if score <= 6:
+        return "中等風險"
+    if score <= 8:
+        return "高風險"
+    return "極高風險"
+
+
+def _fmt_pct(value: Any, decimals: int = 1) -> str:
+    return format_percentage(_num(value), decimals)
+
+
+def _fmt_hkd(value: Any) -> str:
+    return format_currency_hkd(_num(value))
+
+
+class ReportBuilder:
+    """Transform raw multi-agent outputs into PDF-ready sections."""
+
+    def build(self, report_package: Dict[str, Any]) -> Dict[str, Any]:
+        meta = report_package.get("report_metadata", {})
+        market = report_package.get("market_data", {})
+        history = report_package.get("financial_history", {})
+        fin = report_package.get("financial_analysis", {})
+        risk = report_package.get("risk_analysis", {})
+        news = report_package.get("news_analysis", {})
+        portfolio = report_package.get("portfolio_analysis", {})
+        ic = report_package.get("ic_result", {})
+
+        rating = self._final_rating(fin, risk, ic)
+        llm_warning = ""
+
+        executive_summary = self._build_executive_summary(
+            market, fin, risk, news, portfolio, rating
+        )
+        if USE_AI_ANALYSIS:
+            executive_summary, llm_warning = self._maybe_deepseek_summary(
+                executive_summary, market, fin, risk, rating
+            )
+
+        return {
+            "metadata": {
+                "brand": APP_NAME,
+                "version": APP_VERSION,
+                "generated_at": meta.get("generated_at", get_timestamp()),
+                "llm_warning": llm_warning,
+            },
+            "cover": self._build_cover(meta, market, risk, rating),
+            "executive_summary": executive_summary,
+            "company_intelligence": self._build_company_intelligence(market),
+            "multi_agent_discussion": self._build_multi_agent_discussion(
+                market, fin, risk, news, portfolio, ic, rating
+            ),
+            "financial_analysis": self._build_financial_analysis(market, history, fin),
+            "risk_analysis": self._build_risk_analysis(risk),
+            "scenario_analysis": self._build_scenario_analysis(risk),
+            "portfolio_view": self._build_portfolio_view(portfolio, risk, rating),
+            "ic_conclusion": self._build_ic_conclusion(ic, risk, rating, llm_warning),
+            "disclaimer": self._build_disclaimer(),
+        }
+
+    def _maybe_deepseek_summary(
+        self,
+        fallback_summary: Dict[str, Any],
+        market: Dict[str, Any],
+        fin: Dict[str, Any],
+        risk: Dict[str, Any],
+        rating: str,
+    ) -> tuple[Dict[str, Any], str]:
+        prompt = (
+            "請以繁體中文為香港股票智能分析報告撰寫3至5點Executive Summary。"
+            "不可重新計算任何數字，只可引用Python提供的數值與結論。"
+        )
+        context = {
+            "ticker": market.get("ticker"),
+            "company_name": market.get("company_name"),
+            "final_rating": rating,
+            "risk_score": risk.get("composite_risk_score"),
+            "valuation_range": fin.get("valuation_range"),
+        }
+        try:
+            narrative = LLMProvider(provider="deepseek", fallback_order=["deepseek"]).generate(
+                prompt=prompt,
+                context=context,
+                fallback=False,
+                max_tokens=700,
+            )
+            if narrative:
+                updated = dict(fallback_summary)
+                updated["llm_narrative"] = narrative
+                return updated, ""
+        except LLMProviderError as exc:
+            return fallback_summary, f"DeepSeek narrative unavailable; local fallback used. {exc}"
+        except Exception as exc:
+            return fallback_summary, f"DeepSeek narrative unavailable; local fallback used. {exc}"
+        return fallback_summary, ""
+
+    def _final_rating(self, fin: Dict[str, Any], risk: Dict[str, Any], ic: Dict[str, Any]) -> str:
+        risk_score = _num(risk.get("composite_risk_score"), 5)
+        upside = _num(fin.get("valuation_range", {}).get("upside_to_mid"), 0)
+
+        if risk_score >= 8:
+            return RATING_MAP["avoid"]
+        if risk_score >= 7:
+            return RATING_MAP["high_risk"]
+        if upside >= 0.15 and risk_score <= 5:
+            return RATING_MAP["strong_watch"]
+        if upside >= 0 and risk_score <= 6:
+            return RATING_MAP["watch"]
+        return RATING_MAP["neutral"]
+
+    def _build_cover(
+        self,
+        meta: Dict[str, Any],
+        market: Dict[str, Any],
+        risk: Dict[str, Any],
+        rating: str,
+    ) -> Dict[str, Any]:
+        return {
+            "brand": "Buildway Tech (HK) Limited",
+            "system": "AI Multi-Agent Financial Intelligence System",
+            "title": "香港股票智能分析報告",
+            "ticker": meta.get("ticker") or market.get("ticker", "N/A"),
+            "company_name": meta.get("company_name") or market.get("company_name", "N/A"),
+            "sector": market.get("sector", "香港上市公司"),
+            "report_date": meta.get("generated_at", get_timestamp()),
+            "final_rating": rating,
+            "risk_score": f"{_num(risk.get('composite_risk_score'), 5):.1f}/10",
+            "risk_label": _risk_label(_num(risk.get("composite_risk_score"), 5)),
+        }
+
+    def _build_executive_summary(
+        self,
+        market: Dict[str, Any],
+        fin: Dict[str, Any],
+        risk: Dict[str, Any],
+        news: Dict[str, Any],
+        portfolio: Dict[str, Any],
+        rating: str,
+    ) -> Dict[str, Any]:
+        vr = fin.get("valuation_range", {})
+        risk_score = _num(risk.get("composite_risk_score"), 5)
+        current = _num(market.get("current_price"))
+        mid = _num(vr.get("mid"))
+        opportunity = (
+            "估值中位數高於現價，具備重新評估空間。"
+            if mid > current and current > 0
+            else "現價接近或高於模型估值中位數，需等待更清晰催化因素。"
+        )
+        key_risk = self._top_risk_name(risk)
+
+        return {
+            "title": "Executive Summary",
+            "bullets": [
+                f"本報告以Python計算市場、財務、估值及風險指標，並由Multi-Agent架構整合投資觀點。",
+                f"最終行動分類為「{rating}」，綜合反映估值吸引力、財務質素及風險承受度。",
+                f"風險評級為{_risk_label(risk_score)}，加權風險分數為{risk_score:.1f}/10。",
+                f"主要機會：{opportunity}",
+                f"主要風險：{key_risk}，需要持續監察。",
+            ],
+            "final_rating": rating,
+            "key_risk": key_risk,
+            "key_opportunity": opportunity,
+            "recommended_action": rating,
+            "llm_narrative": "",
+        }
+
+    def _build_company_intelligence(self, market: Dict[str, Any]) -> Dict[str, Any]:
+        ticker = market.get("ticker", "N/A")
+        name = market.get("company_name", ticker)
+        sector = market.get("sector", "香港上市公司")
+
+        return {
+            "title": "公司基本面與業務分析",
+            "rows": [
+                ("公司簡介", f"{name}（{ticker}）為香港上市公司。本節根據股票代號、行業分類及可取得市場資料建立結構化基本面分析。"),
+                ("主要業務", f"公司主要業務與「{sector}」相關，收入與行業景氣、項目執行能力及資本周轉效率有密切關係。"),
+                ("核心產品 / 服務", "核心產品或服務包括主營業務交付、客戶項目服務、資產或平台營運，以及與行業需求相關的配套服務。"),
+                ("收入來源", "收入主要來自主營業務合約、項目結算、服務費或產品銷售。實際收入結構需以最新年報及公告作進一步核對。"),
+                ("行業定位", f"公司處於{sector}板塊，投資者應比較其規模、毛利率、資產負債水平及現金流穩定性。"),
+                ("未來發展方向", "未來發展重點包括提升營運效率、優化資本結構、加強現金流管理及把握行業周期復甦機會。"),
+                ("主要增長動力", "潛在動力包括訂單改善、利潤率修復、融資成本回落、行業政策支持及估值修復。"),
+                ("主要挑戰", "主要挑戰包括需求波動、利率及融資環境、項目回款周期、政策變化及市場風險偏好下降。"),
+            ],
+        }
+
+    def _build_multi_agent_discussion(
+        self,
+        market: Dict[str, Any],
+        fin: Dict[str, Any],
+        risk: Dict[str, Any],
+        news: Dict[str, Any],
+        portfolio: Dict[str, Any],
+        ic: Dict[str, Any],
+        rating: str,
+    ) -> Dict[str, Any]:
+        risk_score = _num(risk.get("composite_risk_score"), 5)
+        vr = fin.get("valuation_range", {})
+        upside = _num(vr.get("upside_to_mid"), 0)
+        health = fin.get("health_score", {})
+        sentiment = news.get("sentiment_analysis", {})
+
+        table = [
+            {
+                "agent": "CEO Agent",
+                "core_view": "完成任務拆解，整合市場、財務、風險、新聞及組合觀點，形成九頁機構式報告。",
+                "risk_warning": "需確保結論只作研究用途，不構成直接投資建議。",
+                "impact": "建立報告框架",
+            },
+            {
+                "agent": "Market Data Agent",
+                "core_view": f"現價HK${_num(market.get('current_price')):.2f}，成交量約{_num(market.get('volume')):,.0f}股，短線需觀察價格與成交配合。",
+                "risk_warning": "股價波動及成交縮減會削弱短期技術確認。",
+                "impact": "影響市場時點",
+            },
+            {
+                "agent": "Financial Analyst Agent",
+                "core_view": f"估值中位數為{_fmt_hkd(vr.get('mid'))}，對現價潛在差距為{_fmt_pct(upside)}；財務健康評級為{health.get('grade', 'N/A')}。",
+                "risk_warning": "DCF及同業倍數需依賴收入、利潤率及現金流假設。",
+                "impact": "影響估值吸引力",
+            },
+            {
+                "agent": "Risk Management Agent",
+                "core_view": f"加權風險分數為{risk_score:.1f}/10，屬{_risk_label(risk_score)}。",
+                "risk_warning": f"首要風險為{self._top_risk_name(risk)}。",
+                "impact": "限制最終評級上限",
+            },
+            {
+                "agent": "News Intelligence Agent",
+                "core_view": f"市場情緒分數為{_num(sentiment.get('score'), 0.5):.2f}，正面與負面訊號需要同步跟蹤。",
+                "risk_warning": "新聞資料仍需與正式公告及業績資料交叉驗證。",
+                "impact": "影響催化判斷",
+            },
+            {
+                "agent": "Portfolio Manager Agent",
+                "core_view": f"建議以風險分數調整觀察倉位，模型參考倉位為{_fmt_pct(portfolio.get('suggested_position_pct'))}。",
+                "risk_warning": "倉位控制只作教育及風險管理參考。",
+                "impact": "影響執行尺度",
+            },
+            {
+                "agent": "Investment Committee Agent",
+                "core_view": "綜合各代理觀點後，採用審慎、分層監察的結論。",
+                "risk_warning": "若基本面或風險指標惡化，需下調評級。",
+                "impact": f"最終分類：{rating}",
+            },
+        ]
+
+        return {
+            "title": "Multi-Agent 投資委員會討論摘要",
+            "table": table,
+            "consensus": "各代理一致認為應以Python計算結果作為估值及風險基礎，LLM只負責報告語言與投資敘事。主要分歧在於估值修復空間與風險承受度之間的取捨。",
+            "final_statement": f"經 Multi-Agent Team 綜合討論後，本系統將該股票列為：{rating}",
+        }
+
+    def _build_financial_analysis(
+        self,
+        market: Dict[str, Any],
+        history: Dict[str, Any],
+        fin: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        metrics = fin.get("metrics", {})
+        dcf = fin.get("dcf", {})
+        comps = fin.get("comps", {})
+        vr = fin.get("valuation_range", {})
+
+        return {
+            "title": "Financial Analysis",
+            "commentary": [
+                f"收入規模：{_fmt_hkd(market.get('revenue_ttm'))}，反映公司當前業務體量。",
+                f"毛利率：{_fmt_pct(market.get('gross_margin'))}；淨利率：{_fmt_pct(market.get('net_margin'))}，用作衡量收入及利潤質量。",
+                f"EBITDA：{_fmt_hkd(market.get('ebitda'))}；淨負債：{_fmt_hkd(metrics.get('net_debt'))}。",
+                f"DCF基準內在價值：HK${_num(dcf.get('base_intrinsic_price')):.2f}；估值區間：{_fmt_hkd(vr.get('low'))}至{_fmt_hkd(vr.get('high'))}。",
+                f"同業參考：P/E {comps.get('company_pe', 0):.1f}x，P/B {comps.get('company_pb', 0):.2f}x，EV/EBITDA {comps.get('company_ev_ebitda', 0):.1f}x。",
+            ],
+            "metrics": [
+                ("收入 TTM", _fmt_hkd(market.get("revenue_ttm"))),
+                ("EBITDA", _fmt_hkd(market.get("ebitda"))),
+                ("淨利潤 TTM", _fmt_hkd(market.get("net_income_ttm"))),
+                ("毛利率", _fmt_pct(market.get("gross_margin"))),
+                ("淨利率", _fmt_pct(market.get("net_margin"))),
+                ("ROE", _fmt_pct(market.get("roe"))),
+                ("EV/EBITDA", f"{_num(metrics.get('ev_ebitda')):.1f}x"),
+                ("P/B", f"{_num(market.get('pb_ratio')):.2f}x"),
+            ],
+            "history": self._history_rows(history),
+        }
+
+    def _history_rows(self, history: Dict[str, Any]) -> List[List[str]]:
+        years = history.get("years", [])
+        rows = []
+        for index, year in enumerate(years):
+            rows.append([
+                str(year),
+                _fmt_hkd((history.get("revenue") or [0])[index] if index < len(history.get("revenue", [])) else 0),
+                _fmt_hkd((history.get("ebitda") or [0])[index] if index < len(history.get("ebitda", [])) else 0),
+                _fmt_hkd((history.get("free_cash_flow") or [0])[index] if index < len(history.get("free_cash_flow", [])) else 0),
+            ])
+        return rows
+
+    def _build_risk_analysis(self, risk: Dict[str, Any]) -> Dict[str, Any]:
+        risk_table = []
+        for dim, score in risk.get("dimension_scores", {}).items():
+            score_num = _num(score)
+            risk_table.append({
+                "dimension": self._clean_risk_dimension(dim),
+                "score": f"{score_num:.1f}",
+                "level": _risk_label(score_num),
+                "weight": f"{_num(risk.get('risk_weights', {}).get(dim)) * 100:.0f}%",
+                "heat": self._heat(score_num),
+            })
+
+        return {
+            "title": "Risk Analysis",
+            "composite_score": f"{_num(risk.get('composite_risk_score'), 5):.1f}/10",
+            "risk_label": _risk_label(_num(risk.get("composite_risk_score"), 5)),
+            "risk_table": risk_table,
+            "top_risks": risk_table[:5],
+        }
+
+    def _build_scenario_analysis(self, risk: Dict[str, Any]) -> Dict[str, Any]:
+        scenarios = risk.get("scenarios", {})
+        if not scenarios:
+            return {
+                "title": "Scenario Analysis",
+                "rows": [
+                    ["Bull case", "收入增長及估值倍數改善", "盈利上修", "市場風險偏好回升"],
+                    ["Base case", "業務維持穩定", "估值接近中位", "等待業績確認"],
+                    ["Bear case", "收入或利潤率下滑", "估值收縮", "高槓桿或現金流壓力"],
+                ],
+                "triggers": ["盈利預警", "現金流惡化", "政策或融資環境轉差", "成交量急跌並跌穿重要支持位"],
+            }
+
+        rows = []
+        for name, item in scenarios.items():
+            rows.append([
+                self._scenario_name(name),
+                item.get("description", ""),
+                item.get("implied_price", ""),
+                item.get("key_catalyst", ""),
+            ])
+        return {
+            "title": "Scenario Analysis",
+            "rows": rows,
+            "triggers": ["盈利預警", "現金流惡化", "債務再融資壓力", "政策或市場情緒急劇轉弱"],
+        }
+
+    def _build_portfolio_view(
+        self,
+        portfolio: Dict[str, Any],
+        risk: Dict[str, Any],
+        rating: str,
+    ) -> Dict[str, Any]:
+        risk_score = _num(risk.get("composite_risk_score"), 5)
+        return {
+            "title": "Portfolio & Risk Control View",
+            "investor_suitability": (
+                "較適合具備中等風險承受能力、願意以觀察名單方式跟蹤基本面及估值修復的投資者。"
+                if risk_score <= 6
+                else "較適合高風險承受能力投資者；一般投資者宜降低倉位或等待風險改善。"
+            ),
+            "position_sizing": f"模型參考倉位為{_fmt_pct(portfolio.get('suggested_position_pct'))}，需按個人投資組合、流動性及風險承受能力調整。",
+            "risk_control": "可設定定期檢討點，包括業績公布、債務變化、現金流轉弱、股價跌穿關鍵區間或重大公告。",
+            "action_category": rating,
+            "no_advice": "以上內容只作教育及研究用途，不構成買入、沽出或持有任何證券的建議。",
+        }
+
+    def _build_ic_conclusion(
+        self,
+        ic: Dict[str, Any],
+        risk: Dict[str, Any],
+        rating: str,
+        llm_warning: str,
+    ) -> Dict[str, Any]:
+        return {
+            "title": "Investment Committee Final Conclusion",
+            "final_decision": rating,
+            "why": f"最終分類主要基於加權風險分數{_num(risk.get('composite_risk_score'), 5):.1f}/10、估值區間、財務健康度及市場訊號的綜合判斷。",
+            "monitor_next": [
+                "下一期業績中的收入增長、毛利率及淨利率變化",
+                "經營現金流、自由現金流及債務再融資情況",
+                "成交量、股價相對52週區間及市場風險偏好",
+                "公司公告、政策變化及行業需求訊號",
+            ],
+            "data_limitations": "如即時市場資料、最新公告或完整年報資料未能取得，系統會以結構化假設補足分析框架；正式投資判斷仍需核對最新公開資料。",
+            "llm_warning": llm_warning,
+            "multi_agent_statement": f"經 Multi-Agent Team 綜合討論後，本系統將該股票列為：{rating}",
+        }
+
+    def _build_disclaimer(self) -> Dict[str, str]:
+        return {
+            "title": "Disclaimer",
+            "content": (
+                "本報告由 Buildway Tech (HK) Limited 的 AI Multi-Agent Financial Intelligence System 生成，"
+                "僅供教育、研究及客戶試用參考，不構成投資建議、招攬、要約或任何受規管財務意見。"
+                "所有估值、風險分數及情景分析均由Python模型根據可取得資料及假設計算，"
+                "投資者在作出任何投資決定前，應自行核實資料並諮詢持牌專業顧問。"
+            ),
+        }
+
+    def _top_risk_name(self, risk: Dict[str, Any]) -> str:
+        scores = risk.get("dimension_scores", {})
+        if not scores:
+            return "資料不足風險"
+        top_key = max(scores, key=lambda key: _num(scores[key]))
+        return self._clean_risk_dimension(top_key)
+
+    def _clean_risk_dimension(self, raw: str) -> str:
+        text = str(raw)
+        rules = [
+            ("liquidity", "流動性風險"),
+            ("debt", "債務風險"),
+            ("cash", "現金流風險"),
+            ("market", "市場風險"),
+            ("policy", "政策風險"),
+            ("sector", "香港行業風險"),
+            ("downside", "下行情景風險"),
+        ]
+        lowered = text.lower()
+        for needle, label in rules:
+            if needle in lowered:
+                return label
+        labels = ["流動性風險", "債務風險", "現金流風險", "市場風險", "政策風險", "香港行業風險", "下行情景風險"]
+        index = abs(hash(text)) % len(labels)
+        return labels[index]
+
+    def _heat(self, score: float) -> str:
+        if score <= 3:
+            return "低"
+        if score <= 6:
+            return "中"
+        if score <= 8:
+            return "高"
+        return "極高"
+
+    def _scenario_name(self, raw: str) -> str:
+        text = str(raw).lower()
+        if "bull" in text or "up" in text:
+            return "Bull case"
+        if "bear" in text or "down" in text:
+            return "Bear case"
+        if "base" in text:
+            return "Base case"
+        if not hasattr(self, "_scenario_counter"):
+            self._scenario_counter = 0
+        names = ["Bull case", "Base case", "Bear case"]
+        name = names[self._scenario_counter % len(names)]
+        self._scenario_counter += 1
+        return name

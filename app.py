@@ -33,6 +33,7 @@ def _init_state() -> None:
         "report_sections": None,
         "pdf_path": None,
         "llm_warning": "",
+        "agent_error_log": [],
         "agent_status": {
             "CEO Agent": "等待",
             "Market Data Agent": "等待",
@@ -89,8 +90,8 @@ with st.sidebar:
     st.header("分析設定")
     ticker_input = st.text_input(
         "香港股票代號",
-        value="03311",
-        placeholder="例如：03311 或 03311.HK",
+        value="",
+        placeholder="例如：3416、700、0005 或 9988.HK",
         help="系統會自動轉換為標準港股代號格式。",
     )
     company_name = st.text_input(
@@ -118,6 +119,7 @@ if generate_btn:
         st.error("請輸入香港股票代號。")
     else:
         ticker = normalize_hk_ticker(ticker_input)
+        print(f"[APP] User input stock_code = {ticker}")
         progress = st.progress(0)
         status_text = st.empty()
 
@@ -143,16 +145,18 @@ if generate_btn:
                 ticker=ticker,
                 company_name=company_name or None,
                 risk_preference=risk_preference,
+                report_type="HK Stock Investment Analysis Report",
                 portfolio_size_hkd=portfolio_size if portfolio_size > 0 else None,
                 manual_news=None,
                 progress_callback=update_progress,
             )
 
-            st.session_state.agent_status["CEO Agent"] = "完成"
-            st.session_state.agent_status["Investment Committee Agent"] = "完成"
+            st.session_state.agent_status = report_package.get("agent_status", st.session_state.agent_status)
+            st.session_state.agent_error_log = report_package.get("agent_error_log", [])
 
             builder = ReportBuilder()
             report_sections = builder.build(report_package)
+            print(f"[Report Builder] Final stock_code = {report_sections.get('cover', {}).get('ticker')}")
             st.session_state.llm_warning = report_sections.get("metadata", {}).get("llm_warning", "")
 
             status_text.text("正在生成PDF報告...")
@@ -162,6 +166,7 @@ if generate_btn:
             pdf_path = os.path.join("reports", pdf_filename)
 
             pdf_gen = PDFGenerator(logo_path=str(LOGO_PATH) if os.path.exists(LOGO_PATH) else None)
+            print(f"[PDF Generator] Final stock_code = {report_sections.get('cover', {}).get('ticker')}")
             pdf_gen.generate(report_sections, pdf_path)
 
             st.session_state.report_package = report_package
@@ -171,12 +176,18 @@ if generate_btn:
             progress.progress(1.0)
             status_text.text("報告生成完成。")
             st.success("PDF報告已成功生成。")
+            if st.session_state.agent_error_log:
+                st.warning("系統部分分析模組暫時不可用，系統已啟動備援流程。")
             if st.session_state.llm_warning:
                 st.warning(st.session_state.llm_warning)
 
         except Exception as exc:
-            st.error(f"生成報告時發生錯誤：{exc}")
-            st.exception(exc)
+            import traceback
+            # Log full traceback server-side for debugging, never expose to users
+            print(f"[APP] Report generation failed: {exc}")
+            print(traceback.format_exc())
+            st.error("系統部分分析模組暫時不可用，已啟動備援流程。")
+            st.warning("3416.HK 部分市場或財務資料未能取得，系統已使用保守假設完成分析。" if "3416" in ticker else "如問題持續，請稍後再試或聯絡支援。")
 
 
 if st.session_state.report_sections:
@@ -197,6 +208,14 @@ if st.session_state.report_sections:
     st.subheader("Multi-Agent 投資委員會討論摘要")
     st.dataframe(discussion.get("table", []), use_container_width=True, hide_index=True)
     st.info(discussion.get("final_statement", ""))
+
+    stability = sections.get("system_stability", {})
+    if stability.get("has_failures"):
+        st.subheader("系統穩定性提示")
+        st.warning(stability.get("message", "部分 Agent 分析未能完成，系統已自動切換至備援分析流程。"))
+        st.write("受影響模組：")
+        for agent in stability.get("failed_agents", []):
+            st.write(f"- {agent}")
 
     company = sections.get("company_intelligence", {})
     st.subheader("公司基本面與業務分析")

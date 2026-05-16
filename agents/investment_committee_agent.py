@@ -5,7 +5,8 @@ Role: Combine all agent outputs into a final investment committee verdict
 Must not give guaranteed buy/sell signals — educational only
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
+from core.safe_math import safe_number
 from core.utils import get_risk_label, get_risk_color, get_timestamp
 
 
@@ -35,11 +36,13 @@ class InvestmentCommitteeAgent:
         risk_analysis: Dict[str, Any],
         news_analysis: Dict[str, Any],
         portfolio_analysis: Dict[str, Any],
+        analysis_context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Main entry point. Run IC deliberation and produce final verdict.
         """
-        ticker = market_data.get("ticker", "N/A")
+        ticker = (analysis_context or {}).get("stock_code") or market_data.get("ticker", "N/A")
+        print(f"[Investment Committee Agent] Received stock_code = {ticker}")
         company_name = market_data.get("company_name", ticker)
 
         # Score each dimension for IC vote
@@ -144,7 +147,7 @@ class InvestmentCommitteeAgent:
     ) -> str:
         """Determine IC verdict based on composite scores."""
         avg_score = sum(ic_scores.values()) / len(ic_scores)
-        risk_score = risk_analysis.get("composite_risk_score", 5)
+        risk_score = safe_number(risk_analysis.get("composite_risk_score"), 5)
 
         # Override rules
         if risk_score >= 8.5:

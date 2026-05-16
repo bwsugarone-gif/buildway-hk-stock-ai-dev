@@ -6,7 +6,8 @@ DEV version uses simplified calculations with clearly labeled assumptions
 """
 
 from typing import Dict, Any, List, Optional
-from core.utils import safe_divide, format_currency_hkd, format_percentage, clamp
+from core.safe_math import safe_divide, safe_multiply, safe_number
+from core.utils import format_currency_hkd, format_percentage, clamp
 from data.sample_data import get_hk_sector_benchmarks
 
 
@@ -30,13 +31,24 @@ class FinancialAnalystAgent:
         "bear": 0.02,
     }
 
-    def analyze(self, market_data: Dict[str, Any], financial_history: Dict[str, Any]) -> Dict[str, Any]:
+    def analyze(
+        self,
+        market_data: Dict[str, Any],
+        financial_history: Dict[str, Any],
+        analysis_context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         """
         Main entry point. Run full financial analysis.
         Returns structured analysis dict.
         """
-        ticker = market_data.get("ticker", "N/A")
+        ticker = (analysis_context or {}).get("stock_code") or market_data.get("ticker", "N/A")
+        print(f"[Financial Agent] Received stock_code = {ticker}")
         sector = market_data.get("sector", "綜合企業")
+
+        # Detect missing data for any ticker (including 3416.HK)
+        _missing = sorted(set(market_data.get("missing_data_flags", [])))
+        _base_code = ticker.replace(".HK", "").lstrip("0") or "0"
+        _has_missing = bool(_missing) or safe_number(market_data.get("current_price")) == 0
 
         # Core financial metrics
         metrics = self._compute_metrics(market_data)
@@ -53,6 +65,18 @@ class FinancialAnalystAgent:
         # Financial health score
         health_score = self._compute_financial_health(market_data)
 
+        missing_data_flags = sorted(set(market_data.get("missing_data_flags", [])))
+
+        # Build data warning — always shown when data is incomplete, with
+        # a specific message for 3416.HK to satisfy client requirements.
+        if _has_missing:
+            if _base_code == "3416":
+                data_warning = "3416.HK 部分市場或財務資料未能取得，系統已使用保守假設完成分析。"
+            else:
+                data_warning = "部分財務數據暫時不可用，以下分析已採用保守假設。"
+        else:
+            data_warning = ""
+
         return {
             "ticker": ticker,
             "is_demo": market_data.get("is_demo", True),
@@ -62,17 +86,19 @@ class FinancialAnalystAgent:
             "valuation_range": valuation_range,
             "health_score": health_score,
             "sector": sector,
+            "data_warning": data_warning,
+            "missing_data_flags": missing_data_flags,
         }
 
     def _compute_metrics(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Compute key financial ratios and metrics."""
-        revenue = data.get("revenue_ttm", 0) or 0
-        net_income = data.get("net_income_ttm", 0) or 0
-        ebitda = data.get("ebitda", 0) or 0
-        total_debt = data.get("total_debt", 0) or 0
-        cash = data.get("cash", 0) or 0
-        market_cap = data.get("market_cap", 0) or 0
-        current_price = data.get("current_price", 0) or 0
+        revenue = safe_number(data.get("revenue_ttm"))
+        net_income = safe_number(data.get("net_income_ttm"))
+        ebitda = safe_number(data.get("ebitda"))
+        total_debt = safe_number(data.get("total_debt"))
+        cash = safe_number(data.get("cash"))
+        market_cap = safe_number(data.get("market_cap"))
+        current_price = safe_number(data.get("current_price"))
 
         net_debt = total_debt - cash
         ev = market_cap + net_debt  # Enterprise Value
@@ -85,15 +111,15 @@ class FinancialAnalystAgent:
             "enterprise_value": ev,
             "ev_ebitda": safe_divide(ev, ebitda),
             "ev_revenue": safe_divide(ev, revenue),
-            "pe_ratio": data.get("pe_ratio"),
-            "pb_ratio": data.get("pb_ratio"),
-            "gross_margin": data.get("gross_margin", 0),
-            "net_margin": data.get("net_margin", 0),
-            "roe": data.get("roe", 0),
-            "debt_to_equity": data.get("debt_to_equity", 0),
-            "current_ratio": data.get("current_ratio", 0),
-            "dividend_yield": data.get("dividend_yield", 0),
-            "beta": data.get("beta", 1.0),
+            "pe_ratio": safe_number(data.get("pe_ratio")),
+            "pb_ratio": safe_number(data.get("pb_ratio")),
+            "gross_margin": safe_number(data.get("gross_margin")),
+            "net_margin": safe_number(data.get("net_margin")),
+            "roe": safe_number(data.get("roe")),
+            "debt_to_equity": safe_number(data.get("debt_to_equity")),
+            "current_ratio": safe_number(data.get("current_ratio")),
+            "dividend_yield": safe_number(data.get("dividend_yield")),
+            "beta": safe_number(data.get("beta"), 1.0),
         }
 
     def _run_dcf(self, data: Dict[str, Any], history: Dict[str, Any]) -> Dict[str, Any]:
@@ -102,13 +128,13 @@ class FinancialAnalystAgent:
         Uses FCF as base, projects 5 years, applies terminal value.
         """
         # Base FCF — use last year's FCF from history or estimate from net income
-        fcf_list = history.get("free_cash_flow", [])
-        base_fcf = fcf_list[-1] if fcf_list else (data.get("net_income_ttm", 0) * 0.7)
+        fcf_list = [safe_number(v) for v in history.get("free_cash_flow", [])]
+        base_fcf = fcf_list[-1] if fcf_list else safe_multiply(data.get("net_income_ttm"), 0.7)
         if not base_fcf or base_fcf <= 0:
-            base_fcf = data.get("ebitda", 0) * 0.5  # rough proxy
+            base_fcf = safe_multiply(data.get("ebitda"), 0.5)  # rough proxy
 
-        market_cap = data.get("market_cap", 1)
-        shares_outstanding = market_cap / max(data.get("current_price", 1), 0.01)
+        market_cap = safe_number(data.get("market_cap"), 1)
+        shares_outstanding = safe_divide(market_cap, max(safe_number(data.get("current_price"), 1), 0.01))
 
         scenarios = {}
         for scenario, growth_rate in self.DEFAULT_FCF_GROWTH_RATES.items():
@@ -116,7 +142,7 @@ class FinancialAnalystAgent:
             projected_fcf = []
             fcf = base_fcf
             for year in range(1, self.DEFAULT_PROJECTION_YEARS + 1):
-                fcf = fcf * (1 + growth_rate)
+                fcf = safe_multiply(fcf, 1 + growth_rate)
                 projected_fcf.append(fcf)
 
             # Discount projected FCFs
@@ -127,15 +153,15 @@ class FinancialAnalystAgent:
             )
 
             # Terminal value (Gordon Growth Model)
-            terminal_fcf = projected_fcf[-1] * (1 + self.DEFAULT_TERMINAL_GROWTH)
-            terminal_value = terminal_fcf / (wacc - self.DEFAULT_TERMINAL_GROWTH)
-            pv_terminal = terminal_value / ((1 + wacc) ** self.DEFAULT_PROJECTION_YEARS)
+            terminal_fcf = safe_multiply(projected_fcf[-1], 1 + self.DEFAULT_TERMINAL_GROWTH)
+            terminal_value = safe_divide(terminal_fcf, wacc - self.DEFAULT_TERMINAL_GROWTH)
+            pv_terminal = safe_divide(terminal_value, ((1 + wacc) ** self.DEFAULT_PROJECTION_YEARS))
 
             # Total intrinsic value
             total_ev = pv_fcfs + pv_terminal
-            net_debt = (data.get("total_debt", 0) or 0) - (data.get("cash", 0) or 0)
+            net_debt = safe_number(data.get("total_debt")) - safe_number(data.get("cash"))
             equity_value = total_ev - net_debt
-            intrinsic_price = equity_value / shares_outstanding if shares_outstanding > 0 else 0
+            intrinsic_price = safe_divide(equity_value, shares_outstanding)
 
             scenarios[scenario] = {
                 "growth_rate": growth_rate,
@@ -148,7 +174,7 @@ class FinancialAnalystAgent:
                 "intrinsic_price": intrinsic_price,
             }
 
-        current_price = data.get("current_price", 0)
+        current_price = safe_number(data.get("current_price"))
         base_price = scenarios["base"]["intrinsic_price"]
         upside = safe_divide(base_price - current_price, current_price) if current_price else 0
 
@@ -187,29 +213,32 @@ class FinancialAnalystAgent:
         pb_median = bench["pb_median"]
         ev_ebitda_median = bench["ev_ebitda_median"]
 
-        # Company metrics
-        eps = safe_divide(
-            data.get("net_income_ttm", 0),
-            data.get("market_cap", 1) / max(data.get("current_price", 1), 0.01)
-        )
+        # Sanitize all inputs before any arithmetic — guards against None from yfinance
+        pb_ratio = safe_number(data.get("pb_ratio"), 1.0)
+        market_cap = safe_number(data.get("market_cap"), 0.0)
+        current_price = max(safe_number(data.get("current_price"), 1.0), 0.01)
+        print(f"[SAFE CHECK] _run_comps using sanitized values: pb_ratio={pb_ratio} market_cap={market_cap} current_price={current_price}")
+
+        shares_base = safe_divide(market_cap, current_price, 1.0)
+        eps = safe_divide(data.get("net_income_ttm", 0), shares_base)
         book_value_per_share = safe_divide(
-            data.get("market_cap", 0),
-            data.get("pb_ratio", 1) * max(data.get("market_cap", 1) / max(data.get("current_price", 1), 0.01), 1)
+            market_cap,
+            safe_multiply(safe_number(data.get("pb_ratio"), 1), max(shares_base, 1))
         )
-        ebitda = data.get("ebitda", 0) or 0
-        net_debt = (data.get("total_debt", 0) or 0) - (data.get("cash", 0) or 0)
-        shares = data.get("market_cap", 1) / max(data.get("current_price", 1), 0.01)
+        ebitda = safe_number(data.get("ebitda"))
+        net_debt = safe_number(data.get("total_debt")) - safe_number(data.get("cash"))
+        shares = shares_base
 
         # Implied prices from sector multiples
-        implied_pe = eps * pe_median if eps > 0 else 0
-        implied_pb = book_value_per_share * pb_median if book_value_per_share > 0 else 0
-        implied_ev_ebitda = ((ebitda * ev_ebitda_median) - net_debt) / shares if shares > 0 and ebitda > 0 else 0
+        implied_pe = safe_multiply(eps, pe_median) if eps > 0 else 0
+        implied_pb = safe_multiply(book_value_per_share, pb_median) if book_value_per_share > 0 else 0
+        implied_ev_ebitda = safe_divide((safe_multiply(ebitda, ev_ebitda_median) - net_debt), shares) if shares > 0 and ebitda > 0 else 0
 
         # Company's own multiples vs sector
-        company_pe = data.get("pe_ratio") or 0
-        company_pb = data.get("pb_ratio") or 0
+        company_pe = safe_number(data.get("pe_ratio"))
+        company_pb = safe_number(data.get("pb_ratio"))
         company_ev_ebitda = safe_divide(
-            data.get("market_cap", 0) + net_debt,
+            market_cap + net_debt,
             ebitda
         )
 
@@ -235,7 +264,7 @@ class FinancialAnalystAgent:
         comps: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Compute football field valuation range from multiple methods."""
-        current_price = data.get("current_price", 0)
+        current_price = safe_number(data.get("current_price"))
 
         # Collect all implied prices
         prices = []
@@ -253,7 +282,7 @@ class FinancialAnalystAgent:
                 prices.append(p)
 
         if not prices:
-            prices = [current_price * 0.8, current_price, current_price * 1.2]
+                prices = [safe_multiply(current_price, 0.8), current_price, safe_multiply(current_price, 1.2)]
 
         low = min(prices)
         high = max(prices)
@@ -286,11 +315,11 @@ class FinancialAnalystAgent:
         scores = {}
 
         # 1. Profitability (net margin)
-        net_margin = data.get("net_margin", 0) or 0
+        net_margin = safe_number(data.get("net_margin"))
         scores["盈利能力"] = clamp(int(net_margin * 100), 0, 10)
 
         # 2. Leverage (debt-to-equity, lower is better)
-        dte = data.get("debt_to_equity", 0) or 0
+        dte = safe_number(data.get("debt_to_equity"))
         if dte <= 0.5:
             scores["槓桿水平"] = 9
         elif dte <= 1.0:
@@ -303,7 +332,7 @@ class FinancialAnalystAgent:
             scores["槓桿水平"] = 1
 
         # 3. Liquidity (current ratio)
-        cr = data.get("current_ratio", 0) or 0
+        cr = safe_number(data.get("current_ratio"))
         if cr >= 2.0:
             scores["流動性"] = 9
         elif cr >= 1.5:
@@ -314,11 +343,11 @@ class FinancialAnalystAgent:
             scores["流動性"] = 2
 
         # 4. Return on equity
-        roe = data.get("roe", 0) or 0
+        roe = safe_number(data.get("roe"))
         scores["股本回報率"] = clamp(int(roe * 50), 0, 10)
 
         # 5. Dividend yield (bonus for income investors)
-        dy = data.get("dividend_yield", 0) or 0
+        dy = safe_number(data.get("dividend_yield"))
         if dy >= 0.06:
             scores["股息回報"] = 9
         elif dy >= 0.04:

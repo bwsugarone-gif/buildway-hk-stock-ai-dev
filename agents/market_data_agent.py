@@ -6,6 +6,7 @@ DEV version uses yfinance with graceful fallback to demo data
 """
 
 from typing import Dict, Any, Optional
+from core.safe_math import safe_number
 from data.sample_data import get_sample_market_data, get_sample_financial_history
 from core.utils import normalize_hk_ticker, format_currency_hkd, format_percentage
 
@@ -31,26 +32,55 @@ class MarketDataAgent:
         except ImportError:
             return False
 
-    def fetch(self, ticker: str, company_name: Optional[str] = None) -> Dict[str, Any]:
+    def fetch(
+        self,
+        ticker: str,
+        company_name: Optional[str] = None,
+        analysis_context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         """
         Main entry point. Fetch market data for a given ticker.
         Returns a standardized data dict with is_demo flag.
         """
-        normalized = normalize_hk_ticker(ticker)
+        normalized = (analysis_context or {}).get("stock_code") or normalize_hk_ticker(ticker)
+        print(f"[Market Data Agent] Received stock_code = {normalized}")
 
         if self._yfinance_available:
             try:
-                return self._fetch_live(normalized, company_name)
+                result = self._fetch_live(normalized, company_name)
+                result["ticker"] = normalized
+                result["company_name"] = company_name or result.get("company_name") or f"{normalized} 公司"
+                return self._sanitize_numeric_fields(result)
             except Exception as e:
                 # Graceful fallback
                 result = get_sample_market_data(normalized)
                 result["fallback_reason"] = str(e)
-                result["company_name"] = company_name or result.get("company_name", normalized)
-                return result
+                result["ticker"] = normalized
+                result["company_name"] = company_name or result.get("company_name") or f"{normalized} 公司"
+                return self._sanitize_numeric_fields(result)
         else:
             result = get_sample_market_data(normalized)
-            result["company_name"] = company_name or result.get("company_name", normalized)
-            return result
+            result["ticker"] = normalized
+            result["company_name"] = company_name or result.get("company_name") or f"{normalized} 公司"
+            return self._sanitize_numeric_fields(result)
+
+    def _sanitize_numeric_fields(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        numeric_fields = [
+            "current_price", "prev_close", "day_high", "day_low", "volume",
+            "market_cap", "pe_ratio", "pb_ratio", "dividend_yield", "52w_high",
+            "52w_low", "revenue_ttm", "net_income_ttm", "total_debt", "cash",
+            "ebitda", "gross_margin", "net_margin", "roe", "debt_to_equity",
+            "current_ratio", "beta",
+        ]
+        missing = list(data.get("missing_data_flags", []))
+        for field in numeric_fields:
+            if data.get(field) is None or data.get(field) == "":
+                missing.append(f"{field} unavailable")
+            data[field] = safe_number(data.get(field), 0.0)
+        data["missing_data_flags"] = sorted(set(missing))
+        if missing:
+            data["data_warning"] = "部分財務數據暫時不可用，以下分析已採用保守假設。"
+        return data
 
     def _fetch_live(self, ticker: str, company_name: Optional[str] = None) -> Dict[str, Any]:
         """Fetch live data from yfinance."""

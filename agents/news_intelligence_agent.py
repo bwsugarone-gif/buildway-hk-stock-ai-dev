@@ -25,11 +25,14 @@ class NewsIntelligenceAgent:
         ticker: str,
         company_name: Optional[str] = None,
         manual_news: Optional[List[Dict]] = None,
+        analysis_context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Main entry point. Analyze news sentiment for a ticker.
         manual_news: Optional list of manually entered news items for DEV use.
         """
+        ticker = (analysis_context or {}).get("stock_code") or ticker
+        print(f"[News Intelligence Agent] Received stock_code = {ticker}")
         # Try live news fetch (Phase 2.5 placeholder)
         live_result = self._try_live_news(ticker, company_name)
 
@@ -37,6 +40,7 @@ class NewsIntelligenceAgent:
             result = live_result
         else:
             result = get_sample_news_sentiment(ticker)
+        result["ticker"] = ticker
 
         # Override with manual news if provided
         if manual_news:

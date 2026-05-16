@@ -5,8 +5,9 @@ Role: Multi-dimensional risk analysis for HK stocks
 Produces risk score 1-10 across 7 risk dimensions
 """
 
-from typing import Dict, Any
-from core.utils import safe_divide, clamp, get_risk_label, get_risk_color
+from typing import Dict, Any, Optional
+from core.safe_math import safe_divide, safe_multiply, safe_number
+from core.utils import clamp, get_risk_label, get_risk_color
 
 
 class RiskManagementAgent:
@@ -47,12 +48,14 @@ class RiskManagementAgent:
         market_data: Dict[str, Any],
         financial_analysis: Dict[str, Any],
         risk_preference: str = "中等",
+        analysis_context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Main entry point. Run full risk analysis.
         risk_preference: '保守' | '中等' | '進取'
         """
-        ticker = market_data.get("ticker", "N/A")
+        ticker = (analysis_context or {}).get("stock_code") or market_data.get("ticker", "N/A")
+        print(f"[Risk Agent] Received stock_code = {ticker}")
         sector = market_data.get("sector", "綜合企業")
 
         # Score each risk dimension (1=low risk, 10=high risk)
@@ -97,9 +100,9 @@ class RiskManagementAgent:
 
     def _liquidity_risk(self, data: Dict[str, Any]) -> int:
         """Score liquidity risk based on current ratio and cash position."""
-        cr = data.get("current_ratio", 1.0) or 1.0
-        cash = data.get("cash", 0) or 0
-        total_debt = data.get("total_debt", 1) or 1
+        cr = safe_number(data.get("current_ratio"), 1.0) or 1.0
+        cash = safe_number(data.get("cash"))
+        total_debt = safe_number(data.get("total_debt"), 1) or 1
 
         cash_ratio = safe_divide(cash, total_debt)
 
@@ -122,10 +125,10 @@ class RiskManagementAgent:
 
     def _debt_risk(self, data: Dict[str, Any]) -> int:
         """Score debt risk based on D/E ratio and net debt/EBITDA."""
-        dte = data.get("debt_to_equity", 1.0) or 1.0
-        ebitda = data.get("ebitda", 1) or 1
-        total_debt = data.get("total_debt", 0) or 0
-        cash = data.get("cash", 0) or 0
+        dte = safe_number(data.get("debt_to_equity"), 1.0) or 1.0
+        ebitda = safe_number(data.get("ebitda"), 1) or 1
+        total_debt = safe_number(data.get("total_debt"))
+        cash = safe_number(data.get("cash"))
         net_debt = total_debt - cash
         net_debt_ebitda = safe_divide(net_debt, ebitda)
 
@@ -154,13 +157,13 @@ class RiskManagementAgent:
 
     def _cashflow_risk(self, data: Dict[str, Any], fin: Dict[str, Any]) -> int:
         """Score cash flow risk based on FCF generation and coverage."""
-        net_margin = data.get("net_margin", 0) or 0
-        ebitda = data.get("ebitda", 0) or 0
-        total_debt = data.get("total_debt", 1) or 1
+        net_margin = safe_number(data.get("net_margin"))
+        ebitda = safe_number(data.get("ebitda"))
+        total_debt = safe_number(data.get("total_debt"), 1) or 1
 
         # Estimate interest coverage (simplified)
         # Assume avg interest rate ~5% on debt
-        interest_est = total_debt * 0.05
+        interest_est = safe_multiply(total_debt, 0.05)
         interest_coverage = safe_divide(ebitda, interest_est)
 
         score = 5
@@ -184,10 +187,10 @@ class RiskManagementAgent:
 
     def _market_risk(self, data: Dict[str, Any]) -> int:
         """Score market risk based on beta, 52w range, and volatility."""
-        beta = data.get("beta", 1.0) or 1.0
-        price = data.get("current_price", 1) or 1
-        high_52w = data.get("52w_high", price) or price
-        low_52w = data.get("52w_low", price) or price
+        beta = safe_number(data.get("beta"), 1.0) or 1.0
+        price = safe_number(data.get("current_price"), 1) or 1
+        high_52w = safe_number(data.get("52w_high"), price) or price
+        low_52w = safe_number(data.get("52w_low"), price) or price
 
         # 52-week range as volatility proxy
         range_pct = safe_divide(high_52w - low_52w, low_52w)
@@ -244,7 +247,7 @@ class RiskManagementAgent:
             base_score = 4
 
         # Adjust for market cap (smaller = higher risk)
-        mktcap = data.get("market_cap", 0) or 0
+        mktcap = safe_number(data.get("market_cap"))
         if mktcap < 5_000_000_000:  # < HK$5B
             base_score += 2
         elif mktcap < 20_000_000_000:  # < HK$20B
@@ -254,9 +257,9 @@ class RiskManagementAgent:
 
     def _downside_scenario_risk(self, data: Dict[str, Any], fin: Dict[str, Any]) -> int:
         """Score downside scenario risk based on valuation and leverage."""
-        pe = data.get("pe_ratio") or 0
-        pb = data.get("pb_ratio") or 0
-        dte = data.get("debt_to_equity", 1) or 1
+        pe = safe_number(data.get("pe_ratio"))
+        pb = safe_number(data.get("pb_ratio"))
+        dte = safe_number(data.get("debt_to_equity"), 1) or 1
 
         score = 5
 
@@ -291,9 +294,9 @@ class RiskManagementAgent:
         sector: str,
     ) -> Dict[str, str]:
         """Build plain-language risk narratives for each dimension."""
-        cr = data.get("current_ratio", 0) or 0
-        dte = data.get("debt_to_equity", 0) or 0
-        beta = data.get("beta", 1.0) or 1.0
+        cr = safe_number(data.get("current_ratio"))
+        dte = safe_number(data.get("debt_to_equity"))
+        beta = safe_number(data.get("beta"), 1.0) or 1.0
 
         return {
             "流動性風險": (
@@ -346,16 +349,17 @@ class RiskManagementAgent:
         fin: Dict[str, Any],
     ) -> Dict[str, Dict]:
         """Build bull/base/bear scenario analysis."""
-        price = data.get("current_price", 0) or 0
-        pe = data.get("pe_ratio") or 10
-        eps = safe_divide(data.get("net_income_ttm", 0), data.get("market_cap", 1) / max(price, 0.01))
+        price = safe_number(data.get("current_price"))
+        pe = safe_number(data.get("pe_ratio"), 10) or 10
+        shares = safe_divide(safe_number(data.get("market_cap"), 1), max(price, 0.01), 1)
+        eps = safe_divide(data.get("net_income_ttm", 0), shares)
 
         return {
             "牛市情景": {
                 "description": "盈利超預期增長20%，估值倍數擴張",
                 "eps_change": "+20%",
                 "pe_change": "+15%",
-                "implied_price": price * 1.38,
+                "implied_price": safe_multiply(price, 1.38),
                 "upside": "+38%",
                 "probability": "25%",
                 "key_catalyst": "業績超預期、行業政策利好、市場情緒改善",
@@ -364,7 +368,7 @@ class RiskManagementAgent:
                 "description": "盈利符合市場預期，估值倍數維持",
                 "eps_change": "+8%",
                 "pe_change": "0%",
-                "implied_price": price * 1.08,
+                "implied_price": safe_multiply(price, 1.08),
                 "upside": "+8%",
                 "probability": "50%",
                 "key_catalyst": "業績穩定增長，宏觀環境無重大變化",
@@ -373,7 +377,7 @@ class RiskManagementAgent:
                 "description": "盈利低於預期，估值倍數收縮",
                 "eps_change": "-15%",
                 "pe_change": "-20%",
-                "implied_price": price * 0.68,
+                "implied_price": safe_multiply(price, 0.68),
                 "upside": "-32%",
                 "probability": "25%",
                 "key_catalyst": "宏觀經濟下行、行業監管收緊、流動性收縮",

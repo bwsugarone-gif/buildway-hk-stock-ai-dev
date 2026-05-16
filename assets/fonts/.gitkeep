@@ -1,0 +1,11 @@
+# Place Chinese font files here for PDF generation.
+#
+# Required files:
+#   NotoSansTC-Regular.ttf   — body text, tables, footer
+#   NotoSansTC-Bold.ttf      — headings, section titles, cover
+#
+# Download from Google Fonts:
+#   https://fonts.google.com/noto/specimen/Noto+Sans+TC
+#
+# These files are NOT committed to git (see .gitignore).
+# On Streamlit Cloud, upload them manually or via git-lfs.

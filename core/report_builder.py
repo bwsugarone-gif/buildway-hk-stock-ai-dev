@@ -11,6 +11,7 @@ from typing import Any, Dict, List
 
 from core.config import APP_NAME, APP_VERSION, USE_AI_ANALYSIS
 from core.llm_provider import LLMProvider, LLMProviderError
+from core.safe_math import safe_number
 from core.utils import format_currency_hkd, format_percentage, get_timestamp
 
 
@@ -24,10 +25,7 @@ RATING_MAP = {
 
 
 def _num(value: Any, default: float = 0.0) -> float:
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return default
+    return safe_number(value, default)
 
 
 def _risk_label(score: float) -> str:
@@ -60,6 +58,9 @@ class ReportBuilder:
         news = report_package.get("news_analysis", {})
         portfolio = report_package.get("portfolio_analysis", {})
         ic = report_package.get("ic_result", {})
+        agent_opinions = report_package.get("agent_opinions", [])
+        agent_status = report_package.get("agent_status", meta.get("agent_status", {}))
+        agent_error_log = report_package.get("agent_error_log", meta.get("agent_error_log", []))
 
         rating = self._final_rating(fin, risk, ic)
         llm_warning = ""
@@ -78,18 +79,21 @@ class ReportBuilder:
                 "version": APP_VERSION,
                 "generated_at": meta.get("generated_at", get_timestamp()),
                 "llm_warning": llm_warning,
+                "analysis_context": meta.get("analysis_context", {}),
+                "stock_code": meta.get("stock_code") or meta.get("ticker") or market.get("ticker"),
             },
             "cover": self._build_cover(meta, market, risk, rating),
             "executive_summary": executive_summary,
             "company_intelligence": self._build_company_intelligence(market),
+            "system_stability": self._build_system_stability(agent_status, agent_error_log),
             "multi_agent_discussion": self._build_multi_agent_discussion(
-                market, fin, risk, news, portfolio, ic, rating
+                market, fin, risk, news, portfolio, ic, rating, agent_opinions
             ),
             "financial_analysis": self._build_financial_analysis(market, history, fin),
             "risk_analysis": self._build_risk_analysis(risk),
             "scenario_analysis": self._build_scenario_analysis(risk),
             "portfolio_view": self._build_portfolio_view(portfolio, risk, rating),
-            "ic_conclusion": self._build_ic_conclusion(ic, risk, rating, llm_warning),
+            "ic_conclusion": self._build_ic_conclusion(ic, risk, rating, llm_warning, fin),
             "disclaimer": self._build_disclaimer(),
         }
 
@@ -129,6 +133,25 @@ class ReportBuilder:
             return fallback_summary, f"DeepSeek narrative unavailable; local fallback used. {exc}"
         return fallback_summary, ""
 
+    def _build_system_stability(
+        self,
+        agent_status: Dict[str, str],
+        agent_error_log: List[str],
+    ) -> Dict[str, Any]:
+        failed_agents = [agent for agent, status in agent_status.items() if status == "失敗"]
+        return {
+            "title": "系統穩定性提示",
+            "has_failures": bool(failed_agents),
+            "message": (
+                "部分 Agent 分析未能完成，系統已自動切換至備援分析流程。部分分析結果可能受限制。"
+                if failed_agents
+                else "所有核心 Agent 已完成分析。"
+            ),
+            "failed_agents": failed_agents,
+            "agent_status": agent_status,
+            "error_log": agent_error_log,
+        }
+
     def _final_rating(self, fin: Dict[str, Any], risk: Dict[str, Any], ic: Dict[str, Any]) -> str:
         risk_score = _num(risk.get("composite_risk_score"), 5)
         upside = _num(fin.get("valuation_range", {}).get("upside_to_mid"), 0)
@@ -154,13 +177,14 @@ class ReportBuilder:
             "brand": "Buildway Tech (HK) Limited",
             "system": "AI Multi-Agent Financial Intelligence System",
             "title": "香港股票智能分析報告",
-            "ticker": meta.get("ticker") or market.get("ticker", "N/A"),
+            "ticker": meta.get("stock_code") or meta.get("ticker") or market.get("ticker", "N/A"),
             "company_name": meta.get("company_name") or market.get("company_name", "N/A"),
             "sector": market.get("sector", "香港上市公司"),
             "report_date": meta.get("generated_at", get_timestamp()),
             "final_rating": rating,
             "risk_score": f"{_num(risk.get('composite_risk_score'), 5):.1f}/10",
             "risk_label": _risk_label(_num(risk.get("composite_risk_score"), 5)),
+            "data_completeness_note": meta.get("data_completeness_note", ""),
         }
 
     def _build_executive_summary(
@@ -227,6 +251,7 @@ class ReportBuilder:
         portfolio: Dict[str, Any],
         ic: Dict[str, Any],
         rating: str,
+        agent_opinions: List[Dict[str, Any]] | None = None,
     ) -> Dict[str, Any]:
         risk_score = _num(risk.get("composite_risk_score"), 5)
         vr = fin.get("valuation_range", {})
@@ -234,48 +259,69 @@ class ReportBuilder:
         health = fin.get("health_score", {})
         sentiment = news.get("sentiment_analysis", {})
 
-        table = [
+        table = agent_opinions if agent_opinions else [
             {
-                "agent": "CEO Agent",
-                "core_view": "完成任務拆解，整合市場、財務、風險、新聞及組合觀點，形成九頁機構式報告。",
-                "risk_warning": "需確保結論只作研究用途，不構成直接投資建議。",
-                "impact": "建立報告框架",
+                "Agent": "CEO Agent",
+                "性格定位": "冷靜、策略性、重紀律",
+                "核心觀點": "完成任務拆解，整合市場、財務、風險、新聞及組合觀點。",
+                "正面因素": "多代理框架已完成交叉檢查。",
+                "主要憂慮": "需確保結論只作研究用途。",
+                "信心分數": "7/10",
+                "對評級影響": "neutral",
             },
             {
-                "agent": "Market Data Agent",
-                "core_view": f"現價HK${_num(market.get('current_price')):.2f}，成交量約{_num(market.get('volume')):,.0f}股，短線需觀察價格與成交配合。",
-                "risk_warning": "股價波動及成交縮減會削弱短期技術確認。",
-                "impact": "影響市場時點",
+                "Agent": "Market Data Agent",
+                "性格定位": "市場敏感、反應快、短線警覺",
+                "核心觀點": f"現價HK${_num(market.get('current_price')):.2f}，成交量約{_num(market.get('volume')):,.0f}股，短線需觀察價格與成交配合。",
+                "正面因素": "價格及成交資料提供即時參考。",
+                "主要憂慮": "股價波動及成交縮減會削弱短期技術確認。",
+                "信心分數": "7/10",
+                "對評級影響": "neutral",
             },
             {
-                "agent": "Financial Analyst Agent",
-                "core_view": f"估值中位數為{_fmt_hkd(vr.get('mid'))}，對現價潛在差距為{_fmt_pct(upside)}；財務健康評級為{health.get('grade', 'N/A')}。",
-                "risk_warning": "DCF及同業倍數需依賴收入、利潤率及現金流假設。",
-                "impact": "影響估值吸引力",
+                "Agent": "Financial Analyst Agent",
+                "性格定位": "重細節、估值導向、質疑弱數據",
+                "核心觀點": f"估值中位數為{_fmt_hkd(vr.get('mid'))}，對現價潛在差距為{_fmt_pct(upside)}；財務健康評級為{health.get('grade', 'N/A')}。",
+                "正面因素": "若現價低於估值中位數，存在估值修復空間。",
+                "主要憂慮": "DCF及同業倍數需依賴收入、利潤率及現金流假設。",
+                "信心分數": "6/10",
+                "對評級影響": "positive" if upside > 0 else "neutral",
             },
             {
-                "agent": "Risk Management Agent",
-                "core_view": f"加權風險分數為{risk_score:.1f}/10，屬{_risk_label(risk_score)}。",
-                "risk_warning": f"首要風險為{self._top_risk_name(risk)}。",
-                "impact": "限制最終評級上限",
+                "Agent": "Risk Management Agent",
+                "性格定位": "保守、審慎、重視隱藏下行",
+                "核心觀點": f"加權風險分數為{risk_score:.1f}/10，屬{_risk_label(risk_score)}。",
+                "正面因素": "若流動性及槓桿受控，下行壓力可管理。",
+                "主要憂慮": f"首要風險為{self._top_risk_name(risk)}。",
+                "信心分數": "8/10",
+                "對評級影響": "negative" if risk_score >= 7 else "neutral",
             },
             {
-                "agent": "News Intelligence Agent",
-                "core_view": f"市場情緒分數為{_num(sentiment.get('score'), 0.5):.2f}，正面與負面訊號需要同步跟蹤。",
-                "risk_warning": "新聞資料仍需與正式公告及業績資料交叉驗證。",
-                "impact": "影響催化判斷",
+                "Agent": "News Intelligence Agent",
+                "性格定位": "好奇、重視事件脈絡、催化因素導向",
+                "核心觀點": f"市場情緒分數為{_num(sentiment.get('score'), 0.5):.2f}，正面與負面訊號需要同步跟蹤。",
+                "正面因素": "正面公告或行業事件可改善市場敘事。",
+                "主要憂慮": "新聞資料仍需與正式公告及業績資料交叉驗證。",
+                "信心分數": "6/10",
+                "對評級影響": "neutral",
             },
             {
-                "agent": "Portfolio Manager Agent",
-                "core_view": f"建議以風險分數調整觀察倉位，模型參考倉位為{_fmt_pct(portfolio.get('suggested_position_pct'))}。",
-                "risk_warning": "倉位控制只作教育及風險管理參考。",
-                "impact": "影響執行尺度",
+                "Agent": "Portfolio Manager Agent",
+                "性格定位": "務實、重視本金保護、倉位敏感",
+                "核心觀點": f"建議以風險分數調整觀察倉位，模型參考倉位為{_fmt_pct(portfolio.get('suggested_position_pct'))}。",
+                "正面因素": "小倉位可保留參與上行的彈性。",
+                "主要憂慮": "倉位控制只作教育及風險管理參考。",
+                "信心分數": "8/10",
+                "對評級影響": "neutral",
             },
             {
-                "agent": "Investment Committee Agent",
-                "core_view": "綜合各代理觀點後，採用審慎、分層監察的結論。",
-                "risk_warning": "若基本面或風險指標惡化，需下調評級。",
-                "impact": f"最終分類：{rating}",
+                "Agent": "Investment Committee Agent",
+                "性格定位": "最終覆核、平衡、嚴格、專業",
+                "核心觀點": "綜合各代理觀點後，採用審慎、分層監察的結論。",
+                "正面因素": "若風險受控且估值合理，可維持觀察或中性偏正面。",
+                "主要憂慮": "若基本面或風險指標惡化，需下調評級。",
+                "信心分數": "7/10",
+                "對評級影響": f"最終分類：{rating}",
             },
         ]
 
@@ -300,6 +346,7 @@ class ReportBuilder:
         return {
             "title": "Financial Analysis",
             "commentary": [
+                fin.get("data_warning", "") or "",
                 f"收入規模：{_fmt_hkd(market.get('revenue_ttm'))}，反映公司當前業務體量。",
                 f"毛利率：{_fmt_pct(market.get('gross_margin'))}；淨利率：{_fmt_pct(market.get('net_margin'))}，用作衡量收入及利潤質量。",
                 f"EBITDA：{_fmt_hkd(market.get('ebitda'))}；淨負債：{_fmt_hkd(metrics.get('net_debt'))}。",
@@ -404,7 +451,10 @@ class ReportBuilder:
         risk: Dict[str, Any],
         rating: str,
         llm_warning: str,
+        fin: Dict[str, Any] | None = None,
     ) -> Dict[str, Any]:
+        fin = fin or {}
+        completeness_note = "資料完整度提示：部分市場或財務資料未能取得，系統已使用保守假設進行分析。" if fin.get("missing_data_flags") else ""
         return {
             "title": "Investment Committee Final Conclusion",
             "final_decision": rating,
@@ -416,6 +466,7 @@ class ReportBuilder:
                 "公司公告、政策變化及行業需求訊號",
             ],
             "data_limitations": "如即時市場資料、最新公告或完整年報資料未能取得，系統會以結構化假設補足分析框架；正式投資判斷仍需核對最新公開資料。",
+            "data_completeness_note": completeness_note,
             "llm_warning": llm_warning,
             "multi_agent_statement": f"經 Multi-Agent Team 綜合討論後，本系統將該股票列為：{rating}",
         }

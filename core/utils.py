@@ -6,14 +6,15 @@ Buildway Tech (HK) Limited — Shared Utility Functions
 import re
 import datetime
 from typing import Optional
+from core.safe_math import safe_divide as _safe_divide
 
 
 def normalize_hk_ticker(ticker: str) -> str:
     """
     Normalize a HK stock ticker to standard yfinance format.
     Examples:
-        '3311'     -> '3311.HK'
-        '3311.HK'  -> '3311.HK'
+        '3416'     -> '3416.HK'
+        '3416.HK'  -> '3416.HK'
         '0700'     -> '0700.HK'
         '700'      -> '0700.HK'
     """
@@ -109,7 +110,7 @@ def validate_hk_ticker(ticker: str) -> tuple[bool, str]:
     if not ticker:
         return False, "請輸入股票代碼"
     if not ticker.isdigit():
-        return False, "香港股票代碼應為數字，例如：3311 或 0700"
+        return False, "香港股票代碼應為數字，例如：3416 或 0700"
     if len(ticker) > 5:
         return False, "股票代碼過長，請檢查輸入"
     return True, ""
@@ -117,9 +118,7 @@ def validate_hk_ticker(ticker: str) -> tuple[bool, str]:
 
 def safe_divide(numerator: float, denominator: float, default: float = 0.0) -> float:
     """Safe division that returns default if denominator is zero."""
-    if denominator == 0 or denominator is None:
-        return default
-    return numerator / denominator
+    return _safe_divide(numerator, denominator, default)
 
 
 def clamp(value: float, min_val: float, max_val: float) -> float:

@@ -6,7 +6,8 @@ Educational only — not financial advice
 """
 
 from typing import Dict, Any, Optional
-from core.utils import safe_divide, clamp, format_percentage
+from core.safe_math import safe_divide, safe_multiply, safe_number
+from core.utils import clamp, format_percentage
 
 
 class PortfolioManagerAgent:
@@ -51,14 +52,16 @@ class PortfolioManagerAgent:
         financial_analysis: Dict[str, Any],
         risk_preference: str = "中等",
         portfolio_size_hkd: Optional[float] = None,
+        analysis_context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Main entry point. Generate position sizing recommendation.
         portfolio_size_hkd: Optional total portfolio size in HKD for dollar amounts.
         """
-        ticker = market_data.get("ticker", "N/A")
-        risk_score = risk_analysis.get("composite_risk_score", 5)
-        current_price = market_data.get("current_price", 0)
+        ticker = (analysis_context or {}).get("stock_code") or market_data.get("ticker", "N/A")
+        print(f"[Portfolio Manager Agent] Received stock_code = {ticker}")
+        risk_score = safe_number(risk_analysis.get("composite_risk_score"), 5)
+        current_price = safe_number(market_data.get("current_price"))
 
         framework = self.POSITION_FRAMEWORKS.get(risk_preference, self.POSITION_FRAMEWORKS["中等"])
 
@@ -164,15 +167,15 @@ class PortfolioManagerAgent:
         current_price: float,
     ) -> Dict[str, Any]:
         """Calculate dollar amounts for position sizing."""
-        position_value = portfolio_size * position_pct
-        shares = int(position_value / current_price) if current_price > 0 else 0
+        position_value = safe_multiply(portfolio_size, position_pct)
+        shares = int(safe_divide(position_value, current_price)) if current_price > 0 else 0
 
         # HK stocks trade in board lots (typically 500 or 1000 shares)
         # Simplified: assume 500 share lots
         board_lot = 500
         lots = max(1, round(shares / board_lot))
         actual_shares = lots * board_lot
-        actual_value = actual_shares * current_price
+        actual_value = safe_multiply(actual_shares, current_price)
 
         return {
             "portfolio_size_hkd": portfolio_size,
@@ -191,16 +194,16 @@ class PortfolioManagerAgent:
         financial_analysis: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Compute risk-adjusted return metrics."""
-        beta = market_data.get("beta", 1.0) or 1.0
-        dividend_yield = market_data.get("dividend_yield", 0) or 0
-        risk_score = risk_analysis.get("composite_risk_score", 5)
+        beta = safe_number(market_data.get("beta"), 1.0) or 1.0
+        dividend_yield = safe_number(market_data.get("dividend_yield"))
+        risk_score = safe_number(risk_analysis.get("composite_risk_score"), 5)
 
         # Simplified Sharpe-like ratio (educational)
         # Assume risk-free rate = 4% (HK)
         risk_free = 0.04
         expected_return = dividend_yield + 0.08  # dividend + assumed capital gain
         excess_return = expected_return - risk_free
-        volatility_proxy = beta * 0.20  # rough proxy
+        volatility_proxy = safe_multiply(beta, 0.20)  # rough proxy
 
         sharpe_proxy = safe_divide(excess_return, volatility_proxy)
 

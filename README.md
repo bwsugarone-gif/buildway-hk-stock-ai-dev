@@ -105,7 +105,32 @@ git push origin main
 3. Set main file: `app.py`
 4. Deploy
 
-### 3. Secrets (optional for DEV)
+### 3. Chinese Font Setup (Required for PDF)
+
+PDF Traditional Chinese rendering requires a CJK-compatible font.
+The system checks for fonts in this priority order:
+
+1. **Bundled fonts** (cross-platform, works on Streamlit Cloud):
+   ```
+   assets/fonts/NotoSansTC-Regular.ttf
+   assets/fonts/NotoSansTC-Bold.ttf
+   ```
+2. **Windows system fonts** (local dev only, auto-detected):
+   - `C:/Windows/Fonts/msjh.ttc` (Microsoft JhengHei)
+   - `C:/Windows/Fonts/msjhbd.ttc` (Microsoft JhengHei Bold)
+
+**For Streamlit Cloud deployment**, you must upload the Noto Sans TC font files to `assets/fonts/`. Windows system fonts are not available in cloud environments and Chinese text will appear as black boxes without a bundled font.
+
+Download Noto Sans TC from Google Fonts:
+https://fonts.google.com/noto/specimen/Noto+Sans+TC
+
+Place these two files in `assets/fonts/`:
+- `NotoSansTC-Regular.ttf`
+- `NotoSansTC-Bold.ttf`
+
+> Note: Font files are excluded from git by default. Add them to your repository or upload them separately to your deployment environment.
+
+### 4. Secrets (optional for DEV)
 
 In Streamlit Cloud, add secrets under **Settings → Secrets**:
 

@@ -31,8 +31,27 @@ def _get_secret(key: str, default: str = "") -> str:
 # ─── App Identity ────────────────────────────────────────────────────────────
 APP_NAME = "Buildway Tech (HK) Limited"
 APP_SUBTITLE = "香港股票智能分析系統 — DEV 試用版"
-APP_VERSION = "DEV v1.0"
+APP_VERSION = "DEV v0.2"
 APP_LANG = "zh-HK"
+
+# ─── Build Version (auto-resolved from git, falls back to static) ─────────────
+def _get_git_commit() -> str:
+    """Return short git commit hash for version display."""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True, text=True, timeout=3,
+            cwd=str(Path(__file__).resolve().parent.parent),
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except Exception:
+        pass
+    return "unknown"
+
+BUILD_COMMIT = _get_git_commit()
+BUILD_VERSION = f"{APP_VERSION} ({BUILD_COMMIT})"
 
 # ─── Asset Paths ─────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent

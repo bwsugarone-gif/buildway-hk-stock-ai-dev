@@ -13,7 +13,7 @@ from datetime import datetime
 import streamlit as st
 
 from agents.ceo_agent import CEOAgent
-from core.config import APP_NAME, APP_VERSION, LOGO_PATH
+from core.config import APP_NAME, APP_VERSION, BUILD_VERSION, BUILD_COMMIT, LOGO_PATH
 from core.pdf_generator import PDFGenerator
 from core.report_builder import ReportBuilder
 from core.utils import normalize_hk_ticker
@@ -112,6 +112,10 @@ with st.sidebar:
     )
 
     generate_btn = st.button("生成機構級PDF報告", type="primary", use_container_width=True)
+
+    st.divider()
+    st.caption(f"Build: {BUILD_VERSION}")
+    st.caption(f"Commit: {BUILD_COMMIT}")
 
 
 if generate_btn:
@@ -239,5 +243,5 @@ else:
 
 
 st.divider()
-st.caption(f"© 2026 {APP_NAME} | {APP_VERSION}")
+st.caption(f"© 2026 {APP_NAME} | {BUILD_VERSION}")
 st.caption("本系統只作教育、研究及客戶試用用途，不構成投資建議。")

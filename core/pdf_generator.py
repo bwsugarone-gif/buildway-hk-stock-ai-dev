@@ -98,10 +98,16 @@ class FontManager:
 class PDFGenerator:
     """Render a nine-page institutional investment report."""
 
-    def __init__(self, logo_path: str | None = None):
+    def __init__(self, logo_path: str | None = None, build_version: str = ""):
         self.logo_path = str(logo_path) if logo_path else None
         self.font_name, self.bold_font_name = FontManager.setup()
         self.styles = self._styles()
+        # Build version shown in PDF footer for cross-platform consistency checks
+        try:
+            from core.config import BUILD_VERSION
+            self.build_version = BUILD_VERSION
+        except Exception:
+            self.build_version = build_version or ""
 
     def generate(self, report_sections: Dict[str, Any], output_path: str) -> str:
         doc = SimpleDocTemplate(
@@ -234,6 +240,9 @@ class PDFGenerator:
         canvas.setFont(self.font_name, 8)
         canvas.setFillColor(MUTED)
         canvas.drawString(1.55 * cm, 1.0 * cm, "Buildway Tech (HK) Limited")
+        # Centre: build version for cross-platform consistency verification
+        if self.build_version:
+            canvas.drawCentredString(A4[0] / 2, 1.0 * cm, self.build_version)
         canvas.drawRightString(A4[0] - 1.55 * cm, 1.0 * cm, f"Page {doc.page}")
         canvas.setStrokeColor(MID_GREY)
         canvas.line(1.55 * cm, 1.25 * cm, A4[0] - 1.55 * cm, 1.25 * cm)

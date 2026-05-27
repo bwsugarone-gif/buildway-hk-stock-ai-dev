@@ -78,11 +78,41 @@ def _inject_css() -> None:
                 color: #d7e1ef !important;
             }
 
+            section[data-testid="stSidebar"] label {
+                color: #e5edf7 !important;
+            }
+
+            .stTextInput input {
+                color: #0f172a !important;
+                background-color: #ffffff !important;
+                opacity: 1 !important;
+                -webkit-text-fill-color: #0f172a !important;
+            }
+
+            .stTextInput input::placeholder {
+                color: #64748b !important;
+                opacity: 1 !important;
+                -webkit-text-fill-color: #64748b !important;
+            }
+
+            .stNumberInput input {
+                color: #0f172a !important;
+                background-color: #ffffff !important;
+                opacity: 1 !important;
+                -webkit-text-fill-color: #0f172a !important;
+            }
+
+            .stSelectbox div[data-baseweb="select"] {
+                color: #0f172a !important;
+            }
+
             [data-testid="stSidebar"] input,
             [data-testid="stSidebar"] div[data-baseweb="select"] > div {
-                background: rgba(255, 255, 255, 0.08);
-                border-color: rgba(255, 255, 255, 0.22);
-                color: #ffffff;
+                background-color: #ffffff !important;
+                border-color: rgba(255, 255, 255, 0.35);
+                color: #0f172a !important;
+                opacity: 1 !important;
+                -webkit-text-fill-color: #0f172a !important;
             }
 
             .stButton > button,
@@ -241,7 +271,6 @@ def _inject_css() -> None:
             }
 
             .bw-status-grid,
-            .bw-agent-grid,
             .bw-company-grid {
                 display: grid;
                 gap: 0.75rem;
@@ -267,42 +296,9 @@ def _inject_css() -> None:
                 font-size: 0.9rem;
             }
 
-            .bw-agent-card {
-                background: #ffffff;
-                border: 1px solid var(--bw-line);
-                border-radius: 8px;
-                padding: 1rem;
-                box-shadow: 0 10px 26px rgba(16, 39, 74, 0.05);
-            }
-
-            .bw-agent-top {
-                display: flex;
-                flex-wrap: wrap;
-                align-items: flex-start;
-                justify-content: space-between;
-                gap: 0.5rem;
-                margin-bottom: 0.6rem;
-            }
-
-            .bw-agent-name {
-                color: var(--bw-navy);
-                font-weight: 900;
-                font-size: 1rem;
-            }
-
             .bw-agent-role {
                 color: var(--bw-muted);
                 font-size: 0.84rem;
-            }
-
-            .bw-badge {
-                border-radius: 999px;
-                background: #eef4ff;
-                color: var(--bw-navy);
-                padding: 0.28rem 0.65rem;
-                font-size: 0.78rem;
-                font-weight: 800;
-                white-space: nowrap;
             }
 
             .bw-confidence {
@@ -320,12 +316,6 @@ def _inject_css() -> None:
                 margin: 0.45rem 0 0.15rem;
                 white-space: normal;
                 line-height: 1.25;
-            }
-
-            .bw-agent-card p {
-                color: #354052;
-                line-height: 1.55;
-                margin: 0.25rem 0;
             }
 
             .bw-callout {
@@ -420,9 +410,6 @@ def _inject_css() -> None:
                     grid-template-columns: repeat(3, minmax(0, 1fr));
                 }
 
-                .bw-agent-grid {
-                    grid-template-columns: repeat(2, minmax(0, 1fr));
-                }
             }
         </style>
         """,
@@ -480,26 +467,20 @@ def _status_cards() -> None:
 
 
 def _agent_discussion_cards(rows: list[dict[str, Any]]) -> None:
-    cards = []
     for item in rows:
-        cards.append(
-            f"""
-            <div class="bw-agent-card">
-                <div class="bw-agent-top">
-                    <div>
-                        <div class="bw-agent-name">{_escape(item.get("Agent"))}</div>
-                        <div class="bw-agent-role">{_escape(item.get("性格定位"))}</div>
-                    </div>
-                    <div class="bw-badge">信心 {_escape(item.get("信心分數"))}</div>
-                </div>
-                <p><strong>核心觀點：</strong>{_escape(item.get("核心觀點"))}</p>
-                <p><strong>正面因素：</strong>{_escape(item.get("正面因素"))}</p>
-                <p><strong>主要憂慮：</strong>{_escape(item.get("主要憂慮"))}</p>
-                <p><strong>評級影響：</strong>{_escape(item.get("對評級影響"))}</p>
-            </div>
-            """
-        )
-    st.markdown(f'<div class="bw-agent-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            agent_name = _escape(item.get("Agent"))
+            personality = _escape(item.get("性格定位"))
+            confidence = _escape(item.get("信心分數"))
+            st.markdown(f"**{agent_name}**")
+            if personality:
+                st.caption(personality)
+            if confidence:
+                st.caption(f"信心 {confidence}")
+            st.markdown(f"**核心觀點：** {_escape(item.get('核心觀點'))}")
+            st.markdown(f"**正面因素：** {_escape(item.get('正面因素'))}")
+            st.markdown(f"**主要憂慮：** {_escape(item.get('主要憂慮'))}")
+            st.markdown(f"**評級影響：** {_escape(item.get('對評級影響'))}")
 
 
 def _company_cards(rows: list[tuple[Any, Any]]) -> None:

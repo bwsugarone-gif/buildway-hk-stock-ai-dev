@@ -245,6 +245,23 @@ def _company_cards(rows: list[tuple[Any, Any]]) -> None:
                 st.caption(_escape(value))
 
 
+def _company_profile_panel(cover: dict[str, Any]) -> None:
+    _section_title("Company profile", "公司資料", "資料只來自市場資料供應商或本地HK stock master database。")
+    profile_rows = [
+        ("中文公司名", cover.get("company_name_zh") or cover.get("company_name") or "資料待補充"),
+        ("英文名", cover.get("company_name_en") or "資料待補充"),
+        ("行業", cover.get("sector") or "資料待補充"),
+        ("主營業務", cover.get("business") or "資料待補充"),
+        ("市場分類", cover.get("market_type") or "資料待補充"),
+    ]
+    columns = st.columns(2)
+    for index, (label, value) in enumerate(profile_rows):
+        with columns[index % 2]:
+            with st.container(border=True):
+                st.markdown(f"**{label}**")
+                st.caption(str(value))
+
+
 def _confidence_badge(label: str) -> None:
     text = label or "🟡 部分資料缺失"
     if "高可信度" in text:
@@ -472,6 +489,8 @@ if st.session_state.report_sections:
         st.markdown(f"**{_escape(company_name_preview)} | {_escape(cover.get('ticker', 'N/A'))}**")
         st.caption(_escape(cover.get("data_confidence_label", "")))
         st.caption(_escape(sector_preview))
+
+    _company_profile_panel(cover)
 
     if st.session_state.pdf_path and os.path.exists(st.session_state.pdf_path):
         with open(st.session_state.pdf_path, "rb") as pdf_file:

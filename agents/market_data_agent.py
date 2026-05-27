@@ -5,6 +5,8 @@ Role: Fetch live or fallback market data for HK stocks
 DEV version uses yfinance with graceful fallback to demo data
 """
 
+import json
+from pathlib import Path
 from typing import Dict, Any, Optional
 from core.data_confidence import (
     HIGH,
@@ -21,6 +23,9 @@ from data.sample_data import SAMPLE_HK_STOCKS, get_sample_market_data, get_sampl
 from core.utils import normalize_hk_ticker, format_currency_hkd, format_percentage
 
 
+MASTER_DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "hk_stock_master_data.json"
+
+
 class MarketDataAgent:
     """
     Market Data Agent
@@ -33,6 +38,7 @@ class MarketDataAgent:
 
     def __init__(self):
         self._yfinance_available = self._check_yfinance()
+        self._master_data = self._load_master_data()
 
     def _check_yfinance(self) -> bool:
         """Check if yfinance is available."""
@@ -41,6 +47,56 @@ class MarketDataAgent:
             return True
         except ImportError:
             return False
+
+    def _load_master_data(self) -> Dict[str, Dict[str, Any]]:
+        try:
+            with open(MASTER_DATA_PATH, "r", encoding="utf-8") as file:
+                return json.load(file)
+        except Exception as exc:
+            print(f"[Market Data Agent] HK stock master data unavailable: {exc}")
+            return {}
+
+    def _get_company_metadata(self, ticker: str) -> Dict[str, Any]:
+        return dict(self._master_data.get(normalize_hk_ticker(ticker), {}))
+
+    def _apply_company_metadata(
+        self,
+        data: Dict[str, Any],
+        metadata: Dict[str, Any],
+        company_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        if not metadata:
+            return data
+
+        data["company_metadata"] = metadata
+        data["company_name"] = company_name or data.get("company_name") or metadata.get("name_zh") or ""
+        data["company_name_zh"] = metadata.get("name_zh", data.get("company_name_zh", ""))
+        data["company_name_en"] = metadata.get("name_en", data.get("company_name_en", ""))
+        data["sector"] = data.get("sector") or metadata.get("sector", "")
+        data["business"] = metadata.get("business", data.get("business", ""))
+        data["market_type"] = metadata.get("market_type", data.get("market_type", ""))
+        data["metadata_source"] = "hk_stock_master_data"
+        return data
+
+    def _metadata_only_market_data(
+        self,
+        ticker: str,
+        company_name: Optional[str],
+        reason: str,
+    ) -> Dict[str, Any]:
+        metadata = self._get_company_metadata(ticker)
+        data = {
+            "ticker": ticker,
+            "data_source": "HK stock master metadata fallback",
+            "is_demo": True,
+            "currency": "HKD",
+            "exchange": "HKEX",
+            "company_name": company_name or metadata.get("name_zh", ""),
+            "sector": metadata.get("sector", ""),
+            "fallback_reason": reason,
+            "missing_data_flags": ["market_price_unavailable", "market_cap_unavailable"],
+        }
+        return self._apply_company_metadata(data, metadata, company_name)
 
     def fetch(
         self,
@@ -54,27 +110,39 @@ class MarketDataAgent:
         """
         normalized = (analysis_context or {}).get("stock_code") or normalize_hk_ticker(ticker)
         print(f"[Market Data Agent] Received stock_code = {normalized}")
+        metadata = self._get_company_metadata(normalized)
 
         if self._yfinance_available:
             try:
                 result = self._fetch_live(normalized, company_name)
                 result["ticker"] = normalized
-                result["company_name"] = company_name or result.get("company_name") or ""
+                result = self._apply_company_metadata(result, metadata, company_name)
+                result["company_name"] = company_name or result.get("company_name") or metadata.get("name_zh", "")
                 return self._finalize_market_data(result)
             except Exception as e:
-                if normalized not in SAMPLE_HK_STOCKS:
+                if normalized not in SAMPLE_HK_STOCKS and not metadata:
                     return invalid_market_data(normalized, str(e))
-                result = get_sample_market_data(normalized)
+                result = (
+                    get_sample_market_data(normalized)
+                    if normalized in SAMPLE_HK_STOCKS
+                    else self._metadata_only_market_data(normalized, company_name, str(e))
+                )
                 result["fallback_reason"] = str(e)
                 result["ticker"] = normalized
-                result["company_name"] = company_name or result.get("company_name") or ""
+                result = self._apply_company_metadata(result, metadata, company_name)
+                result["company_name"] = company_name or result.get("company_name") or metadata.get("name_zh", "")
                 return self._finalize_market_data(result)
 
-        if normalized not in SAMPLE_HK_STOCKS:
+        if normalized not in SAMPLE_HK_STOCKS and not metadata:
             return invalid_market_data(normalized, "yfinance unavailable and ticker is outside validated sample universe.")
-        result = get_sample_market_data(normalized)
+        result = (
+            get_sample_market_data(normalized)
+            if normalized in SAMPLE_HK_STOCKS
+            else self._metadata_only_market_data(normalized, company_name, "yfinance unavailable")
+        )
         result["ticker"] = normalized
-        result["company_name"] = company_name or result.get("company_name") or ""
+        result = self._apply_company_metadata(result, metadata, company_name)
+        result["company_name"] = company_name or result.get("company_name") or metadata.get("name_zh", "")
         return self._finalize_market_data(result)
 
     def _sanitize_numeric_fields(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -126,10 +194,9 @@ class MarketDataAgent:
         if not info:
             raise ValueError(f"無法獲取 {ticker} 的實時數據")
 
-        has_metadata = any(info.get(key) for key in ("longName", "shortName", "symbol", "quoteType", "exchange"))
         has_price = info.get("regularMarketPrice") is not None or info.get("currentPrice") is not None
         has_market_cap = info.get("marketCap") is not None
-        if not has_metadata or not has_price or not has_market_cap:
+        if not has_price and not has_market_cap and not self._get_company_metadata(ticker):
             raise ValueError(f"{ticker} 缺少有效股票元數據")
 
         # Map yfinance fields to our standard schema
@@ -138,9 +205,9 @@ class MarketDataAgent:
             "data_source": "Yahoo Finance (實時數據)",
             "is_demo": False,
             "currency": info.get("currency", "HKD"),
-            "exchange": info.get("exchange", "HKEX"),
-            "company_name": company_name or info.get("longName") or info.get("shortName", ticker),
-            "sector": info.get("sector") or info.get("industry", "未知行業"),
+            "exchange": info.get("exchange") or "HKEX",
+            "company_name": company_name or info.get("longName") or info.get("shortName") or "",
+            "sector": info.get("sector") or info.get("industry") or "",
             "current_price": info.get("regularMarketPrice") or info.get("currentPrice", 0),
             "prev_close": info.get("regularMarketPreviousClose") or info.get("previousClose", 0),
             "day_high": info.get("dayHigh") or info.get("regularMarketDayHigh", 0),

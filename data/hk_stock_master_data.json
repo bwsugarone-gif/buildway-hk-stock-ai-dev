@@ -1,0 +1,65 @@
+{
+  "0700.HK": {
+    "name_zh": "騰訊控股",
+    "name_en": "Tencent Holdings",
+    "sector": "科技",
+    "business": "社交平台、遊戲、雲服務、金融科技及企業服務",
+    "market_type": "大型科技股"
+  },
+  "9988.HK": {
+    "name_zh": "阿里巴巴集團",
+    "name_en": "Alibaba Group Holding",
+    "sector": "科技 / 電子商貿",
+    "business": "電子商貿、雲計算、本地生活服務及數字媒體",
+    "market_type": "大型科技股"
+  },
+  "0005.HK": {
+    "name_zh": "匯豐控股",
+    "name_en": "HSBC Holdings",
+    "sector": "金融 / 銀行",
+    "business": "零售銀行、工商金融、環球銀行及財富管理",
+    "market_type": "大型金融股"
+  },
+  "0941.HK": {
+    "name_zh": "中國移動",
+    "name_en": "China Mobile",
+    "sector": "電訊",
+    "business": "移動通信、寬頻、數據中心、雲服務及企業通信方案",
+    "market_type": "大型電訊股"
+  },
+  "1299.HK": {
+    "name_zh": "友邦保險",
+    "name_en": "AIA Group",
+    "sector": "金融 / 保險",
+    "business": "人壽保險、健康保障、儲蓄及退休保障產品",
+    "market_type": "大型保險股"
+  },
+  "1810.HK": {
+    "name_zh": "小米集團",
+    "name_en": "Xiaomi Corporation",
+    "sector": "科技 / 消費電子",
+    "business": "智能手機、IoT與生活消費產品、互聯網服務及智能電動車相關業務",
+    "market_type": "大型科技股"
+  },
+  "3690.HK": {
+    "name_zh": "美團",
+    "name_en": "Meituan",
+    "sector": "科技 / 本地生活",
+    "business": "本地生活服務、外賣、到店酒旅、新業務及數字化商戶服務",
+    "market_type": "大型科技股"
+  },
+  "9618.HK": {
+    "name_zh": "京東集團",
+    "name_en": "JD.com",
+    "sector": "科技 / 電子商貿",
+    "business": "自營電商、物流、供應鏈服務、零售科技及平台服務",
+    "market_type": "大型科技股"
+  },
+  "3416.HK": {
+    "name_zh": "保興財務集團",
+    "name_en": "Build King / Local financial services reference",
+    "sector": "金融 / 其他金融",
+    "business": "金融服務及相關業務；具體收入結構需以公司公告及年報核對",
+    "market_type": "小型金融股"
+  }
+}

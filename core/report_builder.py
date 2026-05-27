@@ -191,7 +191,12 @@ class ReportBuilder:
             "title": "香港股票智能分析報告",
             "ticker": meta.get("stock_code") or meta.get("ticker") or market.get("ticker", "N/A"),
             "company_name": meta.get("company_name") or market.get("company_name") or "資料驗證未完成",
+            "company_name_zh": market.get("company_name_zh") or market.get("company_name") or "",
+            "company_name_en": market.get("company_name_en", ""),
             "sector": market.get("sector") or "資料驗證未完成",
+            "business": market.get("business", ""),
+            "market_type": market.get("market_type", ""),
+            "metadata_source": market.get("metadata_source", ""),
             "report_date": meta.get("generated_at", get_timestamp()),
             "final_rating": rating,
             "risk_score": f"{_num(risk.get('composite_risk_score'), 5):.1f}/10",
@@ -257,6 +262,11 @@ class ReportBuilder:
         ticker = market.get("ticker", "N/A")
         name = market.get("company_name", ticker)
         sector = market.get("sector", "香港上市公司")
+        metadata = market.get("company_metadata", {}) or {}
+        name_zh = market.get("company_name_zh") or metadata.get("name_zh") or name
+        name_en = market.get("company_name_en") or metadata.get("name_en") or ""
+        business = market.get("business") or metadata.get("business") or ""
+        market_type = market.get("market_type") or metadata.get("market_type") or ""
 
         if market.get("data_confidence") == INVALID:
             return {
@@ -274,8 +284,11 @@ class ReportBuilder:
             return {
                 "title": "公司基本面與業務分析",
                 "rows": [
-                    ("公司名稱", f"{name}（{ticker}）"),
+                    ("中文公司名", f"{name_zh}（{ticker}）"),
+                    ("英文名", name_en or "資料待補充"),
                     ("行業分類", sector),
+                    ("主營業務", business or "資料待補充"),
+                    ("市場分類", market_type or "資料待補充"),
                     ("資料可信度", market.get("data_confidence_label", confidence_label(market.get("data_confidence", "LOW")))),
                     ("資料提示", note),
                 ],
@@ -284,14 +297,13 @@ class ReportBuilder:
         return {
             "title": "公司基本面與業務分析",
             "rows": [
-                ("公司簡介", f"{name}（{ticker}）為香港上市公司。本節根據股票代號、行業分類及可取得市場資料建立結構化基本面分析。"),
-                ("主要業務", f"公司主要業務與「{sector}」相關，收入與行業景氣、項目執行能力及資本周轉效率有密切關係。"),
-                ("核心產品 / 服務", "核心產品或服務包括主營業務交付、客戶項目服務、資產或平台營運，以及與行業需求相關的配套服務。"),
-                ("收入來源", "收入主要來自主營業務合約、項目結算、服務費或產品銷售。實際收入結構需以最新年報及公告作進一步核對。"),
-                ("行業定位", f"公司處於{sector}板塊，投資者應比較其規模、毛利率、資產負債水平及現金流穩定性。"),
-                ("未來發展方向", "未來發展重點包括提升營運效率、優化資本結構、加強現金流管理及把握行業周期復甦機會。"),
-                ("主要增長動力", "潛在動力包括訂單改善、利潤率修復、融資成本回落、行業政策支持及估值修復。"),
-                ("主要挑戰", "主要挑戰包括需求波動、利率及融資環境、項目回款周期、政策變化及市場風險偏好下降。"),
+                ("中文公司名", f"{name_zh}（{ticker}）"),
+                ("英文名", name_en or "資料待補充"),
+                ("行業分類", sector),
+                ("主營業務", business or "資料待補充"),
+                ("市場分類", market_type or "資料待補充"),
+                ("資料來源", market.get("metadata_source") or "market data provider"),
+                ("分析邊界", "公司資料只引用市場資料供應商或本地HK stock master database，不由LLM生成。"),
             ],
         }
 

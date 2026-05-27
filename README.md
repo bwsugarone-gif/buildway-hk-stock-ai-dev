@@ -1,5 +1,5 @@
 # Buildway Tech (HK) Limited
-## 香港股票智能分析系統 — DEV Client Trial Version
+## 香港股票智能分析系統 — v0.3.0 Production Stability Layer
 
 Multi-Agent Stock Analysis & Risk Report System for Hong Kong equities.
 
@@ -7,11 +7,11 @@ Multi-Agent Stock Analysis & Risk Report System for Hong Kong equities.
 
 ## Overview
 
-This is the **DEV client trial version** of the Buildway Tech HK stock intelligence platform. It uses a multi-agent architecture to analyze Hong Kong-listed stocks and generate professional PDF risk reports in Traditional Chinese.
+This is **v0.3.0 Production Stability Layer** of the Buildway Tech HK stock intelligence platform. It uses a multi-agent architecture to analyze Hong Kong-listed stocks and generate professional PDF risk reports in Traditional Chinese.
 
-**Current Phase:** DEV (Demo data, no live API required)  
-**Next Phase:** 2.5 — Live market data + news API integration  
-**Final Phase:** 3.0 — Full production deployment
+**Current Version:** v0.3.0 — Production Stability Layer  
+**Previous Phase:** DEV v0.2  
+**LLM Provider:** DeepSeek only (Claude not activated)
 
 ---
 
@@ -177,11 +177,60 @@ NEWS_API_KEY = "your_key_here"
 
 ---
 
+## v0.3.0 Deployment Checklist
+
+Use this checklist after every code change to ensure cross-platform consistency.
+
+### After every fix
+
+- [ ] **1. Local test** — Run `streamlit run app.py`, test with: `3416`, `700`, `0005`, `9988`, `12345`
+- [ ] **2. Verify PDF** — Download PDF, open on desktop, confirm Chinese text is not garbled (no □ boxes)
+- [ ] **3. Check logs** — Console must show `[APP]`, `[CEO Agent]`, `[Financial Agent]`, `[Risk]`, `[PDF]` stock_code lines
+- [ ] **4. Verify version** — Sidebar must show `v0.3.0 — Production Stability Layer` and today's date
+- [ ] **5. Git commit** — `git add . && git commit -m "..."` with a clear message
+- [ ] **6. Git push** — `git push origin main`
+- [ ] **7. Streamlit Cloud** — Go to share.streamlit.io → your app → **Reboot app** (or Rerun)
+- [ ] **8. Desktop browser test** — Open app URL in Chrome/Edge on desktop, generate report, download PDF
+- [ ] **9. Mobile browser test** — Open same URL on mobile browser (iOS Safari or Android Chrome), generate report, download PDF
+- [ ] **10. PDF Chinese check (mobile)** — Open downloaded PDF on mobile, confirm Traditional Chinese renders correctly
+
+### Stock code normalization expected outputs
+
+| Input | Expected normalized | Notes |
+|-------|-------------------|-------|
+| `3416` | `3416.HK` | No leading zero — correct |
+| `3416.HK` | `3416.HK` | Already normalized |
+| `03416` | `3416.HK` | 5-digit with leading 0 → strip |
+| `700` | `0700.HK` | Pad to 4 digits |
+| `0005` | `0005.HK` | Keep leading zero |
+| `9988` | `9988.HK` | Normal 4-digit |
+| `12345` | `12345.HK` | Invalid but no crash — uses fallback data |
+
+### Agent status values (v0.3.0)
+
+| Status | Meaning |
+|--------|---------|
+| 等待 | Not yet started |
+| 執行中 | Running |
+| 完成 | Successfully completed |
+| 備援 | Failed but fallback data used — report continues |
+| 失敗 | No fallback available (should never occur in normal flow) |
+
+### PDF Chinese font priority (v0.3.0)
+
+1. `assets/fonts/NotoSansTC-Regular.ttf` — bundled (cross-platform, Streamlit Cloud safe)
+2. Auto-download from GitHub if bundled font missing (first run on cloud)
+3. Windows system fonts (`C:\Windows\Fonts\msjh.ttc`) — local dev fallback
+4. Helvetica — last resort (Chinese shows as □ — should never reach this)
+
+---
+
 ## Version History
 
 | Version | Date | Notes |
 |---------|------|-------|
-| 1.0.0-dev | 2026-05 | Initial DEV client trial release |
+| v0.3.0 | 2026-05-27 | Production Stability Layer — font auto-download, agent failsafe, stock code consistency |
+| DEV v0.2 | 2026-05 | Phase 2.0 DEV client trial release |
 
 ---
 

@@ -43,17 +43,35 @@ class FontManager:
     """Register a Unicode-compatible Traditional Chinese font for ReportLab.
 
     Font search order:
-    1. assets/fonts/ bundled TTF files (works on all platforms including cloud)
-    2. Windows system fonts (local Windows machines only)
-    3. Fallback to Helvetica (no CJK support — will show boxes for Chinese)
+    1. assets/fonts/ bundled TTF files (highest priority — cross-platform)
+    2. Auto-download NotoSansTC from Google Fonts CDN (Streamlit Cloud / any platform)
+    3. Windows system fonts (local Windows fallback)
+    4. Last resort: Helvetica (no CJK — shows boxes for Chinese)
     """
 
-    # (font_name, path, is_bold)
-    CANDIDATES = [
-        # ── Bundled fonts (highest priority — cross-platform) ─────────────────
-        ("NotoSansTC",     os.path.join("assets", "fonts", "NotoSansTC-Regular.ttf"), False),
-        ("NotoSansTCBold", os.path.join("assets", "fonts", "NotoSansTC-Bold.ttf"),    True),
-        # ── Windows system fonts (fallback for local dev) ─────────────────────
+    # Resolved path for bundled fonts (relative to this file's package root)
+    _BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    _FONTS_DIR = os.path.join(_BASE_DIR, "assets", "fonts")
+
+    # Google Fonts CDN URLs for NotoSansTC (subset with Traditional Chinese coverage)
+    # These are stable static URLs that work without an API key
+    NOTO_URLS = {
+        "NotoSansTC-Regular.ttf": (
+            "https://github.com/google/fonts/raw/main/ofl/notosanstc/NotoSansTC%5Bwght%5D.ttf"
+        ),
+        "NotoSansTC-Bold.ttf": (
+            "https://github.com/google/fonts/raw/main/ofl/notosanstc/NotoSansTC%5Bwght%5D.ttf"
+        ),
+    }
+
+    # (font_name, filename_under_assets_fonts, is_bold)
+    BUNDLED = [
+        ("NotoSansTC",     "NotoSansTC-Regular.ttf", False),
+        ("NotoSansTCBold", "NotoSansTC-Bold.ttf",    True),
+    ]
+
+    # Windows system fonts (fallback for local dev without bundled fonts)
+    WINDOWS_CANDIDATES = [
         ("MicrosoftJhengHei",     r"C:\Windows\Fonts\msjh.ttc",   False),
         ("MicrosoftJhengHeiUI",   r"C:\Windows\Fonts\msjhl.ttc",  False),
         ("MicrosoftJhengHeiBold", r"C:\Windows\Fonts\msjhbd.ttc", True),
@@ -63,35 +81,111 @@ class FontManager:
     ]
 
     @classmethod
+    def _ensure_fonts_dir(cls) -> None:
+        os.makedirs(cls._FONTS_DIR, exist_ok=True)
+
+    @classmethod
+    def _try_download_noto(cls) -> bool:
+        """Attempt to download NotoSansTC variable font from GitHub.
+        Returns True if at least the regular font is available after download."""
+        import urllib.request
+        cls._ensure_fonts_dir()
+        # The variable font file serves as both regular and bold
+        vf_filename = "NotoSansTC-Regular.ttf"
+        vf_path = os.path.join(cls._FONTS_DIR, vf_filename)
+        bold_path = os.path.join(cls._FONTS_DIR, "NotoSansTC-Bold.ttf")
+
+        if os.path.exists(vf_path) and os.path.getsize(vf_path) > 100_000:
+            print(f"[FontManager] Bundled font already present: {vf_path}")
+            # Also ensure bold symlink/copy exists
+            if not os.path.exists(bold_path):
+                import shutil
+                shutil.copy2(vf_path, bold_path)
+            return True
+
+        url = cls.NOTO_URLS[vf_filename]
+        try:
+            print(f"[FontManager] Downloading NotoSansTC from GitHub...")
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = resp.read()
+            if len(data) < 100_000:
+                print(f"[FontManager] Download too small ({len(data)} bytes), skipping.")
+                return False
+            with open(vf_path, "wb") as f:
+                f.write(data)
+            # Use same file for bold (variable font covers all weights)
+            import shutil
+            shutil.copy2(vf_path, bold_path)
+            print(f"[FontManager] Downloaded NotoSansTC ({len(data)//1024}KB) → {vf_path}")
+            return True
+        except Exception as exc:
+            print(f"[FontManager] Download failed: {exc}")
+            return False
+
+    @classmethod
     def setup(cls) -> tuple[str, str]:
         primary = None
         bold = None
 
-        for name, path, is_bold in cls.CANDIDATES:
-            if not os.path.exists(path):
+        # ── 1. Try bundled fonts ──────────────────────────────────────────────
+        for name, filename, is_bold in cls.BUNDLED:
+            path = os.path.join(cls._FONTS_DIR, filename)
+            if not os.path.exists(path) or os.path.getsize(path) < 100_000:
                 continue
             try:
                 pdfmetrics.registerFont(TTFont(name, path))
-                print(f"[FontManager] Registered font: {name} from {path}")
-                if is_bold:
-                    if bold is None:
-                        bold = name
-                else:
-                    if primary is None:
-                        primary = name
+                print(f"[FontManager] Registered bundled font: {name}")
+                if is_bold and bold is None:
+                    bold = name
+                elif not is_bold and primary is None:
+                    primary = name
             except Exception as e:
-                print(f"[FontManager] Failed to register {name} from {path}: {e}")
-                continue
+                print(f"[FontManager] Failed to register {name}: {e}")
 
-            # Stop as soon as we have both primary and bold from the same family
-            if primary is not None and bold is not None:
-                break
-
+        # ── 2. Auto-download if still missing ────────────────────────────────
         if primary is None:
-            print("[FontManager] WARNING: No CJK font found. Chinese text will appear as boxes in PDF.")
+            downloaded = cls._try_download_noto()
+            if downloaded:
+                for name, filename, is_bold in cls.BUNDLED:
+                    path = os.path.join(cls._FONTS_DIR, filename)
+                    if not os.path.exists(path):
+                        continue
+                    try:
+                        pdfmetrics.registerFont(TTFont(name, path))
+                        print(f"[FontManager] Registered downloaded font: {name}")
+                        if is_bold and bold is None:
+                            bold = name
+                        elif not is_bold and primary is None:
+                            primary = name
+                    except Exception as e:
+                        print(f"[FontManager] Failed to register downloaded {name}: {e}")
+
+        # ── 3. Windows system fonts ───────────────────────────────────────────
+        if primary is None:
+            for name, path, is_bold in cls.WINDOWS_CANDIDATES:
+                if not os.path.exists(path):
+                    continue
+                try:
+                    pdfmetrics.registerFont(TTFont(name, path))
+                    print(f"[FontManager] Registered Windows font: {name}")
+                    if is_bold and bold is None:
+                        bold = name
+                    elif not is_bold and primary is None:
+                        primary = name
+                except Exception as e:
+                    print(f"[FontManager] Failed to register {name}: {e}")
+                if primary is not None and bold is not None:
+                    break
+
+        # ── 4. Last resort ────────────────────────────────────────────────────
+        if primary is None:
+            print("[FontManager] WARNING: No CJK font available. Chinese text will show as boxes in PDF.")
             primary = "Helvetica"
         if bold is None:
             bold = primary
+
+        print(f"[FontManager] Using primary={primary}, bold={bold}")
         return primary, bold
 
 
@@ -110,6 +204,8 @@ class PDFGenerator:
             self.build_version = build_version or ""
 
     def generate(self, report_sections: Dict[str, Any], output_path: str) -> str:
+        cover = report_sections.get("cover", {})
+        print(f"[PDF] stock_code = {cover.get('ticker', 'N/A')} | font = {self.font_name}")
         doc = SimpleDocTemplate(
             output_path,
             pagesize=A4,

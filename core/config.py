@@ -30,9 +30,22 @@ def _get_secret(key: str, default: str = "") -> str:
 
 # ─── App Identity ────────────────────────────────────────────────────────────
 APP_NAME = "Buildway Tech (HK) Limited"
-APP_SUBTITLE = "香港股票智能分析系統 — DEV 試用版"
-APP_VERSION = "DEV v0.2"
+APP_SUBTITLE = "香港股票智能分析系統 — Production Stability Layer"
+APP_VERSION = "v0.3.0"
+BUILD_STAGE = "Production Stability Layer"
 APP_LANG = "zh-HK"
+
+# ─── Deployment Environment Detection ────────────────────────────────────────
+def _detect_environment() -> str:
+    """Detect whether running on Streamlit Cloud or local."""
+    # Streamlit Cloud sets STREAMLIT_SERVER_HEADLESS=true and specific env vars
+    if os.environ.get("STREAMLIT_SERVER_HEADLESS") == "true":
+        return "streamlit-cloud"
+    if os.environ.get("HOME", "").startswith("/home/") and not os.environ.get("COMPUTERNAME"):
+        return "streamlit-cloud"
+    return "local"
+
+DEPLOY_ENV = _detect_environment()
 
 # ─── Build Version (auto-resolved from git, falls back to static) ─────────────
 def _get_git_commit() -> str:

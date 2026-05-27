@@ -13,7 +13,10 @@ from datetime import datetime
 import streamlit as st
 
 from agents.ceo_agent import CEOAgent
-from core.config import APP_NAME, APP_VERSION, BUILD_VERSION, BUILD_COMMIT, LOGO_PATH
+from core.config import (
+    APP_NAME, APP_VERSION, BUILD_STAGE, BUILD_VERSION, BUILD_COMMIT,
+    LOGO_PATH, DEPLOY_ENV,
+)
 from core.pdf_generator import PDFGenerator
 from core.report_builder import ReportBuilder
 from core.utils import normalize_hk_ticker
@@ -114,6 +117,10 @@ with st.sidebar:
     generate_btn = st.button("生成機構級PDF報告", type="primary", use_container_width=True)
 
     st.divider()
+    _today = datetime.now().strftime("%Y-%m-%d")
+    _env_label = "☁️ Streamlit Cloud" if DEPLOY_ENV == "streamlit-cloud" else "💻 Local"
+    st.caption(f"🏷️ {APP_VERSION} — {BUILD_STAGE}")
+    st.caption(f"📅 {_today}  |  {_env_label}")
     st.caption(f"Build: {BUILD_VERSION}")
     st.caption(f"Commit: {BUILD_COMMIT}")
 

@@ -8,6 +8,7 @@ combines outputs into a unified report package
 import logging
 from typing import Dict, Any, Optional, List
 from core.agent_personas import get_persona
+from core.config import APP_VERSION, BUILD_STAGE
 from core.safe_math import safe_number
 from core.utils import normalize_hk_ticker, get_timestamp
 from data.sample_data import get_sample_market_data, get_sample_financial_history, get_sample_news_sentiment
@@ -48,14 +49,16 @@ class CEOAgent:
 
     def run_agent_safely(self, agent_name, agent_callable, fallback_data):
         """Run an agent without allowing one failure to stop orchestration."""
+        self.agent_status[agent_name] = "執行中"
         try:
             result = agent_callable()
             self.agent_status[agent_name] = "完成"
             return result
         except Exception as exc:
             logger.exception("%s failed: %s", agent_name, exc)
-            self.agent_status[agent_name] = "失敗"
-            self.agent_error_log.append(f"{agent_name} failed: {str(exc)}")
+            # Fallback succeeded → 備援 (not 失敗, since we have a result)
+            self.agent_status[agent_name] = "備援"
+            self.agent_error_log.append(f"{agent_name} 備援啟動: {str(exc)}")
             if isinstance(fallback_data, dict):
                 fallback = dict(fallback_data)
                 fallback["status"] = "fallback"
@@ -256,7 +259,8 @@ class CEOAgent:
                 "company_name": analysis_context.get("company_name") or market_data.get("company_name", ticker),
                 "generated_at": get_timestamp(),
                 "report_type": analysis_context.get("report_type", "香港股票智能分析報告"),
-                "version": "DEV v1.0",
+                "version": APP_VERSION,
+                "build_stage": BUILD_STAGE,
                 "brand": "Buildway Tech (HK) Limited",
                 "risk_preference": risk_preference,
                 "analysis_context": analysis_context,

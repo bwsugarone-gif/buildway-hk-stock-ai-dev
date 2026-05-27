@@ -469,17 +469,14 @@ def _section_title(kicker: str, title: str, caption: str = "") -> None:
 
 def _status_cards() -> None:
     status = st.session_state.agent_status
-    cards = []
-    for agent, state in status.items():
-        cards.append(
-            f"""
-            <div class="bw-status-card">
-                <div class="bw-status-agent">{_escape(agent)}</div>
-                <div class="bw-status-state">{_escape(state)}</div>
-            </div>
-            """
-        )
-    st.markdown(f'<div class="bw-status-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
+    items = list(status.items())
+    for start in range(0, len(items), 3):
+        columns = st.columns(3)
+        for column, (agent, state) in zip(columns, items[start:start + 3]):
+            with column:
+                with st.container(border=True):
+                    st.markdown(f"**{_escape(agent)}**")
+                    st.caption(_escape(state))
 
 
 def _agent_discussion_cards(rows: list[dict[str, Any]]) -> None:

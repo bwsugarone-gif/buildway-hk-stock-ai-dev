@@ -1,5 +1,5 @@
 # Buildway Tech (HK) Limited
-## 香港股票智能分析系統 — v0.4.2 Client Trial Polish Layer
+## 香港股票智能分析系統 — v0.4.4 Client Trial QA + Production Guard Layer
 
 Multi-Agent Stock Analysis & Risk Report System for Hong Kong equities.
 
@@ -7,10 +7,10 @@ Multi-Agent Stock Analysis & Risk Report System for Hong Kong equities.
 
 ## Overview
 
-This is **v0.4.2 Client Trial Polish Layer** of the Buildway Tech HK stock intelligence platform. It uses a multi-agent architecture to analyze Hong Kong-listed stocks and generate professional PDF risk reports in Traditional Chinese.
+This is **v0.4.4 Client Trial QA + Production Guard Layer** of the Buildway Tech HK stock intelligence platform. It uses a multi-agent architecture to analyze Hong Kong-listed stocks and generate professional PDF risk reports in Traditional Chinese.
 
-**Current Version:** v0.4.2 — Client Trial Polish Layer  
-**Previous Phase:** v0.4.1 — Data Confidence + Invalid Ticker Control Layer  
+**Current Version:** v0.4.4 — Client Trial QA + Production Guard Layer  
+**Previous Phase:** v0.4.3 — HTML Purge + Native Streamlit Stability Layer  
 **LLM Provider:** DeepSeek only (Claude not activated)
 
 ---

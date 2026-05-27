@@ -115,7 +115,7 @@ def _build_client(config: ProviderConfig):
             f"Set it in .env or Streamlit secrets."
         )
 
-    kwargs = {"api_key": config.api_key}
+    kwargs = {"api_key": config.api_key, "timeout": 60, "max_retries": 2}
     if config.base_url:
         kwargs["base_url"] = config.base_url
     return OpenAI(**kwargs)
@@ -180,9 +180,16 @@ class LLMProvider:
                     max_tokens=max_tokens,
                 )
             except Exception as exc:
+                if self._is_timeout_error(exc):
+                    print("[LLM] timeout fallback activated")
+                    return ""
                 errors.append(f"{provider}: {exc}")
 
         raise LLMProviderError("All LLM providers failed. " + " | ".join(errors))
+
+    def _is_timeout_error(self, exc: Exception) -> bool:
+        text = f"{exc.__class__.__name__}: {exc}".lower()
+        return "timeout" in text or "timed out" in text
 
     def _generate_with_provider(
         self,

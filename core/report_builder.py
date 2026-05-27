@@ -190,8 +190,8 @@ class ReportBuilder:
             "system": "AI Multi-Agent Financial Intelligence System",
             "title": "香港股票智能分析報告",
             "ticker": meta.get("stock_code") or meta.get("ticker") or market.get("ticker", "N/A"),
-            "company_name": meta.get("company_name") or market.get("company_name") or "未能確認",
-            "sector": market.get("sector") or "未能確認",
+            "company_name": meta.get("company_name") or market.get("company_name") or "資料驗證未完成",
+            "sector": market.get("sector") or "資料驗證未完成",
             "report_date": meta.get("generated_at", get_timestamp()),
             "final_rating": rating,
             "risk_score": f"{_num(risk.get('composite_risk_score'), 5):.1f}/10",
@@ -220,7 +220,7 @@ class ReportBuilder:
                     "系統未生成公司介紹、收入模式、產品服務或估值敘事，避免產生不可靠內容。",
                 ],
                 "final_rating": "無法評估",
-                "key_risk": "無有效市場資料",
+                "key_risk": "資料驗證未完成",
                 "key_opportunity": "不適用",
                 "recommended_action": "停止進階分析",
                 "data_confidence_label": market.get("data_confidence_label", confidence_label(INVALID)),
@@ -312,7 +312,7 @@ class ReportBuilder:
                 "title": "Multi-Agent 投資委員會討論摘要",
                 "table": agent_opinions or [],
                 "consensus": INVALID_MARKET_DATA_MESSAGE,
-                "final_statement": "經 Multi-Agent Team 覆核後，本系統未能確認該股票代號存在有效市場資料，已停止進階財務分析。",
+                "final_statement": "經 Multi-Agent Team 覆核後，本系統判定該股票代號資料驗證未完成，已停止進階財務分析。",
             }
         vr = fin.get("valuation_range", {})
         upside = _num(vr.get("upside_to_mid"), 0)
@@ -484,7 +484,7 @@ class ReportBuilder:
             return {
                 "title": "Scenario Analysis",
                 "rows": [["N/A", INVALID_MARKET_DATA_MESSAGE, "N/A", "N/A"]],
-                "triggers": ["股票代號或市場資料無法確認"],
+                "triggers": ["股票代號或市場資料驗證未完成"],
             }
         if not scenarios:
             return {
@@ -521,7 +521,7 @@ class ReportBuilder:
         if portfolio.get("data_confidence") == INVALID or risk.get("data_confidence") == INVALID:
             return {
                 "title": "Portfolio & Risk Control View",
-                "investor_suitability": "無有效市場資料，不提供投資者適合性判斷。",
+                "investor_suitability": "資料驗證未完成，不提供投資者適合性判斷。",
                 "position_sizing": "不適用。",
                 "risk_control": "請先核對股票代號及市場資料來源。",
                 "action_category": "停止進階分析",

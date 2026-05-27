@@ -240,7 +240,11 @@ class PDFGenerator:
         story.append(PageBreak())
         story.extend(self._conclusion(report_sections.get("ic_conclusion", {}), report_sections.get("disclaimer", {})))
 
-        doc.build(story, onFirstPage=self._footer, onLaterPages=self._footer)
+        try:
+            doc.build(story, onFirstPage=self._footer, onLaterPages=self._footer)
+        except Exception as exc:
+            print(f"[PDF] generation failed: {exc}")
+            raise RuntimeError("PDF generation failed") from exc
         return output_path
 
     def _styles(self):
@@ -478,7 +482,7 @@ class PDFGenerator:
         if len(rows) > 1:
             elements.append(self._risk_table(rows))
         else:
-            elements.append(self._notice("無有效市場資料，風險維度評分已停止。"))
+            elements.append(self._notice("資料驗證未完成，風險維度評分已停止。"))
         elements.extend([Spacer(1, 0.3 * cm), Paragraph("Top 5 risks", self.styles["SubTitle"])])
         top_risks = section.get("top_risks", [])[:5]
         if top_risks:

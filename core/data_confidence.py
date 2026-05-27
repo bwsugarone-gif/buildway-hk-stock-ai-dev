@@ -16,7 +16,7 @@ MEDIUM = "MEDIUM"
 LOW = "LOW"
 INVALID = "INVALID"
 
-INVALID_MARKET_DATA_MESSAGE = "未能確認該股票代號存在有效市場資料。\n系統已停止進階財務分析。"
+INVALID_MARKET_DATA_MESSAGE = "該股票代號的資料驗證未完成。\n系統已停止進階財務分析。"
 PARTIAL_DATA_WARNING = "部分市場或財務資料未能取得，\n系統已使用保守假設進行分析。"
 INVALID_PDF_NOTICE = "本報告未能取得有效市場資料，\n內容僅供系統測試用途。"
 
@@ -25,7 +25,7 @@ CONFIDENCE_LABELS = {
     HIGH: "🟢 高可信度",
     MEDIUM: "🟡 部分資料缺失",
     LOW: "🟡 部分資料缺失",
-    INVALID: "🔴 無法確認有效市場資料",
+    INVALID: "🔴 資料驗證未完成",
 }
 
 

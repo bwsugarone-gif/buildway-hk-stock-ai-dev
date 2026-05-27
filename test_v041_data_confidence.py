@@ -18,7 +18,7 @@ from core.report_builder import ReportBuilder
 
 VALID = ["700", "9988", "0005"]
 PARTIAL = ["3416"]
-INVALID_TICKERS = ["12345", "99999", "ABCDE"]
+INVALID_TICKERS = ["12345", "99999", "ABCDE", "3896", "2638"]
 
 
 def run_case(ticker: str):
@@ -55,14 +55,14 @@ def main() -> int:
         confidence = package["report_metadata"]["data_confidence"]
         rows_text = str(sections["company_intelligence"]["rows"])
         assert_true(f"{ticker} is INVALID", confidence == INVALID)
-        assert_true(f"{ticker} has invalid badge", "無法確認有效市場資料" in sections["cover"].get("data_confidence_label", ""))
+        assert_true(f"{ticker} has invalid badge", "資料驗證未完成" in sections["cover"].get("data_confidence_label", ""))
         assert_true(
             f"{ticker} has no fake company descriptions",
             not any(phrase in rows_text for phrase in forbidden_invalid_phrases),
         )
         assert_true(f"{ticker} stops advanced analysis", sections["cover"].get("final_rating") == "無法評估")
 
-    print("All v0.4.1 data confidence tests passed.")
+    print("All v0.4.4 data confidence tests passed.")
     return 0
 
 

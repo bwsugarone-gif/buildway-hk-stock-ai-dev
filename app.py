@@ -21,7 +21,7 @@ from core.config import (
 )
 from core.pdf_generator import PDFGenerator
 from core.report_builder import ReportBuilder
-from core.utils import normalize_hk_ticker
+from core.utils import normalize_hk_ticker, validate_hk_ticker
 
 
 st.set_page_config(
@@ -180,8 +180,10 @@ def _init_state() -> None:
         "report_package": None,
         "report_sections": None,
         "pdf_path": None,
+        "pdf_warning": "",
         "llm_warning": "",
         "ticker_input_value": "",
+        "is_generating": False,
         "agent_error_log": [],
         "agent_status": {
             "CEO Agent": "等待",
@@ -247,7 +249,7 @@ def _confidence_badge(label: str) -> None:
     text = label or "🟡 部分資料缺失"
     if "高可信度" in text:
         st.success(text)
-    elif "無法確認" in text:
+    elif "資料驗證未完成" in text:
         st.error(text)
     else:
         st.warning(text)
@@ -256,8 +258,8 @@ def _confidence_badge(label: str) -> None:
 def _confidence_note(label: str) -> None:
     if "高可信度" in label:
         copy = "已取得公司名稱、現價、市值及股票元數據。報告可顯示完整客戶版摘要，但仍只作研究及試用用途。"
-    elif "無法確認" in label:
-        copy = "未能確認該股票代號存在有效市場資料。系統已停止進階財務分析，並避免生成公司介紹、收入模式或產品服務描述。"
+    elif "資料驗證未完成" in label:
+        copy = "該股票代號的資料驗證未完成。系統已停止進階財務分析，並避免生成公司介紹、收入模式或產品服務描述。"
     else:
         copy = "部分市場或財務資料未能取得。系統會保留有效內容，並以保守假設處理有限資料，不會把缺失資料包裝成確定結論。"
     st.info(f"資料可信度說明：{copy}")
@@ -298,13 +300,9 @@ _inject_css()
 _init_state()
 
 with st.container(border=True):
-    st.caption(BUILD_STAGE)
-    st.title("香港股票智能分析報告")
-    st.write("為客戶快速整理市場資料、估值觀點、風險訊號與投資委員會結論，輸出可下載的機構級 PDF 報告。")
-    hero_cols = st.columns(3)
-    hero_cols[0].caption(APP_VERSION)
-    hero_cols[1].caption("DeepSeek narrative only")
-    hero_cols[2].caption("Python 3.11.9 ready")
+    st.title("Buildway AI Financial Intelligence Platform")
+    st.subheader("香港股票智能分析系統")
+    st.write("為客戶快速整理市場資料、估值觀點、風險訊號與投資委員會結論，輸出可下載的機構級分析報告。")
 
 
 with st.sidebar:
@@ -335,7 +333,12 @@ with st.sidebar:
         step=100000,
     )
 
-    generate_btn = st.button("生成機構級 PDF 報告", type="primary", use_container_width=True)
+    generate_btn = st.button(
+        "生成機構級分析報告",
+        type="primary",
+        use_container_width=True,
+        disabled=st.session_state.get("is_generating", False),
+    )
 
     st.divider()
     st.caption("客戶試用樣本")
@@ -361,9 +364,12 @@ with st.sidebar:
 
 
 if generate_btn:
-    if not ticker_input.strip():
-        st.error("請輸入香港股票代號。")
+    is_valid_ticker, _ticker_error = validate_hk_ticker(ticker_input)
+    if not is_valid_ticker:
+        st.error("請輸入有效香港股票代號")
     else:
+        st.session_state.is_generating = True
+        st.session_state.pdf_warning = ""
         ticker = normalize_hk_ticker(ticker_input)
         print(f"[APP] User input stock_code = {ticker}")
         progress = st.progress(0)
@@ -404,6 +410,9 @@ if generate_btn:
             report_sections = builder.build(report_package)
             print(f"[Report Builder] Final stock_code = {report_sections.get('cover', {}).get('ticker')}")
             st.session_state.llm_warning = report_sections.get("metadata", {}).get("llm_warning", "")
+            st.session_state.report_package = report_package
+            st.session_state.report_sections = report_sections
+            st.session_state.pdf_path = None
 
             status_text.text("正在生成PDF報告...")
             os.makedirs("reports", exist_ok=True)
@@ -411,17 +420,22 @@ if generate_btn:
             pdf_filename = f"Buildway_HK_Investment_Report_{ticker.replace('.', '_')}_{timestamp}.pdf"
             pdf_path = os.path.join("reports", pdf_filename)
 
-            pdf_gen = PDFGenerator(logo_path=str(LOGO_PATH) if os.path.exists(LOGO_PATH) else None)
-            print(f"[PDF Generator] Final stock_code = {report_sections.get('cover', {}).get('ticker')}")
-            pdf_gen.generate(report_sections, pdf_path)
-
-            st.session_state.report_package = report_package
-            st.session_state.report_sections = report_sections
-            st.session_state.pdf_path = pdf_path
+            try:
+                pdf_gen = PDFGenerator(logo_path=str(LOGO_PATH) if os.path.exists(LOGO_PATH) else None)
+                print(f"[PDF Generator] Final stock_code = {report_sections.get('cover', {}).get('ticker')}")
+                pdf_gen.generate(report_sections, pdf_path)
+                st.session_state.pdf_path = pdf_path
+            except Exception as pdf_exc:
+                print(f"[APP] PDF generation failed but report remains available: {pdf_exc}")
+                st.session_state.pdf_warning = "PDF 暫時無法生成，請稍後再試"
 
             progress.progress(1.0)
             status_text.text("報告生成完成。")
-            st.success("PDF報告已成功生成。")
+            if st.session_state.pdf_warning:
+                st.success("網頁報告已成功生成。")
+                st.warning(st.session_state.pdf_warning)
+            else:
+                st.success("PDF報告已成功生成。")
             if st.session_state.agent_error_log:
                 st.warning("系統部分分析模組暫時不可用，系統已啟動備援流程。")
             if st.session_state.llm_warning:
@@ -434,6 +448,8 @@ if generate_btn:
             print(traceback.format_exc())
             st.error("系統部分分析模組暫時不可用，已啟動備援流程。")
             st.warning("3416.HK 部分市場或財務資料未能取得，系統已使用保守假設完成分析。" if "3416" in ticker else "如問題持續，請稍後再試或聯絡支援。")
+        finally:
+            st.session_state.is_generating = False
 
 
 if st.session_state.report_sections:
@@ -460,13 +476,15 @@ if st.session_state.report_sections:
     if st.session_state.pdf_path and os.path.exists(st.session_state.pdf_path):
         with open(st.session_state.pdf_path, "rb") as pdf_file:
             st.download_button(
-                label="下載 PDF 報告",
+                label="下載機構級分析報告",
                 data=pdf_file,
                 file_name=os.path.basename(st.session_state.pdf_path),
                 mime="application/pdf",
                 type="primary",
                 use_container_width=True,
             )
+    elif st.session_state.get("pdf_warning"):
+        st.warning(st.session_state.pdf_warning)
 
     _section_title("Agent workflow", "Multi-Agent 狀態", "客戶可讀的分析流程概覽")
     _status_cards()

@@ -148,7 +148,7 @@ class CEOAgent:
                 "Investment Committee Agent": "已停止",
                 "CEO Agent": "完成",
             })
-            _progress(7, "未能確認有效市場資料，已停止進階財務分析並生成測試用途報告。")
+            _progress(7, "資料驗證未完成，已停止進階財務分析並生成測試用途報告。")
             financial_history = self._invalid_financial_history(analysis_context)
             financial_analysis = self._invalid_financial_analysis(analysis_context)
             risk_analysis = self._invalid_risk_analysis(analysis_context, risk_preference)
@@ -451,7 +451,7 @@ class CEOAgent:
                 "upside_to_mid": 0,
                 "upside_to_high": 0,
                 "downside_to_low": 0,
-                "verdict": "無有效市場資料，不作估值判斷",
+                "verdict": "資料驗證未完成，不作估值判斷",
             },
             "health_score": {"dimension_scores": {}, "overall_score": 0, "grade": "N/A"},
             "sector": "",
@@ -476,7 +476,7 @@ class CEOAgent:
             "narratives": {},
             "scenarios": {},
             "risk_preference": risk_preference,
-            "recommendation_note": "無有效市場資料，不提供風險或倉位判斷。",
+            "recommendation_note": "資料驗證未完成，不提供風險或倉位判斷。",
         }
 
     def _invalid_news_analysis(self, analysis_context: Dict[str, Any]) -> Dict[str, Any]:
@@ -515,7 +515,7 @@ class CEOAgent:
             "dollar_amounts": None,
             "risk_metrics": {},
             "portfolio_fit": {"portfolio_fits": {}, "best_fit": risk_preference, "health_grade": "N/A"},
-            "educational_disclaimer": "無有效市場資料，不提供倉位建議。",
+            "educational_disclaimer": "資料驗證未完成，不提供倉位建議。",
             "position_rationale": "系統未能確認股票代號存在有效市場資料，已停止進階分析。",
         }
 
@@ -531,7 +531,7 @@ class CEOAgent:
             "data_confidence": INVALID,
             "timestamp": get_timestamp(),
             "verdict": "無法評估",
-            "verdict_meta": {"icon": "🔴", "color": "#C0392B", "description": "無法確認有效市場資料。"},
+            "verdict_meta": {"icon": "🔴", "color": "#C0392B", "description": "資料驗證未完成。"},
             "ic_scores": {},
             "investment_thesis": [INVALID_MARKET_DATA_MESSAGE],
             "key_risks": [],
@@ -652,14 +652,14 @@ class CEOAgent:
                     "性格定位": "市場數據驗證",
                     "核心觀點": INVALID_MARKET_DATA_MESSAGE,
                     "正面因素": "系統已阻止未確認股票代號進入進階財務敘事。",
-                    "主要憂慮": "未能取得公司名稱、現價、市值及有效股票元數據。",
+                    "主要憂慮": "公司名稱、現價、市值及有效股票元數據仍待驗證。",
                     "信心分數": "0/10",
                     "對評級影響": "stopped",
                 },
                 {
                     "Agent": "Investment Committee Agent",
                     "性格定位": "最終覆核、平衡、嚴格、專業",
-                    "核心觀點": "無有效市場資料，不作投資分類或公司分析。",
+                    "核心觀點": "資料驗證未完成，不作投資分類或公司分析。",
                     "正面因素": "報告仍可作系統測試與流程驗證用途。",
                     "主要憂慮": "任何公司介紹、收入模式或產品服務描述均不得生成。",
                     "信心分數": "0/10",

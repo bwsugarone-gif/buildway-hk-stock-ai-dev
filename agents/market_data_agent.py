@@ -6,8 +6,18 @@ DEV version uses yfinance with graceful fallback to demo data
 """
 
 from typing import Dict, Any, Optional
+from core.data_confidence import (
+    HIGH,
+    LOW,
+    MEDIUM,
+    INVALID,
+    PARTIAL_DATA_WARNING,
+    assess_market_data_confidence,
+    confidence_label,
+    invalid_market_data,
+)
 from core.safe_math import safe_number
-from data.sample_data import get_sample_market_data, get_sample_financial_history
+from data.sample_data import SAMPLE_HK_STOCKS, get_sample_market_data, get_sample_financial_history
 from core.utils import normalize_hk_ticker, format_currency_hkd, format_percentage
 
 
@@ -49,20 +59,23 @@ class MarketDataAgent:
             try:
                 result = self._fetch_live(normalized, company_name)
                 result["ticker"] = normalized
-                result["company_name"] = company_name or result.get("company_name") or f"{normalized} 公司"
-                return self._sanitize_numeric_fields(result)
+                result["company_name"] = company_name or result.get("company_name") or ""
+                return self._finalize_market_data(result)
             except Exception as e:
-                # Graceful fallback
+                if normalized not in SAMPLE_HK_STOCKS:
+                    return invalid_market_data(normalized, str(e))
                 result = get_sample_market_data(normalized)
                 result["fallback_reason"] = str(e)
                 result["ticker"] = normalized
-                result["company_name"] = company_name or result.get("company_name") or f"{normalized} 公司"
-                return self._sanitize_numeric_fields(result)
-        else:
-            result = get_sample_market_data(normalized)
-            result["ticker"] = normalized
-            result["company_name"] = company_name or result.get("company_name") or f"{normalized} 公司"
-            return self._sanitize_numeric_fields(result)
+                result["company_name"] = company_name or result.get("company_name") or ""
+                return self._finalize_market_data(result)
+
+        if normalized not in SAMPLE_HK_STOCKS:
+            return invalid_market_data(normalized, "yfinance unavailable and ticker is outside validated sample universe.")
+        result = get_sample_market_data(normalized)
+        result["ticker"] = normalized
+        result["company_name"] = company_name or result.get("company_name") or ""
+        return self._finalize_market_data(result)
 
     def _sanitize_numeric_fields(self, data: Dict[str, Any]) -> Dict[str, Any]:
         numeric_fields = [
@@ -82,6 +95,26 @@ class MarketDataAgent:
             data["data_warning"] = "部分財務數據暫時不可用，以下分析已採用保守假設。"
         return data
 
+    def _finalize_market_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        if data.get("data_confidence") == INVALID:
+            return data
+
+        sanitized = self._sanitize_numeric_fields(data)
+        confidence = assess_market_data_confidence(sanitized)
+        sanitized["data_confidence"] = confidence
+        sanitized["data_confidence_label"] = confidence_label(confidence)
+
+        if confidence == INVALID:
+            return invalid_market_data(
+                sanitized.get("ticker", "N/A"),
+                "Missing company name, current price, market cap, and ticker metadata.",
+            )
+
+        if confidence in {LOW, MEDIUM}:
+            sanitized["data_warning"] = PARTIAL_DATA_WARNING
+
+        return sanitized
+
     def _fetch_live(self, ticker: str, company_name: Optional[str] = None) -> Dict[str, Any]:
         """Fetch live data from yfinance."""
         import yfinance as yf
@@ -90,8 +123,14 @@ class MarketDataAgent:
         info = stock.info
 
         # yfinance may return empty dict for invalid tickers
-        if not info or info.get("regularMarketPrice") is None:
+        if not info:
             raise ValueError(f"無法獲取 {ticker} 的實時數據")
+
+        has_metadata = any(info.get(key) for key in ("longName", "shortName", "symbol", "quoteType", "exchange"))
+        has_price = info.get("regularMarketPrice") is not None or info.get("currentPrice") is not None
+        has_market_cap = info.get("marketCap") is not None
+        if not has_metadata or not has_price or not has_market_cap:
+            raise ValueError(f"{ticker} 缺少有效股票元數據")
 
         # Map yfinance fields to our standard schema
         data = {

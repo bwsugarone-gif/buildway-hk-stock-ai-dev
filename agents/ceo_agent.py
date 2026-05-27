@@ -9,6 +9,13 @@ import logging
 from typing import Dict, Any, Optional, List
 from core.agent_personas import get_persona
 from core.config import APP_VERSION, BUILD_STAGE
+from core.data_confidence import (
+    INVALID,
+    INVALID_MARKET_DATA_MESSAGE,
+    INVALID_PDF_NOTICE,
+    PARTIAL_DATA_WARNING,
+    confidence_label,
+)
 from core.safe_math import safe_number
 from core.utils import normalize_hk_ticker, get_timestamp
 from data.sample_data import get_sample_market_data, get_sample_financial_history, get_sample_news_sentiment
@@ -94,7 +101,7 @@ class CEOAgent:
         normalized_ticker = normalize_hk_ticker(ticker)
         analysis_context = {
             "stock_code": normalized_ticker,
-            "company_name": company_name or f"{normalized_ticker} 公司",
+            "company_name": company_name or "",
             "investor_style": risk_preference,
             "report_type": report_type,
             "language": "zh-HK",
@@ -128,6 +135,49 @@ class CEOAgent:
             self._fallback_market_data(analysis_context),
         )
         market_data["ticker"] = analysis_context["stock_code"]
+        data_confidence = market_data.get("data_confidence", "LOW")
+        analysis_context["data_confidence"] = data_confidence
+        analysis_context["data_confidence_label"] = market_data.get("data_confidence_label", confidence_label(data_confidence))
+
+        if data_confidence == INVALID:
+            self.agent_status.update({
+                "Financial Analyst Agent": "已停止",
+                "Risk Agent": "已停止",
+                "News Intelligence Agent": "已停止",
+                "Portfolio Manager Agent": "已停止",
+                "Investment Committee Agent": "已停止",
+                "CEO Agent": "完成",
+            })
+            _progress(7, "未能確認有效市場資料，已停止進階財務分析並生成測試用途報告。")
+            financial_history = self._invalid_financial_history(analysis_context)
+            financial_analysis = self._invalid_financial_analysis(analysis_context)
+            risk_analysis = self._invalid_risk_analysis(analysis_context, risk_preference)
+            news_analysis = self._invalid_news_analysis(analysis_context)
+            portfolio_analysis = self._invalid_portfolio_analysis(analysis_context, risk_preference)
+            ic_result = self._invalid_ic_result(analysis_context)
+            agent_opinions = self._build_agent_opinions(
+                analysis_context,
+                market_data,
+                financial_analysis,
+                risk_analysis,
+                news_analysis,
+                portfolio_analysis,
+                ic_result,
+            )
+            return self._assemble_report_package(
+                ticker=normalized_ticker,
+                analysis_context=analysis_context,
+                market_data=market_data,
+                financial_history=financial_history,
+                financial_analysis=financial_analysis,
+                risk_analysis=risk_analysis,
+                news_analysis=news_analysis,
+                portfolio_analysis=portfolio_analysis,
+                ic_result=ic_result,
+                agent_opinions=agent_opinions,
+                risk_preference=risk_preference,
+            )
+
         financial_history = self.run_agent_safely(
             "Market Data Agent",
             lambda: self.market_agent.get_financial_history(normalized_ticker),
@@ -137,11 +187,6 @@ class CEOAgent:
 
         # ── Step 2: Financial Analysis ────────────────────────────────────────
         _progress(2, "💹 財務分析師代理：正在進行DCF及估值分析...")
-        # Debug logging for 3416 data issues
-        _base_code = analysis_context["stock_code"].replace(".HK", "").lstrip("0") or "0"
-        if _base_code in {"3416"}:
-            print(f"[DEBUG 3416] market_data: {market_data}")
-            print(f"[DEBUG 3416] financial_history: {financial_history}")
         financial_analysis = self.run_agent_safely(
             "Financial Analyst Agent",
             lambda: self.financial_agent.analyze(
@@ -266,7 +311,10 @@ class CEOAgent:
                 "analysis_context": analysis_context,
                 "is_demo": market_data.get("is_demo", True),
                 "data_source": market_data.get("data_source", "示範數據"),
-                "data_completeness_note": "資料完整度提示：部分市場或財務資料未能取得，系統已使用保守假設進行分析。" if financial_analysis.get("missing_data_flags") else "",
+                "data_confidence": market_data.get("data_confidence", "LOW"),
+                "data_confidence_label": market_data.get("data_confidence_label", confidence_label(market_data.get("data_confidence", "LOW"))),
+                "data_confidence_notice": self._data_confidence_notice(market_data, financial_analysis),
+                "data_completeness_note": self._data_confidence_notice(market_data, financial_analysis),
                 "agent_status": dict(self.agent_status),
                 "agent_error_log": list(self.agent_error_log),
                 "failed_agents": self._failed_agents(),
@@ -288,9 +336,11 @@ class CEOAgent:
             "summary": {
                 "ticker": ticker,
                 "stock_code": analysis_context["stock_code"],
-                "company_name": analysis_context.get("company_name") or market_data.get("company_name", ticker),
+                "company_name": analysis_context.get("company_name") or market_data.get("company_name", ""),
                 "current_price": market_data.get("current_price", 0),
                 "sector": market_data.get("sector", ""),
+                "data_confidence": market_data.get("data_confidence", "LOW"),
+                "data_confidence_label": market_data.get("data_confidence_label", confidence_label(market_data.get("data_confidence", "LOW"))),
                 "verdict": ic_result.get("verdict", "中性"),
                 "verdict_icon": ic_result.get("verdict_meta", {}).get("icon", "🟡"),
                 "risk_score": risk_analysis.get("composite_risk_score", 5),
@@ -310,12 +360,19 @@ class CEOAgent:
     def _failed_agents(self) -> List[str]:
         return [agent for agent, status in self.agent_status.items() if status == "失敗"]
 
+    def _data_confidence_notice(self, market_data: Dict[str, Any], financial_analysis: Dict[str, Any]) -> str:
+        if market_data.get("data_confidence") == INVALID:
+            return INVALID_PDF_NOTICE
+        if market_data.get("data_confidence") in {"LOW", "MEDIUM"} or financial_analysis.get("missing_data_flags"):
+            return PARTIAL_DATA_WARNING
+        return ""
+
     def _fallback_market_data(self, analysis_context: Dict[str, Any]) -> Dict[str, Any]:
         stock_code = analysis_context["stock_code"]
         data = get_sample_market_data(stock_code)
         data.update({
             "ticker": stock_code,
-            "company_name": analysis_context.get("company_name") or f"{stock_code} 公司",
+            "company_name": analysis_context.get("company_name") or "",
             "status": "fallback",
             "summary": "市場數據暫時不可用",
             "warning": "系統已使用備援市場數據流程。",
@@ -358,6 +415,130 @@ class CEOAgent:
             "sector": "香港上市公司",
             "data_warning": "部分財務數據暫時不可用，以下分析已採用保守假設。",
             "missing_data_flags": ["financial_analysis agent unavailable"],
+        }
+
+    def _invalid_financial_history(self, analysis_context: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "ticker": analysis_context["stock_code"],
+            "status": "stopped",
+            "years": [],
+            "revenue": [],
+            "ebitda": [],
+            "net_income": [],
+            "free_cash_flow": [],
+            "warning": INVALID_MARKET_DATA_MESSAGE,
+        }
+
+    def _invalid_financial_analysis(self, analysis_context: Dict[str, Any]) -> Dict[str, Any]:
+        stock_code = analysis_context["stock_code"]
+        return {
+            "ticker": stock_code,
+            "status": "stopped",
+            "summary": INVALID_MARKET_DATA_MESSAGE,
+            "warning": INVALID_MARKET_DATA_MESSAGE,
+            "valuation": "N/A",
+            "confidence": 0,
+            "is_demo": False,
+            "data_confidence": INVALID,
+            "metrics": {"net_debt": 0, "ev_ebitda": 0, "ev_revenue": 0, "dividend_yield": 0},
+            "dcf": {"base_intrinsic_price": 0, "scenarios": {}},
+            "comps": {"company_pe": 0, "company_pb": 0, "company_ev_ebitda": 0},
+            "valuation_range": {
+                "current_price": 0,
+                "low": 0,
+                "mid": 0,
+                "high": 0,
+                "upside_to_mid": 0,
+                "upside_to_high": 0,
+                "downside_to_low": 0,
+                "verdict": "無有效市場資料，不作估值判斷",
+            },
+            "health_score": {"dimension_scores": {}, "overall_score": 0, "grade": "N/A"},
+            "sector": "",
+            "data_warning": INVALID_MARKET_DATA_MESSAGE,
+            "missing_data_flags": ["invalid_or_unconfirmed_ticker"],
+        }
+
+    def _invalid_risk_analysis(self, analysis_context: Dict[str, Any], risk_preference: str) -> Dict[str, Any]:
+        return {
+            "ticker": analysis_context["stock_code"],
+            "status": "stopped",
+            "summary": INVALID_MARKET_DATA_MESSAGE,
+            "warning": INVALID_MARKET_DATA_MESSAGE,
+            "confidence": 0,
+            "is_demo": False,
+            "data_confidence": INVALID,
+            "composite_risk_score": 10.0,
+            "risk_label": "無法評估",
+            "risk_color": "#C0392B",
+            "dimension_scores": {},
+            "risk_weights": {},
+            "narratives": {},
+            "scenarios": {},
+            "risk_preference": risk_preference,
+            "recommendation_note": "無有效市場資料，不提供風險或倉位判斷。",
+        }
+
+    def _invalid_news_analysis(self, analysis_context: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "ticker": analysis_context["stock_code"],
+            "status": "stopped",
+            "summary": INVALID_MARKET_DATA_MESSAGE,
+            "warning": INVALID_MARKET_DATA_MESSAGE,
+            "confidence": 0,
+            "data_confidence": INVALID,
+            "sentiment_analysis": {
+                "score": 0,
+                "label": "無法評估",
+                "confidence": "無",
+                "positive_count": 0,
+                "negative_count": 0,
+                "neutral_count": 0,
+            },
+            "market_signals": [],
+        }
+
+    def _invalid_portfolio_analysis(self, analysis_context: Dict[str, Any], risk_preference: str) -> Dict[str, Any]:
+        return {
+            "ticker": analysis_context["stock_code"],
+            "status": "stopped",
+            "summary": INVALID_MARKET_DATA_MESSAGE,
+            "warning": INVALID_MARKET_DATA_MESSAGE,
+            "confidence": 0,
+            "is_demo": False,
+            "data_confidence": INVALID,
+            "risk_preference": risk_preference,
+            "framework": {},
+            "risk_score": 10,
+            "suggested_position_pct": 0,
+            "kelly_fraction": 0,
+            "dollar_amounts": None,
+            "risk_metrics": {},
+            "portfolio_fit": {"portfolio_fits": {}, "best_fit": risk_preference, "health_grade": "N/A"},
+            "educational_disclaimer": "無有效市場資料，不提供倉位建議。",
+            "position_rationale": "系統未能確認股票代號存在有效市場資料，已停止進階分析。",
+        }
+
+    def _invalid_ic_result(self, analysis_context: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "ticker": analysis_context["stock_code"],
+            "company_name": "",
+            "status": "stopped",
+            "summary": INVALID_MARKET_DATA_MESSAGE,
+            "warning": INVALID_MARKET_DATA_MESSAGE,
+            "confidence": 0,
+            "is_demo": False,
+            "data_confidence": INVALID,
+            "timestamp": get_timestamp(),
+            "verdict": "無法評估",
+            "verdict_meta": {"icon": "🔴", "color": "#C0392B", "description": "無法確認有效市場資料。"},
+            "ic_scores": {},
+            "investment_thesis": [INVALID_MARKET_DATA_MESSAGE],
+            "key_risks": [],
+            "key_catalysts": [],
+            "executive_summary": INVALID_MARKET_DATA_MESSAGE,
+            "risk_warning": INVALID_PDF_NOTICE,
+            "data_quality_note": INVALID_PDF_NOTICE,
         }
 
     def _fallback_risk_analysis(self, analysis_context: Dict[str, Any], risk_preference: str) -> Dict[str, Any]:
@@ -434,7 +615,7 @@ class CEOAgent:
     def _fallback_ic_result(self, analysis_context: Dict[str, Any]) -> Dict[str, Any]:
         return {
             "ticker": analysis_context["stock_code"],
-            "company_name": analysis_context.get("company_name") or f"{analysis_context['stock_code']} 公司",
+            "company_name": analysis_context.get("company_name") or "",
             "status": "fallback",
             "summary": "投資委員會分析暫時不可用",
             "warning": "系統已使用備援最終評審流程。",
@@ -464,6 +645,27 @@ class CEOAgent:
     ) -> List[Dict[str, Any]]:
         """Build autonomous agent views for the discussion table."""
         stock_code = analysis_context["stock_code"]
+        if market_data.get("data_confidence") == INVALID:
+            return [
+                {
+                    "Agent": "Market Data Agent",
+                    "性格定位": "市場數據驗證",
+                    "核心觀點": INVALID_MARKET_DATA_MESSAGE,
+                    "正面因素": "系統已阻止未確認股票代號進入進階財務敘事。",
+                    "主要憂慮": "未能取得公司名稱、現價、市值及有效股票元數據。",
+                    "信心分數": "0/10",
+                    "對評級影響": "stopped",
+                },
+                {
+                    "Agent": "Investment Committee Agent",
+                    "性格定位": "最終覆核、平衡、嚴格、專業",
+                    "核心觀點": "無有效市場資料，不作投資分類或公司分析。",
+                    "正面因素": "報告仍可作系統測試與流程驗證用途。",
+                    "主要憂慮": "任何公司介紹、收入模式或產品服務描述均不得生成。",
+                    "信心分數": "0/10",
+                    "對評級影響": "無法評估",
+                },
+            ]
         price = safe_number(market_data.get("current_price"))
         volume = safe_number(market_data.get("volume"))
         risk_score = safe_number(risk_analysis.get("composite_risk_score"), 5)

@@ -1,0 +1,13 @@
+[theme]
+# Buildway Tech (HK) Limited — v0.4.0 SaaS UX Theme
+# Light base with navy/gold accent — premium financial dashboard feel
+
+primaryColor = "#F0B429"
+backgroundColor = "#F7F9FC"
+secondaryBackgroundColor = "#EEF2F7"
+textColor = "#1F2933"
+font = "sans serif"
+
+[server]
+# Increase max upload size for logo/assets
+maxUploadSize = 10

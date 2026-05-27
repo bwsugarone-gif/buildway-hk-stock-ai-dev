@@ -10,6 +10,13 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from core.config import APP_NAME, APP_VERSION, USE_AI_ANALYSIS
+from core.data_confidence import (
+    INVALID,
+    INVALID_MARKET_DATA_MESSAGE,
+    INVALID_PDF_NOTICE,
+    PARTIAL_DATA_WARNING,
+    confidence_label,
+)
 from core.llm_provider import LLMProvider, LLMProviderError
 from core.safe_math import safe_number
 from core.utils import format_currency_hkd, format_percentage, get_timestamp
@@ -61,6 +68,7 @@ class ReportBuilder:
         agent_opinions = report_package.get("agent_opinions", [])
         agent_status = report_package.get("agent_status", meta.get("agent_status", {}))
         agent_error_log = report_package.get("agent_error_log", meta.get("agent_error_log", []))
+        data_confidence = meta.get("data_confidence") or market.get("data_confidence", "LOW")
 
         rating = self._final_rating(fin, risk, ic)
         llm_warning = ""
@@ -68,7 +76,7 @@ class ReportBuilder:
         executive_summary = self._build_executive_summary(
             market, fin, risk, news, portfolio, rating
         )
-        if USE_AI_ANALYSIS:
+        if USE_AI_ANALYSIS and data_confidence != INVALID:
             executive_summary, llm_warning = self._maybe_deepseek_summary(
                 executive_summary, market, fin, risk, rating
             )
@@ -81,6 +89,8 @@ class ReportBuilder:
                 "llm_warning": llm_warning,
                 "analysis_context": meta.get("analysis_context", {}),
                 "stock_code": meta.get("stock_code") or meta.get("ticker") or market.get("ticker"),
+                "data_confidence": data_confidence,
+                "data_confidence_label": meta.get("data_confidence_label") or market.get("data_confidence_label") or confidence_label(data_confidence),
             },
             "cover": self._build_cover(meta, market, risk, rating),
             "executive_summary": executive_summary,
@@ -153,6 +163,8 @@ class ReportBuilder:
         }
 
     def _final_rating(self, fin: Dict[str, Any], risk: Dict[str, Any], ic: Dict[str, Any]) -> str:
+        if fin.get("data_confidence") == INVALID or risk.get("data_confidence") == INVALID:
+            return "無法評估"
         risk_score = _num(risk.get("composite_risk_score"), 5)
         upside = _num(fin.get("valuation_range", {}).get("upside_to_mid"), 0)
 
@@ -178,12 +190,14 @@ class ReportBuilder:
             "system": "AI Multi-Agent Financial Intelligence System",
             "title": "香港股票智能分析報告",
             "ticker": meta.get("stock_code") or meta.get("ticker") or market.get("ticker", "N/A"),
-            "company_name": meta.get("company_name") or market.get("company_name", "N/A"),
-            "sector": market.get("sector", "香港上市公司"),
+            "company_name": meta.get("company_name") or market.get("company_name") or "未能確認",
+            "sector": market.get("sector") or "未能確認",
             "report_date": meta.get("generated_at", get_timestamp()),
             "final_rating": rating,
             "risk_score": f"{_num(risk.get('composite_risk_score'), 5):.1f}/10",
             "risk_label": _risk_label(_num(risk.get("composite_risk_score"), 5)),
+            "data_confidence": meta.get("data_confidence") or market.get("data_confidence", "LOW"),
+            "data_confidence_label": meta.get("data_confidence_label") or market.get("data_confidence_label") or confidence_label(meta.get("data_confidence") or market.get("data_confidence", "LOW")),
             "data_completeness_note": meta.get("data_completeness_note", ""),
         }
 
@@ -197,6 +211,21 @@ class ReportBuilder:
         rating: str,
     ) -> Dict[str, Any]:
         vr = fin.get("valuation_range", {})
+        if market.get("data_confidence") == INVALID or fin.get("data_confidence") == INVALID:
+            return {
+                "title": "Executive Summary",
+                "bullets": [
+                    INVALID_MARKET_DATA_MESSAGE,
+                    INVALID_PDF_NOTICE,
+                    "系統未生成公司介紹、收入模式、產品服務或估值敘事，避免產生不可靠內容。",
+                ],
+                "final_rating": "無法評估",
+                "key_risk": "無有效市場資料",
+                "key_opportunity": "不適用",
+                "recommended_action": "停止進階分析",
+                "data_confidence_label": market.get("data_confidence_label", confidence_label(INVALID)),
+                "llm_narrative": "",
+            }
         risk_score = _num(risk.get("composite_risk_score"), 5)
         current = _num(market.get("current_price"))
         mid = _num(vr.get("mid"))
@@ -220,6 +249,7 @@ class ReportBuilder:
             "key_risk": key_risk,
             "key_opportunity": opportunity,
             "recommended_action": rating,
+            "data_confidence_label": market.get("data_confidence_label", confidence_label(market.get("data_confidence", "LOW"))),
             "llm_narrative": "",
         }
 
@@ -227,6 +257,29 @@ class ReportBuilder:
         ticker = market.get("ticker", "N/A")
         name = market.get("company_name", ticker)
         sector = market.get("sector", "香港上市公司")
+
+        if market.get("data_confidence") == INVALID:
+            return {
+                "title": "公司基本面與業務分析",
+                "rows": [
+                    ("資料狀態", INVALID_MARKET_DATA_MESSAGE),
+                    ("分析限制", "系統未生成公司介紹、主要業務、收入來源或產品服務描述。"),
+                    ("PDF提示", INVALID_PDF_NOTICE),
+                    ("下一步", "請核對股票代號，或改用可確認有效市場資料的香港上市股票代號。"),
+                ],
+            }
+
+        if market.get("data_confidence") in {"LOW", "MEDIUM"}:
+            note = market.get("data_warning") or PARTIAL_DATA_WARNING
+            return {
+                "title": "公司基本面與業務分析",
+                "rows": [
+                    ("公司名稱", f"{name}（{ticker}）"),
+                    ("行業分類", sector),
+                    ("資料可信度", market.get("data_confidence_label", confidence_label(market.get("data_confidence", "LOW")))),
+                    ("資料提示", note),
+                ],
+            }
 
         return {
             "title": "公司基本面與業務分析",
@@ -254,6 +307,13 @@ class ReportBuilder:
         agent_opinions: List[Dict[str, Any]] | None = None,
     ) -> Dict[str, Any]:
         risk_score = _num(risk.get("composite_risk_score"), 5)
+        if market.get("data_confidence") == INVALID:
+            return {
+                "title": "Multi-Agent 投資委員會討論摘要",
+                "table": agent_opinions or [],
+                "consensus": INVALID_MARKET_DATA_MESSAGE,
+                "final_statement": "經 Multi-Agent Team 覆核後，本系統未能確認該股票代號存在有效市場資料，已停止進階財務分析。",
+            }
         vr = fin.get("valuation_range", {})
         upside = _num(vr.get("upside_to_mid"), 0)
         health = fin.get("health_score", {})
@@ -339,6 +399,18 @@ class ReportBuilder:
         fin: Dict[str, Any],
     ) -> Dict[str, Any]:
         metrics = fin.get("metrics", {})
+        if fin.get("data_confidence") == INVALID:
+            return {
+                "title": "Financial Analysis",
+                "commentary": [INVALID_MARKET_DATA_MESSAGE, INVALID_PDF_NOTICE],
+                "metrics": [
+                    ("資料可信度", confidence_label(INVALID)),
+                    ("估值分析", "已停止"),
+                    ("財務比率", "不適用"),
+                    ("資料用途", "系統測試"),
+                ],
+                "history": [],
+            }
         dcf = fin.get("dcf", {})
         comps = fin.get("comps", {})
         vr = fin.get("valuation_range", {})
@@ -380,6 +452,14 @@ class ReportBuilder:
 
     def _build_risk_analysis(self, risk: Dict[str, Any]) -> Dict[str, Any]:
         risk_table = []
+        if risk.get("data_confidence") == INVALID:
+            return {
+                "title": "Risk Analysis",
+                "composite_score": "N/A",
+                "risk_label": "無法評估",
+                "risk_table": [],
+                "top_risks": [],
+            }
         for dim, score in risk.get("dimension_scores", {}).items():
             score_num = _num(score)
             risk_table.append({
@@ -400,6 +480,12 @@ class ReportBuilder:
 
     def _build_scenario_analysis(self, risk: Dict[str, Any]) -> Dict[str, Any]:
         scenarios = risk.get("scenarios", {})
+        if risk.get("data_confidence") == INVALID:
+            return {
+                "title": "Scenario Analysis",
+                "rows": [["N/A", INVALID_MARKET_DATA_MESSAGE, "N/A", "N/A"]],
+                "triggers": ["股票代號或市場資料無法確認"],
+            }
         if not scenarios:
             return {
                 "title": "Scenario Analysis",
@@ -432,6 +518,15 @@ class ReportBuilder:
         rating: str,
     ) -> Dict[str, Any]:
         risk_score = _num(risk.get("composite_risk_score"), 5)
+        if portfolio.get("data_confidence") == INVALID or risk.get("data_confidence") == INVALID:
+            return {
+                "title": "Portfolio & Risk Control View",
+                "investor_suitability": "無有效市場資料，不提供投資者適合性判斷。",
+                "position_sizing": "不適用。",
+                "risk_control": "請先核對股票代號及市場資料來源。",
+                "action_category": "停止進階分析",
+                "no_advice": INVALID_PDF_NOTICE,
+            }
         return {
             "title": "Portfolio & Risk Control View",
             "investor_suitability": (
@@ -454,6 +549,17 @@ class ReportBuilder:
         fin: Dict[str, Any] | None = None,
     ) -> Dict[str, Any]:
         fin = fin or {}
+        if risk.get("data_confidence") == INVALID or fin.get("data_confidence") == INVALID:
+            return {
+                "title": "Investment Committee Final Conclusion",
+                "final_decision": "無法評估",
+                "why": INVALID_MARKET_DATA_MESSAGE,
+                "monitor_next": ["核對股票代號", "確認市場資料供應商是否支援該代號", "重新提交有效香港股票代號"],
+                "data_limitations": INVALID_PDF_NOTICE,
+                "data_completeness_note": INVALID_PDF_NOTICE,
+                "llm_warning": llm_warning,
+                "multi_agent_statement": "本系統未能取得有效市場資料，因此不生成公司或投資敘事。",
+            }
         completeness_note = "資料完整度提示：部分市場或財務資料未能取得，系統已使用保守假設進行分析。" if fin.get("missing_data_flags") else ""
         return {
             "title": "Investment Committee Final Conclusion",

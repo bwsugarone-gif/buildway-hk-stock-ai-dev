@@ -1,5 +1,5 @@
 # Buildway Tech (HK) Limited
-## 香港股票智能分析系統 — v0.3.0 Production Stability Layer
+## 香港股票智能分析系統 — v0.4.2 Client Trial Polish Layer
 
 Multi-Agent Stock Analysis & Risk Report System for Hong Kong equities.
 
@@ -7,10 +7,10 @@ Multi-Agent Stock Analysis & Risk Report System for Hong Kong equities.
 
 ## Overview
 
-This is **v0.3.0 Production Stability Layer** of the Buildway Tech HK stock intelligence platform. It uses a multi-agent architecture to analyze Hong Kong-listed stocks and generate professional PDF risk reports in Traditional Chinese.
+This is **v0.4.2 Client Trial Polish Layer** of the Buildway Tech HK stock intelligence platform. It uses a multi-agent architecture to analyze Hong Kong-listed stocks and generate professional PDF risk reports in Traditional Chinese.
 
-**Current Version:** v0.3.0 — Production Stability Layer  
-**Previous Phase:** DEV v0.2  
+**Current Version:** v0.4.2 — Client Trial Polish Layer  
+**Previous Phase:** v0.4.1 — Data Confidence + Invalid Ticker Control Layer  
 **LLM Provider:** DeepSeek only (Claude not activated)
 
 ---
@@ -53,7 +53,8 @@ streamlit run app.py
 ```
 buildway-hk-stock-ai/
 │
-├── app.py                          # Main Streamlit application
+├── app.py                          # Canonical Streamlit application
+├── streamlit_app.py                # Compatibility shim that imports app.py
 ├── requirements.txt                # Python dependencies
 ├── README.md                       # This file
 ├── .gitignore                      # Git ignore rules
@@ -104,6 +105,10 @@ git push origin main
 2. Connect your GitHub repository
 3. Set main file: `app.py`
 4. Deploy
+
+`app.py` is the canonical deployment entry file. `streamlit_app.py` is only a
+compatibility shim for older Streamlit Cloud settings and must not contain a
+separate UI implementation.
 
 ### 3. Chinese Font Setup (Required for PDF)
 

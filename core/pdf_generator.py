@@ -38,6 +38,27 @@ GREEN = colors.HexColor("#1B7F5A")
 AMBER = colors.HexColor("#B7791F")
 RED = colors.HexColor("#B42318")
 
+PDF_SYMBOL_STRIP = ("🟢", "🟡", "🔴", "✅", "❌", "⚠️", "⚠")
+
+
+def _pdf_text(value: Any) -> str:
+    text = str(value if value not in (None, "") else "N/A")
+    for symbol in PDF_SYMBOL_STRIP:
+        text = text.replace(symbol, "")
+    return text.strip()
+
+
+def _pdf_confidence_label(value: Any, level: Any = "") -> str:
+    text = _pdf_text(value)
+    level_text = str(level or "").upper()
+    if "HIGH" in level_text or "高可信度" in text:
+        return "高可信度"
+    if "INVALID" in level_text or "資料驗證未完成" in text or "無法確認" in text:
+        return "資料驗證未完成"
+    if "MEDIUM" in level_text or "LOW" in level_text or "部分資料缺失" in text:
+        return "部分資料缺失"
+    return text or "部分資料缺失"
+
 
 class FontManager:
     """Register a Unicode-compatible Traditional Chinese font for ReportLab.
@@ -220,14 +241,14 @@ class PDFGenerator:
         story: List[Any] = []
         story.extend(self._cover(report_sections.get("cover", {})))
         story.append(PageBreak())
+        story.extend(self._company_intelligence(report_sections.get("company_intelligence", {})))
+        story.append(PageBreak())
         story.extend(self._executive_summary(report_sections.get("executive_summary", {})))
         story.append(PageBreak())
         stability = report_sections.get("system_stability", {})
         if stability.get("has_failures"):
             story.extend(self._system_stability(stability))
             story.append(PageBreak())
-        story.extend(self._company_intelligence(report_sections.get("company_intelligence", {})))
-        story.append(PageBreak())
         story.extend(self._multi_agent(report_sections.get("multi_agent_discussion", {})))
         story.append(PageBreak())
         story.extend(self._financial(report_sections.get("financial_analysis", {})))
@@ -380,17 +401,19 @@ class PDFGenerator:
             Spacer(1, 0.55 * cm),
         ])
 
+        confidence = _pdf_confidence_label(
+            cover.get("data_confidence_label"),
+            cover.get("data_confidence"),
+        )
         rows = [
             ["Stock code", cover.get("ticker", "N/A")],
-            ["Data confidence", cover.get("data_confidence_label", "N/A")],
+            ["Data confidence", confidence],
             ["Company name", cover.get("company_name", "N/A")],
-            ["English name", cover.get("company_name_en", "N/A")],
             ["Industry", cover.get("sector", "N/A")],
             ["Core business", cover.get("business", "N/A")],
-            ["Market category", cover.get("market_type", "N/A")],
-            ["Report date", cover.get("report_date", "N/A")],
             ["Final committee rating", cover.get("final_rating", "N/A")],
             ["Risk score", f"{cover.get('risk_score', 'N/A')} - {cover.get('risk_label', '')}"],
+            ["Report date", cover.get("report_date", "N/A")],
         ]
         if cover.get("data_completeness_note"):
             rows.append(["Data completeness", cover.get("data_completeness_note")])
@@ -404,9 +427,10 @@ class PDFGenerator:
 
     def _executive_summary(self, section: Dict[str, Any]) -> List[Any]:
         elements = [self._title("Executive Summary")]
+        confidence = _pdf_confidence_label(section.get("data_confidence_label"))
         metric_rows = [
             ["Final rating", section.get("final_rating", "N/A")],
-            ["Data confidence", section.get("data_confidence_label", "N/A")],
+            ["Data confidence", confidence],
             ["Key risk", section.get("key_risk", "N/A")],
             ["Key opportunity", section.get("key_opportunity", "N/A")],
             ["Recommended action category", section.get("recommended_action", "N/A")],
@@ -414,7 +438,7 @@ class PDFGenerator:
         elements.append(self._table(metric_rows, [5.2 * cm, 10.2 * cm]))
         elements.append(Spacer(1, 0.35 * cm))
         if section.get("data_confidence_label"):
-            elements.append(self._notice(f"資料可信度：{section.get('data_confidence_label')}"))
+            elements.append(self._notice(f"資料可信度：{confidence}"))
         elements.append(Paragraph("重點摘要", self.styles["SubTitle"]))
         for bullet in section.get("bullets", []):
             elements.append(Paragraph(f"- {bullet}", self.styles["BodyTC"]))
@@ -424,7 +448,15 @@ class PDFGenerator:
 
     def _company_intelligence(self, section: Dict[str, Any]) -> List[Any]:
         elements = [self._title(section.get("title", "公司基本面與業務分析"))]
-        rows = [[label, value] for label, value in section.get("rows", [])]
+        rows = []
+        for label, value in section.get("rows", []):
+            clean_label = _pdf_text(label)
+            clean_value = _pdf_text(value)
+            if "資料可信度" in clean_label:
+                clean_value = _pdf_confidence_label(clean_value)
+            rows.append([clean_label, clean_value])
+        if not rows:
+            rows = [["公司資料", "未能取得有效公司資料，系統已停止公司基本面敘述。"]]
         elements.append(self._table(rows, [4.0 * cm, 11.4 * cm]))
         return elements
 
@@ -543,14 +575,14 @@ class PDFGenerator:
         return elements
 
     def _title(self, text: str) -> Paragraph:
-        return Paragraph(text, self.styles["SectionTitle"])
+        return Paragraph(_pdf_text(text), self.styles["SectionTitle"])
 
     def _notice(self, text: Any) -> Paragraph:
-        return Paragraph(str(text).replace("\n", "<br/>"), self.styles["Notice"])
+        return Paragraph(_pdf_text(text).replace("\n", "<br/>"), self.styles["Notice"])
 
     def _p(self, value: Any, header: bool = False) -> Paragraph:
         style = self.styles["TableHeaderTC"] if header else self.styles["TableTC"]
-        return Paragraph(str(value).replace("\n", "<br/>"), style)
+        return Paragraph(_pdf_text(value).replace("\n", "<br/>"), style)
 
     def _table(
         self,

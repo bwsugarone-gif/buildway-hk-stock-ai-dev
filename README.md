@@ -1,5 +1,5 @@
 # Buildway Tech (HK) Limited
-## 香港股票智能分析系統 — v0.5.0 Real Company Intelligence Layer
+## 香港股票智能分析系統 — v0.5.1 PDF Layout + Symbol Fix Layer
 
 Multi-Agent Stock Analysis & Risk Report System for Hong Kong equities.
 
@@ -7,10 +7,10 @@ Multi-Agent Stock Analysis & Risk Report System for Hong Kong equities.
 
 ## Overview
 
-This is **v0.5.0 Real Company Intelligence Layer** of the Buildway Tech HK stock intelligence platform. It uses a multi-agent architecture to analyze Hong Kong-listed stocks and generate professional PDF risk reports in Traditional Chinese.
+This is **v0.5.1 PDF Layout + Symbol Fix Layer** of the Buildway Tech HK stock intelligence platform. It uses a multi-agent architecture to analyze Hong Kong-listed stocks and generate professional PDF risk reports in Traditional Chinese.
 
-**Current Version:** v0.5.0 — Real Company Intelligence Layer  
-**Previous Phase:** v0.4.4 — Client Trial QA + Production Guard Layer  
+**Current Version:** v0.5.1 — PDF Layout + Symbol Fix Layer  
+**Previous Phase:** v0.5.0 — Real Company Intelligence Layer  
 **LLM Provider:** DeepSeek only (Claude not activated)
 
 ---
@@ -183,7 +183,7 @@ NEWS_API_KEY = "your_key_here"
 
 ---
 
-## v0.5.0 Deployment Checklist
+## v0.5.1 Deployment Checklist
 
 Use this checklist after every code change to ensure cross-platform consistency.
 
@@ -192,7 +192,7 @@ Use this checklist after every code change to ensure cross-platform consistency.
 - [ ] **1. Local test** — Run `streamlit run app.py`, test with: `700`, `9988`, `0005`, `3416`, `3896`, `2638`, `12345`
 - [ ] **2. Verify PDF** — Download PDF, open on desktop, confirm Chinese text is not garbled (no □ boxes)
 - [ ] **3. Check logs** — Console must show `[APP]`, `[CEO Agent]`, `[Financial Agent]`, `[Risk]`, `[PDF]` stock_code lines
-- [ ] **4. Verify version** — Sidebar must show `v0.5.0 — Real Company Intelligence Layer` and today's date
+- [ ] **4. Verify version** — Sidebar must show `v0.5.1 — PDF Layout + Symbol Fix Layer` and today's date
 - [ ] **5. Git commit** — `git add . && git commit -m "..."` with a clear message
 - [ ] **6. Git push** — `git push origin main`
 - [ ] **7. Streamlit Cloud** — Go to share.streamlit.io → your app → **Reboot app** (or Rerun)
@@ -212,7 +212,7 @@ Use this checklist after every code change to ensure cross-platform consistency.
 | `9988` | `9988.HK` | Normal 4-digit |
 | `12345` | `12345.HK` | Invalid but no crash — blocks advanced analysis |
 
-### Agent status values (v0.5.0)
+### Agent status values (v0.5.1)
 
 | Status | Meaning |
 |--------|---------|
@@ -222,7 +222,7 @@ Use this checklist after every code change to ensure cross-platform consistency.
 | 備援 | Failed but fallback data used — report continues |
 | 失敗 | No fallback available (should never occur in normal flow) |
 
-### PDF Chinese font priority (v0.5.0)
+### PDF Chinese font priority (v0.5.1)
 
 1. `assets/fonts/NotoSansTC-Regular.ttf` — bundled (cross-platform, Streamlit Cloud safe)
 2. Auto-download from GitHub if bundled font missing (first run on cloud)
@@ -235,6 +235,7 @@ Use this checklist after every code change to ensure cross-platform consistency.
 
 | Version | Date | Notes |
 |---------|------|-------|
+| v0.5.1 | 2026-05-28 | PDF Layout + Symbol Fix Layer — plain-text PDF confidence labels, company analysis moved before executive summary |
 | v0.5.0 | 2026-05-28 | Real Company Intelligence Layer — HK stock master metadata fallback, company profile UI, PDF company summary |
 | v0.4.4 | 2026-05-28 | Client Trial QA + Production Guard Layer — agent error boundary, LLM timeout fallback, PDF protection, input validation |
 | v0.3.0 | 2026-05-27 | Production Stability Layer — font auto-download, agent failsafe, stock code consistency |

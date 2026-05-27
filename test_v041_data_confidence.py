@@ -78,7 +78,7 @@ def main() -> int:
             "hk_stock_master_data" not in rows_text,
         )
 
-    print("All v0.5.0 data confidence and company intelligence tests passed.")
+    print("All v0.5.x data confidence and company intelligence tests passed.")
     return 0
 
 

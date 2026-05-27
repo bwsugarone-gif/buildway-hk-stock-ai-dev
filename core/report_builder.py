@@ -272,6 +272,7 @@ class ReportBuilder:
             return {
                 "title": "公司基本面與業務分析",
                 "rows": [
+                    ("公司資料", "未能取得有效公司資料，系統已停止公司基本面敘述。"),
                     ("資料狀態", INVALID_MARKET_DATA_MESSAGE),
                     ("分析限制", "系統未生成公司介紹、主要業務、收入來源或產品服務描述。"),
                     ("PDF提示", INVALID_PDF_NOTICE),

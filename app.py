@@ -151,216 +151,6 @@ def _inject_css() -> None:
                 font-size: clamp(1.25rem, 5vw, 1.75rem);
             }
 
-            .bw-hero {
-                background: linear-gradient(135deg, var(--bw-navy) 0%, var(--bw-navy-2) 72%, #17385f 100%);
-                border-radius: 8px;
-                color: #ffffff;
-                padding: 1rem;
-                margin-bottom: 1rem;
-                box-shadow: 0 18px 42px rgba(7, 27, 51, 0.18);
-            }
-
-            .bw-hero-kicker,
-            .bw-eyebrow {
-                color: var(--bw-gold-2);
-                font-size: 0.78rem;
-                font-weight: 800;
-                letter-spacing: 0;
-                text-transform: uppercase;
-            }
-
-            .bw-hero h1 {
-                margin: 0.25rem 0 0.4rem;
-                color: #ffffff;
-                font-size: clamp(1.55rem, 4vw, 2.6rem);
-                line-height: 1.12;
-                letter-spacing: 0;
-            }
-
-            .bw-hero p {
-                margin: 0;
-                color: #d9e5f4;
-                max-width: 760px;
-                font-size: 0.98rem;
-                line-height: 1.55;
-            }
-
-            .bw-hero-meta {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.5rem;
-                margin-top: 1rem;
-            }
-
-            .bw-pill {
-                display: inline-flex;
-                align-items: center;
-                min-height: 2rem;
-                border-radius: 999px;
-                background: rgba(255, 255, 255, 0.1);
-                border: 1px solid rgba(255, 255, 255, 0.18);
-                color: #ffffff;
-                padding: 0.35rem 0.75rem;
-                font-size: 0.84rem;
-                font-weight: 700;
-                line-height: 1.2;
-            }
-
-            .bw-section-title {
-                margin: 1.2rem 0 0.65rem;
-            }
-
-            .bw-section-title h2 {
-                color: var(--bw-navy);
-                font-size: clamp(1.12rem, 4vw, 1.3rem);
-                line-height: 1.25;
-                margin: 0.1rem 0;
-                letter-spacing: 0;
-            }
-
-            .bw-section-title p {
-                color: var(--bw-muted);
-                margin: 0;
-            }
-
-            .bw-card,
-            .bw-light-card,
-            .bw-dark-card {
-                border-radius: 8px;
-                margin-bottom: 0.75rem;
-                padding: 0.95rem;
-            }
-
-            .bw-card,
-            .bw-light-card {
-                background: var(--bw-panel);
-                border: 1px solid var(--bw-line);
-                box-shadow: 0 10px 28px rgba(16, 39, 74, 0.06);
-            }
-
-            .bw-dark-card {
-                background: var(--bw-navy);
-                color: #ffffff;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                box-shadow: 0 16px 34px rgba(7, 27, 51, 0.14);
-            }
-
-            .bw-dark-card h3,
-            .bw-dark-card p {
-                color: #ffffff;
-            }
-
-            .bw-card-label {
-                color: var(--bw-muted);
-                font-size: 0.8rem;
-                font-weight: 800;
-                margin-bottom: 0.2rem;
-            }
-
-            .bw-card-value {
-                color: var(--bw-navy);
-                font-size: 1.05rem;
-                font-weight: 800;
-                overflow-wrap: anywhere;
-            }
-
-            .bw-card-copy {
-                color: #354052;
-                line-height: 1.68;
-                margin: 0.35rem 0 0;
-            }
-
-            .bw-status-grid,
-            .bw-company-grid {
-                display: grid;
-                gap: 0.75rem;
-                grid-template-columns: 1fr;
-            }
-
-            .bw-status-card {
-                background: #ffffff;
-                border: 1px solid var(--bw-line);
-                border-left: 4px solid var(--bw-gold);
-                border-radius: 8px;
-                padding: 0.8rem;
-            }
-
-            .bw-status-agent {
-                color: var(--bw-navy);
-                font-weight: 800;
-                margin-bottom: 0.25rem;
-            }
-
-            .bw-status-state {
-                color: var(--bw-muted);
-                font-size: 0.9rem;
-            }
-
-            .bw-agent-role {
-                color: var(--bw-muted);
-                font-size: 0.84rem;
-            }
-
-            .bw-confidence {
-                display: inline-flex;
-                align-items: center;
-                width: fit-content;
-                max-width: 100%;
-                border-radius: 999px;
-                background: #fff8e6;
-                border: 1px solid #f0d38a;
-                color: #3d2b08;
-                padding: 0.4rem 0.75rem;
-                font-size: 0.86rem;
-                font-weight: 900;
-                margin: 0.45rem 0 0.15rem;
-                white-space: normal;
-                line-height: 1.25;
-            }
-
-            .bw-callout {
-                background: #fff8e6;
-                border: 1px solid #f4dc9d;
-                border-radius: 8px;
-                color: #4b3710;
-                padding: 1rem;
-                margin: 0.75rem 0;
-                line-height: 1.55;
-            }
-
-            .bw-confidence-note {
-                background: #ffffff;
-                border: 1px solid var(--bw-line);
-                border-left: 5px solid var(--bw-gold);
-                border-radius: 8px;
-                color: #263244;
-                line-height: 1.62;
-                margin: 0.75rem 0 1rem;
-                padding: 0.95rem;
-                box-shadow: 0 10px 24px rgba(16, 39, 74, 0.05);
-            }
-
-            .bw-sample-grid {
-                display: grid;
-                grid-template-columns: 1fr;
-                gap: 0.6rem;
-                margin-top: 0.7rem;
-            }
-
-            .bw-sample-card {
-                background: #ffffff;
-                border: 1px solid var(--bw-line);
-                border-radius: 8px;
-                padding: 0.85rem;
-            }
-
-            .bw-footer {
-                color: var(--bw-muted);
-                font-size: 0.82rem;
-                margin-top: 1rem;
-                text-align: center;
-            }
-
             @media (max-width: 719px) {
                 [data-testid="column"] {
                     width: 100% !important;
@@ -372,44 +162,12 @@ def _inject_css() -> None:
                     min-width: 100% !important;
                 }
 
-                .bw-hero-meta {
-                    gap: 0.4rem;
-                }
-
-                .bw-pill {
-                    min-height: 1.8rem;
-                    font-size: 0.78rem;
-                    padding: 0.3rem 0.55rem;
-                }
             }
 
             @media (min-width: 720px) {
                 .block-container {
                     padding: 1.5rem 2rem 3rem;
                 }
-
-                .bw-hero {
-                    padding: 1.6rem 1.8rem;
-                }
-
-                .bw-status-grid {
-                    grid-template-columns: repeat(2, minmax(0, 1fr));
-                }
-
-                .bw-company-grid {
-                    grid-template-columns: repeat(2, minmax(0, 1fr));
-                }
-
-                .bw-sample-grid {
-                    grid-template-columns: repeat(3, minmax(0, 1fr));
-                }
-            }
-
-            @media (min-width: 1024px) {
-                .bw-status-grid {
-                    grid-template-columns: repeat(3, minmax(0, 1fr));
-                }
-
             }
         </style>
         """,
@@ -441,17 +199,10 @@ def _init_state() -> None:
 
 
 def _section_title(kicker: str, title: str, caption: str = "") -> None:
-    caption_html = f"<p>{_escape(caption)}</p>" if caption else ""
-    st.markdown(
-        f"""
-        <div class="bw-section-title">
-            <div class="bw-eyebrow">{_escape(kicker)}</div>
-            <h2>{_escape(title)}</h2>
-            {caption_html}
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.caption(kicker)
+    st.subheader(title)
+    if caption:
+        st.caption(caption)
 
 
 def _status_cards() -> None:
@@ -484,24 +235,22 @@ def _agent_discussion_cards(rows: list[dict[str, Any]]) -> None:
 
 
 def _company_cards(rows: list[tuple[Any, Any]]) -> None:
-    cards = []
-    for label, value in rows:
-        cards.append(
-            f"""
-            <div class="bw-light-card">
-                <div class="bw-card-label">{_escape(label)}</div>
-                <p class="bw-card-copy">{_escape(value)}</p>
-            </div>
-            """
-        )
-    st.markdown(f'<div class="bw-company-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
+    columns = st.columns(2)
+    for index, (label, value) in enumerate(rows):
+        with columns[index % 2]:
+            with st.container(border=True):
+                st.markdown(f"**{_escape(label)}**")
+                st.caption(_escape(value))
 
 
 def _confidence_badge(label: str) -> None:
-    st.markdown(
-        f'<div class="bw-confidence">{_escape(label or "🟡 部分資料缺失")}</div>',
-        unsafe_allow_html=True,
-    )
+    text = label or "🟡 部分資料缺失"
+    if "高可信度" in text:
+        st.success(text)
+    elif "無法確認" in text:
+        st.error(text)
+    else:
+        st.warning(text)
 
 
 def _confidence_note(label: str) -> None:
@@ -511,35 +260,22 @@ def _confidence_note(label: str) -> None:
         copy = "未能確認該股票代號存在有效市場資料。系統已停止進階財務分析，並避免生成公司介紹、收入模式或產品服務描述。"
     else:
         copy = "部分市場或財務資料未能取得。系統會保留有效內容，並以保守假設處理有限資料，不會把缺失資料包裝成確定結論。"
-    st.markdown(
-        f'<div class="bw-confidence-note"><strong>資料可信度說明：</strong>{_escape(copy)}</div>',
-        unsafe_allow_html=True,
-    )
+    st.info(f"資料可信度說明：{copy}")
 
 
 def _sample_report_cards() -> None:
-    st.markdown(
-        """
-        <div class="bw-sample-grid">
-            <div class="bw-sample-card">
-                <div class="bw-card-label">高可信度示例</div>
-                <div class="bw-card-value">0700.HK / 9988.HK / 0005.HK</div>
-                <p class="bw-card-copy">適合展示完整客戶報告流程。</p>
-            </div>
-            <div class="bw-sample-card">
-                <div class="bw-card-label">部分資料示例</div>
-                <div class="bw-card-value">3416.HK</div>
-                <p class="bw-card-copy">適合展示保守假設與資料提示。</p>
-            </div>
-            <div class="bw-sample-card">
-                <div class="bw-card-label">無效代號示例</div>
-                <div class="bw-card-value">12345.HK</div>
-                <p class="bw-card-copy">適合展示防幻覺控制。</p>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    cols = st.columns(3)
+    samples = [
+        ("高可信度示例", "0700.HK / 9988.HK / 0005.HK", "適合展示完整客戶報告流程。"),
+        ("部分資料示例", "3416.HK", "適合展示保守假設與資料提示。"),
+        ("無效代號示例", "12345.HK", "適合展示防幻覺控制。"),
+    ]
+    for col, (title, value, note) in zip(cols, samples):
+        with col:
+            with st.container(border=True):
+                st.markdown(f"**{title}**")
+                st.metric("股票代號", value)
+                st.caption(note)
 
 
 def _mark_agent(message: str) -> None:
@@ -561,22 +297,14 @@ def _mark_agent(message: str) -> None:
 _inject_css()
 _init_state()
 
-
-st.markdown(
-    f"""
-    <div class="bw-hero">
-        <div class="bw-hero-kicker">{_escape(BUILD_STAGE)}</div>
-        <h1>香港股票智能分析報告</h1>
-        <p>為客戶快速整理市場資料、估值觀點、風險訊號與投資委員會結論，輸出可下載的機構級 PDF 報告。</p>
-        <div class="bw-hero-meta">
-            <span class="bw-pill">{_escape(APP_VERSION)}</span>
-            <span class="bw-pill">DeepSeek narrative only</span>
-            <span class="bw-pill">Python 3.11.9 ready</span>
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+with st.container(border=True):
+    st.caption(BUILD_STAGE)
+    st.title("香港股票智能分析報告")
+    st.write("為客戶快速整理市場資料、估值觀點、風險訊號與投資委員會結論，輸出可下載的機構級 PDF 報告。")
+    hero_cols = st.columns(3)
+    hero_cols[0].caption(APP_VERSION)
+    hero_cols[1].caption("DeepSeek narrative only")
+    hero_cols[2].caption("Python 3.11.9 ready")
 
 
 with st.sidebar:
@@ -723,17 +451,11 @@ if st.session_state.report_sections:
 
     company_name_preview = cover.get("company_name", "N/A")
     sector_preview = cover.get("sector", "香港上市公司")
-    st.markdown(
-        f"""
-        <div class="bw-dark-card">
-            <div class="bw-eyebrow">Client-ready snapshot</div>
-            <h3>{_escape(company_name_preview)} | {_escape(cover.get("ticker", "N/A"))}</h3>
-            <p>{_escape(cover.get("data_confidence_label", ""))}</p>
-            <p>{_escape(sector_preview)}</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    with st.container(border=True):
+        st.caption("Client-ready snapshot")
+        st.markdown(f"**{_escape(company_name_preview)} | {_escape(cover.get('ticker', 'N/A'))}**")
+        st.caption(_escape(cover.get("data_confidence_label", "")))
+        st.caption(_escape(sector_preview))
 
     if st.session_state.pdf_path and os.path.exists(st.session_state.pdf_path):
         with open(st.session_state.pdf_path, "rb") as pdf_file:
@@ -753,20 +475,14 @@ if st.session_state.report_sections:
     _section_title("Committee view", "投資委員會討論摘要", "將代理觀點整理為可掃讀的投資卡片")
     _agent_discussion_cards(discussion.get("table", []))
     if discussion.get("final_statement"):
-        st.markdown(
-            f'<div class="bw-callout">{_escape(discussion.get("final_statement"))}</div>',
-            unsafe_allow_html=True,
-        )
+        st.info(discussion.get("final_statement"))
 
     stability = sections.get("system_stability", {})
     if stability.get("has_failures"):
         _section_title("System note", "系統穩定性提示")
         st.warning(stability.get("message", "部分 Agent 分析未能完成，系統已自動切換至備援分析流程。"))
         failed_agents = ", ".join(stability.get("failed_agents", []))
-        st.markdown(
-            f'<div class="bw-callout">受影響模組：{_escape(failed_agents)}</div>',
-            unsafe_allow_html=True,
-        )
+        st.warning(f"受影響模組：{failed_agents}")
 
     company = sections.get("company_intelligence", {})
     _section_title("Company intelligence", "公司基本面與業務分析", "重點內容以卡片形式呈現，方便客戶快速閱讀")
@@ -774,28 +490,15 @@ if st.session_state.report_sections:
 else:
     col_intro, col_status = st.columns([1.15, 1])
     with col_intro:
-        st.markdown(
-            """
-            <div class="bw-card">
-                <div class="bw-card-label">開始分析</div>
-                <div class="bw-card-value">輸入香港股票代號即可生成客戶版研究報告。</div>
-                <p class="bw-card-copy">系統會整合市場、財務、風險、新聞與組合觀點，並輸出可下載 PDF。</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        with st.container(border=True):
+            st.caption("開始分析")
+            st.markdown("**輸入香港股票代號即可生成客戶版研究報告。**")
+            st.caption("系統會整合市場、財務、風險、新聞與組合觀點，並輸出可下載 PDF。")
         _sample_report_cards()
     with col_status:
         _section_title("Workflow", "Multi-Agent 狀態")
         _status_cards()
 
-
-st.markdown(
-    f"""
-    <div class="bw-footer">
-        © 2026 {_escape(APP_NAME)} | {_escape(BUILD_VERSION)}<br />
-        本系統只作教育、研究及客戶試用用途，不構成投資建議。
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+st.divider()
+st.caption(f"© 2026 {APP_NAME} | {BUILD_VERSION}")
+st.caption("本系統只作教育、研究及客戶試用用途，不構成投資建議。")

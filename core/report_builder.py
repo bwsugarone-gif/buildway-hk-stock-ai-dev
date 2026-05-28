@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from core.config import APP_NAME, APP_VERSION, USE_AI_ANALYSIS
+from core.market_snapshot import build_market_snapshot
 from core.data_confidence import (
     INVALID,
     INVALID_MARKET_DATA_MESSAGE,
@@ -93,6 +94,7 @@ class ReportBuilder:
                 "data_confidence_label": meta.get("data_confidence_label") or market.get("data_confidence_label") or confidence_label(data_confidence),
             },
             "cover": self._build_cover(meta, market, risk, rating),
+            "market_snapshot": build_market_snapshot(market),
             "executive_summary": executive_summary,
             "company_intelligence": self._build_company_intelligence(market),
             "system_stability": self._build_system_stability(agent_status, agent_error_log),

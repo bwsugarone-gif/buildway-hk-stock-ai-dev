@@ -845,6 +845,38 @@ def _render_financial_sections(sections: dict[str, Any], report_package: dict[st
                     st.caption(f"分數：{_escape(item.get('score', 'N/A'))} | 等級：{_escape(item.get('level', 'N/A'))} | 權重：{_escape(item.get('weight', 'N/A'))}")
 
 
+def _render_market_snapshot_section(section: dict[str, Any]) -> None:
+    """Bloomberg-style market snapshot KPI cards."""
+    if not section or not section.get("is_valid"):
+        return
+    _section_title("Market Snapshot", "市場快照", "Bloomberg 風格市場 KPI，數值由 Python 從市場資料供應商提取。")
+    kpis = section.get("kpis", [])
+    if not kpis:
+        st.info("市場快照資料暫時不可用。")
+        return
+
+    # Render KPIs in rows of 5
+    row_size = 5
+    for start in range(0, len(kpis), row_size):
+        cols = st.columns(row_size)
+        for col, kpi in zip(cols, kpis[start:start + row_size]):
+            label = _escape(kpi.get("label", ""))
+            value = _escape(kpi.get("value", "資料待補充"))
+            delta = kpi.get("delta", "")
+            with col:
+                with st.container(border=True):
+                    st.caption(label)
+                    st.markdown(f"**{value}**")
+                    if delta and delta != "資料待補充":
+                        st.caption(_escape(delta))
+
+    conf = section.get("snapshot_confidence", "")
+    source = section.get("data_source", "")
+    is_demo = section.get("is_demo", True)
+    demo_tag = "示範數據" if is_demo else "實時數據"
+    st.caption(f"快照可信度：{_escape(conf)} | {_escape(source)} ({demo_tag})")
+
+
 def _render_news_catalyst_section(section: dict[str, Any]) -> None:
     _section_title("新聞催化", "新聞與事件催化分析", "本節只使用已接入及已驗證新聞來源。")
     status = section.get("status") or "暫未接入即時新聞資料"
@@ -1143,10 +1175,13 @@ if st.session_state.report_sections:
     _confidence_badge(confidence_label)
     _confidence_note(confidence_label)
 
-    # 4. 公司資料與市場概覽
+    # 4. 市場快照 KPI cards
+    _render_market_snapshot_section(sections.get("market_snapshot", {}))
+
+    # 5. 公司資料與市場概覽
     _company_profile_panel(cover)
 
-    # 5. 價格指標、歷史財務、風險分析
+    # 6. 價格指標、歷史財務、風險分析
     _render_financial_sections(sections, st.session_state.get("report_package"))
 
     _render_news_catalyst_section(sections.get("news_catalyst_analysis", {}))

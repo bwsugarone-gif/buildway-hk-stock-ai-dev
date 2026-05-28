@@ -20,7 +20,7 @@ from agents.ceo_agent import CEOAgent
 from agents.market_data_agent import MarketDataAgent
 from core.config import (
     APP_NAME, APP_VERSION, BUILD_STAGE, BUILD_VERSION, BUILD_COMMIT,
-    LOGO_PATH, DEPLOY_ENV,
+    LOGO_PATH,
 )
 from core.pdf_generator import PDFGenerator
 from core.report_builder import ReportBuilder
@@ -28,6 +28,7 @@ from core.utils import format_currency_hkd, normalize_hk_ticker, validate_hk_tic
 
 
 MASTER_DATA_PATH = Path(__file__).resolve().parent / "data" / "hk_stock_master_data.json"
+INCOMPLETE_DATA_TEXT = "資料未完整取得"
 
 
 st.set_page_config(
@@ -320,6 +321,93 @@ def _format_showcase_market_cap(value: Any) -> str:
     except (TypeError, ValueError):
         number = 0
     return format_currency_hkd(number) if number > 0 else "資料待補充"
+
+
+def _confidence_level(report_package: dict[str, Any] | None, cover: dict[str, Any] | None = None) -> str:
+    market = (report_package or {}).get("market_data", {}) or {}
+    raw = str(market.get("data_confidence") or (cover or {}).get("data_confidence_label") or "").upper()
+    if "INVALID" in raw or "資料驗證未完成" in raw:
+        return "INVALID"
+    if "LOW" in raw or "部分資料缺失" in raw:
+        return "LOW"
+    if "MEDIUM" in raw:
+        return "MEDIUM"
+    if "HIGH" in raw or "高可信度" in raw:
+        return "HIGH"
+    return "MEDIUM"
+
+
+def _has_valid_display_value(value: Any) -> bool:
+    text = str(value or "").strip()
+    if not text:
+        return False
+    invalid_tokens = {
+        "0",
+        "0.0",
+        "0.00",
+        "N/A",
+        "None",
+        "資料待補充",
+        "暫無資料",
+        "暫未接入即時新聞資料",
+        INCOMPLETE_DATA_TEXT,
+    }
+    if text in invalid_tokens:
+        return False
+    if "HK$0.00" in text or "0.0%" in text or "0.00x" in text or "0.0x" in text:
+        return False
+    return True
+
+
+def _valid_metric_rows(rows: list[Any]) -> list[Any]:
+    valid_rows = []
+    for row in rows or []:
+        if isinstance(row, (list, tuple)) and len(row) >= 2 and _has_valid_display_value(row[1]):
+            valid_rows.append(row)
+    return valid_rows
+
+
+def _valid_history_rows(rows: list[Any]) -> list[Any]:
+    valid_rows = []
+    for row in rows or []:
+        if isinstance(row, (list, tuple)) and len(row) > 1 and any(_has_valid_display_value(value) for value in row[1:]):
+            valid_rows.append(row)
+    return valid_rows
+
+
+def _market_snapshot_has_data(section: dict[str, Any]) -> bool:
+    if not section or not section.get("is_valid"):
+        return False
+    kpis = section.get("kpis", []) or []
+    if any(_has_valid_display_value(kpi.get("value")) for kpi in kpis if isinstance(kpi, dict)):
+        return True
+    grouped = []
+    for key in ("price_section", "valuation_section", "range_section"):
+        grouped.extend((section.get(key, {}) or {}).values())
+    return any(_has_valid_display_value(value) for value in grouped)
+
+
+def _financial_has_data(section: dict[str, Any]) -> bool:
+    return bool(_valid_metric_rows(section.get("metrics", []) or []) or _valid_history_rows(section.get("history", []) or []))
+
+
+def _scenario_has_data(section: dict[str, Any]) -> bool:
+    if not section or not section.get("is_valid"):
+        return False
+    scenarios = section.get("scenarios", []) or []
+    rows = section.get("rows", []) or []
+    return any(
+        _has_valid_display_value(item.get("implied_price")) and item.get("implied_upside") != "+0.0%"
+        for item in scenarios
+        if isinstance(item, dict)
+    ) or any(any(_has_valid_display_value(value) for value in row[1:]) for row in rows if isinstance(row, (list, tuple)))
+
+
+def _news_has_data(section: dict[str, Any]) -> bool:
+    if not section or not section.get("has_news"):
+        return False
+    keys = ("positive_catalysts", "negative_catalysts", "neutral_events", "risk_events", "monitor_items")
+    return any(section.get(key) for key in keys)
 
 
 def _plain_confidence(label: Any, level: Any = "") -> str:
@@ -806,14 +894,20 @@ def _render_report_summary_card(cover: dict[str, Any]) -> None:
         metric_cols[2].metric("股票代號", ticker)
 
 
-def _render_financial_sections(sections: dict[str, Any], report_package: dict[str, Any] | None = None) -> None:
+def _render_financial_sections(
+    sections: dict[str, Any],
+    report_package: dict[str, Any] | None = None,
+    *,
+    show_market: bool = True,
+    show_financial: bool = True,
+    show_risk: bool = True,
+) -> None:
     financial = sections.get("financial_analysis", {}) or {}
-    metrics = financial.get("metrics", []) or []
-    history = financial.get("history", []) or []
+    metrics = _valid_metric_rows(financial.get("metrics", []) or [])
+    history = _valid_history_rows(financial.get("history", []) or [])
     risk = sections.get("risk_analysis", {}) or {}
     market = (report_package or {}).get("market_data", {}) or {}
 
-    _section_title("市場指標", "價格與市場指標")
     market_metrics = [
         ("現價", _format_showcase_price(market.get("current_price"))),
         ("市值", _format_showcase_market_cap(market.get("market_cap"))),
@@ -822,18 +916,21 @@ def _render_financial_sections(sections: dict[str, Any], report_package: dict[st
         ("P/B", _value_or_pending(market.get("pb_ratio"))),
         ("貨幣", _value_or_pending(market.get("currency"))),
     ]
-    market_cols = st.columns(3)
-    for index, (label, value) in enumerate(market_metrics):
-        market_cols[index % 3].metric(label, value)
+    market_metrics = _valid_metric_rows(market_metrics)
+    if show_market and market_metrics:
+        _section_title("市場指標", "價格與市場指標")
+        market_cols = st.columns(3)
+        for index, (label, value) in enumerate(market_metrics):
+            market_cols[index % 3].metric(label, value)
 
-    if metrics:
+    if show_financial and metrics:
         _section_title("財務指標", "核心財務指標")
         columns = st.columns(2)
         for index, (label, value) in enumerate(metrics):
             with columns[index % 2]:
                 st.metric(str(label), str(value))
 
-    if history:
+    if show_financial and history:
         _section_title("歷史財務", "歷史財務摘要")
         history_rows = [
             {"年度": row[0], "收入": row[1], "EBITDA": row[2], "淨利潤": row[3]}
@@ -846,7 +943,7 @@ def _render_financial_sections(sections: dict[str, Any], report_package: dict[st
             hide_index=True,
         )
 
-    if risk:
+    if show_risk and risk:
         _section_title("風險分析", "風險分析")
         cols = st.columns(2)
         cols[0].metric("綜合風險分數", risk.get("composite_score", "N/A"))
@@ -861,12 +958,11 @@ def _render_financial_sections(sections: dict[str, Any], report_package: dict[st
 
 def _render_market_snapshot_section(section: dict[str, Any]) -> None:
     """Bloomberg-style market snapshot KPI cards."""
-    if not section or not section.get("is_valid"):
+    if not _market_snapshot_has_data(section):
         return
     _section_title("Market Snapshot", "市場快照", "Bloomberg 風格市場 KPI，數值由 Python 從市場資料供應商提取。")
     kpis = section.get("kpis", [])
     if not kpis:
-        st.info("市場快照資料暫時不可用。")
         return
 
     # Render KPIs in rows of 5
@@ -876,6 +972,8 @@ def _render_market_snapshot_section(section: dict[str, Any]) -> None:
         for col, kpi in zip(cols, kpis[start:start + row_size]):
             label = _escape(kpi.get("label", ""))
             value = _escape(kpi.get("value", "資料待補充"))
+            if not _has_valid_display_value(value):
+                continue
             delta = kpi.get("delta", "")
             with col:
                 with st.container(border=True):
@@ -937,6 +1035,9 @@ def _render_hkex_section(ticker: str, report_package: dict[str, Any] | None = No
         print(f"[APP] HKEX intelligence unavailable: {exc}")
         return
 
+    if not result.get("has_data"):
+        return
+
     _section_title("HKEX Intelligence", "HKEX 公告與業績分析", "本節只使用已接入及已驗證的公告或業績資料。")
 
     with st.container(border=True):
@@ -956,20 +1057,14 @@ def _render_hkex_section(ticker: str, report_package: dict[str, Any] | None = No
         m_cols[1].metric("淨利率", _escape(earnings.get("net_margin", "資料待補充")))
         m_cols[2].metric("ROE", _escape(earnings.get("roe", "資料待補充")))
         st.caption(_escape(earnings.get("boundary_note", "")))
-    else:
-        with st.container(border=True):
-            st.caption("業績資料")
-            st.caption(_escape(earnings.get("not_connected_message", "業績資料暫未接入。")))
 
     # Announcements
     ann = result.get("announcements", {})
-    with st.container(border=True):
-        st.markdown("**HKEX 公告**")
-        if ann.get("is_connected") and ann.get("announcements"):
+    if ann.get("is_connected") and ann.get("announcements"):
+        with st.container(border=True):
+            st.markdown("**HKEX 公告**")
             for item in ann["announcements"][:5]:
                 st.caption(f"- {_escape(item)}")
-        else:
-            st.caption(_escape(ann.get("not_connected_message", "公告資料暫未接入。")))
 
 
 def _render_compare_mode() -> None:
@@ -1063,7 +1158,7 @@ def _render_compare_mode() -> None:
 
 def _render_scenario_section(section: dict[str, Any]) -> None:
     """Bull / Base / Bear scenario cards."""
-    if not section or not section.get("is_valid"):
+    if not _scenario_has_data(section):
         return
     _section_title("Scenario Analysis", "情景分析", "基於 Python 計算的估值區間與風險分數，不由 LLM 生成數值。")
 
@@ -1100,6 +1195,8 @@ def _render_scenario_section(section: dict[str, Any]) -> None:
 
 
 def _render_news_catalyst_section(section: dict[str, Any]) -> None:
+    if not _news_has_data(section):
+        return
     _section_title("新聞催化", "新聞與事件催化分析", "本節只使用已接入及已驗證新聞來源。")
     status = section.get("status") or "暫未接入即時新聞資料"
     confidence = section.get("news_confidence") or "未接入"
@@ -1181,64 +1278,11 @@ _render_source_transparency()
 _render_trust_layer()
 
 
-with st.sidebar:
-    if os.path.exists(LOGO_PATH):
-        st.image(str(LOGO_PATH), width=96)
-
-    st.header("分析設定")
-    ticker_input = st.text_input(
-        "香港股票代號",
-        value=st.session_state.get("selected_ticker", ""),
-        placeholder="例如：0700、9988、0688 或 3416.HK",
-        help="系統會自動轉換為標準港股代號格式。",
-    )
-    company_name = st.text_input(
-        "公司名稱（可選）",
-        value="",
-        placeholder="如留空，系統會使用市場資料或代號。",
-    )
-    risk_preference = st.selectbox(
-        "投資者風險取向",
-        options=["保守", "中等", "進取"],
-        index=1,
-    )
-    portfolio_size = st.number_input(
-        "投資組合規模（HKD，可選）",
-        min_value=0,
-        value=0,
-        step=100000,
-    )
-
-    generate_btn = st.button(
-        "生成機構級分析報告",
-        type="primary",
-        use_container_width=True,
-        disabled=st.session_state.get("is_generating", False),
-    )
-
-    st.divider()
-    _render_recent_reports("sidebar")
-    _render_watchlist("sidebar")
-
-    st.divider()
-    if st.button("清除 / 重設", key="sidebar_clear_reset", use_container_width=True):
-        st.session_state.pending_ticker_value = ""
-        st.session_state.selected_ticker = ""
-        st.session_state.report_package = None
-        st.session_state.report_sections = None
-        st.session_state.pdf_path = None
-        st.session_state.pdf_warning = ""
-        st.session_state.llm_warning = ""
-        st.rerun()
-    st.caption("700 展示高可信度；3416 展示部分資料；12345 展示無效代號控制。")
-
-    st.divider()
-    _today = datetime.now().strftime("%Y-%m-%d")
-    _env_label = "Streamlit Cloud" if DEPLOY_ENV == "streamlit-cloud" else "Local"
-    st.caption(f"{APP_VERSION} | {BUILD_STAGE}")
-    st.caption(f"{_today} | {_env_label}")
-    st.caption(f"版本：{BUILD_VERSION}")
-    st.caption(f"提交：{BUILD_COMMIT}")
+generate_btn = False
+ticker_input = st.session_state.get("selected_ticker", "")
+company_name = ""
+risk_preference = "中等"
+portfolio_size = 0
 
 
 rerun_request = st.session_state.pop("rerun_analysis_request", None)
@@ -1360,6 +1404,8 @@ if analysis_requested:
 if st.session_state.report_sections:
     sections = st.session_state.report_sections
     cover = sections.get("cover", {})
+    report_package = st.session_state.get("report_package") or {}
+    confidence_level = _confidence_level(report_package, cover)
 
     _section_title("報告摘要", "客戶報告摘要", "核心結論與報告下載")
 
@@ -1399,45 +1445,64 @@ if st.session_state.report_sections:
     # 3. 資料可信度說明
     _confidence_badge(confidence_label)
     _confidence_note(confidence_label)
+    if confidence_level == "MEDIUM":
+        st.warning("部分資料未完整取得，以下內容已保留有效資料並隱藏不足以支持判斷的區塊。")
+    if confidence_level == "INVALID":
+        st.error("資料驗證未完成，系統已停止深度分析，避免生成未經驗證內容。")
 
     # 4. 市場快照 KPI cards
-    _render_market_snapshot_section(sections.get("market_snapshot", {}))
+    if confidence_level in {"HIGH", "MEDIUM"}:
+        _render_market_snapshot_section(sections.get("market_snapshot", {}))
 
     # 5. 公司資料與市場概覽
-    _company_profile_panel(cover)
+    if confidence_level != "INVALID":
+        _company_profile_panel(cover)
 
     # 6. 價格指標、歷史財務、風險分析
-    _render_financial_sections(sections, st.session_state.get("report_package"))
+    if confidence_level != "INVALID":
+        _render_financial_sections(
+            sections,
+            report_package,
+            show_market=confidence_level in {"HIGH", "MEDIUM"},
+            show_financial=confidence_level in {"HIGH", "MEDIUM"} and _financial_has_data(sections.get("financial_analysis", {}) or {}),
+            show_risk=True,
+        )
 
-    _render_news_catalyst_section(sections.get("news_catalyst_analysis", {}))
+    if confidence_level in {"HIGH", "MEDIUM"}:
+        _render_news_catalyst_section(sections.get("news_catalyst_analysis", {}))
 
     # 7. 情景分析
-    _render_scenario_section(sections.get("scenario_analysis", {}))
+    if confidence_level in {"HIGH", "MEDIUM"}:
+        _render_scenario_section(sections.get("scenario_analysis", {}))
 
     # 8. 組合倉位參考（有設定 portfolio size 才顯示）
-    _render_allocation_section(
-        request_portfolio_size,
-        cover.get("risk_score", "5.0/10"),
-        cover.get("final_rating", "中性"),
-    )
+    if confidence_level in {"HIGH", "MEDIUM"}:
+        _render_allocation_section(
+            request_portfolio_size,
+            cover.get("risk_score", "5.0/10"),
+            cover.get("final_rating", "中性"),
+        )
 
     # 9. HKEX 公告與業績分析
-    _render_hkex_section(str(current_ticker), st.session_state.get("report_package"))
+    if confidence_level in {"HIGH", "MEDIUM"}:
+        _render_hkex_section(str(current_ticker), report_package)
 
     # 10. 股票比較分析
-    _render_compare_mode()
+    if confidence_level in {"HIGH", "MEDIUM"}:
+        _render_compare_mode()
 
     # 11. 分析流程 + 投委會討論（放最底）
-    _render_workflow_timeline()
+    if confidence_level in {"HIGH", "MEDIUM"}:
+        _render_workflow_timeline()
 
-    discussion = sections.get("multi_agent_discussion", {})
-    _section_title("投委會觀點", "投資委員會討論摘要", "將代理觀點整理為可掃讀的投資卡片")
-    _agent_discussion_cards(discussion.get("table", []))
-    if discussion.get("final_statement"):
-        st.info(discussion.get("final_statement"))
+        discussion = sections.get("multi_agent_discussion", {})
+        _section_title("投委會觀點", "投資委員會討論摘要", "將代理觀點整理為可掃讀的投資卡片")
+        _agent_discussion_cards(discussion.get("table", []))
+        if discussion.get("final_statement"):
+            st.info(discussion.get("final_statement"))
 
     stability = sections.get("system_stability", {})
-    if stability.get("has_failures"):
+    if confidence_level in {"HIGH", "MEDIUM"} and stability.get("has_failures"):
         _section_title("系統提示", "系統穩定性提示")
         st.warning(stability.get("message", "部分 Agent 分析未能完成，系統已自動切換至備援分析流程。"))
         failed_agents = ", ".join(stability.get("failed_agents", []))

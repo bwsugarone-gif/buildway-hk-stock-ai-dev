@@ -60,6 +60,77 @@ def _pdf_confidence_label(value: Any, level: Any = "") -> str:
     return text or "部分資料缺失"
 
 
+def _pdf_confidence_level(report_sections: Dict[str, Any]) -> str:
+    cover = report_sections.get("cover", {}) or {}
+    text = str(cover.get("data_confidence") or cover.get("data_confidence_label") or "").upper()
+    if "INVALID" in text or "資料驗證未完成" in text:
+        return "INVALID"
+    if "LOW" in text or "部分資料缺失" in text:
+        return "LOW"
+    if "MEDIUM" in text:
+        return "MEDIUM"
+    if "HIGH" in text or "高可信度" in text:
+        return "HIGH"
+    return "MEDIUM"
+
+
+def _pdf_has_valid_value(value: Any) -> bool:
+    text = _pdf_text(value)
+    if text in {"", "N/A", "0", "0.0", "0.00", "資料待補充", "資料未完整取得", "暫無資料", "暫未接入即時新聞資料"}:
+        return False
+    return not any(token in text for token in ("HK$0.00", "0.0%", "0.00x", "0.0x"))
+
+
+def _pdf_valid_rows(rows: Sequence[Any]) -> List[Any]:
+    valid = []
+    for row in rows or []:
+        if isinstance(row, (list, tuple)) and len(row) >= 2 and _pdf_has_valid_value(row[1]):
+            valid.append(row)
+    return valid
+
+
+def _pdf_valid_history(rows: Sequence[Any]) -> List[Any]:
+    valid = []
+    for row in rows or []:
+        if isinstance(row, (list, tuple)) and len(row) > 1 and any(_pdf_has_valid_value(value) for value in row[1:]):
+            valid.append(row)
+    return valid
+
+
+def _pdf_market_has_data(section: Dict[str, Any]) -> bool:
+    if not section or not section.get("is_valid"):
+        return False
+    kpis = section.get("kpis", []) or []
+    if any(_pdf_has_valid_value(kpi.get("value")) for kpi in kpis if isinstance(kpi, dict)):
+        return True
+    values = []
+    for key in ("price_section", "valuation_section", "range_section"):
+        values.extend((section.get(key, {}) or {}).values())
+    return any(_pdf_has_valid_value(value) for value in values)
+
+
+def _pdf_financial_has_data(section: Dict[str, Any]) -> bool:
+    return bool(_pdf_valid_rows(section.get("metrics", []) or []) or _pdf_valid_history(section.get("history", []) or []))
+
+
+def _pdf_scenario_has_data(section: Dict[str, Any]) -> bool:
+    if not section or section.get("is_valid") is False:
+        return False
+    rows = section.get("rows", []) or []
+    scenarios = section.get("scenarios", []) or []
+    return any(any(_pdf_has_valid_value(value) for value in row[1:]) for row in rows if isinstance(row, (list, tuple))) or any(
+        _pdf_has_valid_value(item.get("implied_price")) and item.get("implied_upside") != "+0.0%"
+        for item in scenarios
+        if isinstance(item, dict)
+    )
+
+
+def _pdf_news_has_data(section: Dict[str, Any]) -> bool:
+    if not section or not section.get("has_news"):
+        return False
+    return any(section.get(key) for key in ("positive_catalysts", "negative_catalysts", "neutral_events", "risk_events", "monitor_items"))
+
+
 class FontManager:
     """Register a Unicode-compatible Traditional Chinese font for ReportLab.
 
@@ -244,35 +315,32 @@ class PDFGenerator:
         )
 
         story: List[Any] = []
+        confidence_level = _pdf_confidence_level(report_sections)
         story.extend(self._cover(report_sections.get("cover", {})))
         story.append(PageBreak())
-        # TOC page after cover
-        story.extend(self._toc_page(report_sections))
-        story.append(PageBreak())
-        snapshot = report_sections.get("market_snapshot", {})
-        if snapshot.get("is_valid"):
-            story.extend(self._market_snapshot(snapshot))
-            story.append(PageBreak())
-        story.extend(self._company_intelligence(report_sections.get("company_intelligence", {})))
-        story.append(PageBreak())
         story.extend(self._executive_summary(report_sections.get("executive_summary", {})))
-        story.append(PageBreak())
-        stability = report_sections.get("system_stability", {})
-        if stability.get("has_failures"):
-            story.extend(self._system_stability(stability))
+        snapshot = report_sections.get("market_snapshot", {})
+        if confidence_level in {"HIGH", "MEDIUM"} and _pdf_market_has_data(snapshot):
             story.append(PageBreak())
-        story.extend(self._multi_agent(report_sections.get("multi_agent_discussion", {})))
-        story.append(PageBreak())
-        story.extend(self._financial(report_sections.get("financial_analysis", {})))
-        story.append(PageBreak())
-        story.extend(self._risk(report_sections.get("risk_analysis", {})))
-        story.append(PageBreak())
-        story.extend(self._news_catalyst(report_sections.get("news_catalyst_analysis", {})))
-        story.append(PageBreak())
-        story.extend(self._scenario(report_sections.get("scenario_analysis", {})))
-        story.append(PageBreak())
-        story.extend(self._portfolio(report_sections.get("portfolio_view", {})))
-        story.append(PageBreak())
+            story.extend(self._market_snapshot(snapshot))
+        financial = report_sections.get("financial_analysis", {})
+        if confidence_level in {"HIGH", "MEDIUM"} and _pdf_financial_has_data(financial):
+            story.append(PageBreak())
+            story.extend(self._financial(financial))
+        scenario = report_sections.get("scenario_analysis", {})
+        if confidence_level in {"HIGH", "MEDIUM"} and _pdf_scenario_has_data(scenario):
+            story.append(PageBreak())
+            story.extend(self._scenario(scenario))
+        news = report_sections.get("news_catalyst_analysis", {})
+        if confidence_level in {"HIGH", "MEDIUM"} and _pdf_news_has_data(news):
+            story.append(PageBreak())
+            story.extend(self._news_catalyst(news))
+        if confidence_level != "INVALID":
+            story.append(PageBreak())
+            story.extend(self._risk(report_sections.get("risk_analysis", {})))
+            story.append(PageBreak())
+        else:
+            story.append(PageBreak())
         story.extend(self._conclusion(report_sections.get("ic_conclusion", {}), report_sections.get("disclaimer", {})))
 
         try:
@@ -601,12 +669,14 @@ class PDFGenerator:
         elements = [self._title("Financial Analysis")]
         elements.append(Paragraph("財務與估值觀察", self.styles["SubTitle"]))
         for line in section.get("commentary", []):
+            if not _pdf_has_valid_value(line):
+                continue
             elements.append(Paragraph(f"- {line}", self.styles["BodyTC"]))
         elements.append(Spacer(1, 0.2 * cm))
         elements.append(Paragraph("Python-calculated ratios", self.styles["SubTitle"]))
-        rows = [["Metric", "Value"]] + [[a, b] for a, b in section.get("metrics", [])]
+        rows = [["Metric", "Value"]] + [[a, b] for a, b in _pdf_valid_rows(section.get("metrics", []) or [])]
         elements.append(self._table(rows, [6.0 * cm, 9.4 * cm], header=True))
-        history = section.get("history", [])
+        history = _pdf_valid_history(section.get("history", []) or [])
         if history:
             elements.extend([Spacer(1, 0.3 * cm), Paragraph("Historical financials", self.styles["SubTitle"])])
             elements.append(self._table([["Year", "Revenue", "EBITDA", "Free cash flow"]] + history, [3.0 * cm, 4.1 * cm, 4.1 * cm, 4.2 * cm], header=True))

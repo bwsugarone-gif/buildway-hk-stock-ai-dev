@@ -224,6 +224,7 @@ def _inject_css() -> None:
 
 
 def _init_state() -> None:
+    from core.client_profile import create_guest_profile
     defaults = {
         "report_package": None,
         "report_sections": None,
@@ -238,6 +239,7 @@ def _init_state() -> None:
         "rerun_analysis_request": None,
         "is_generating": False,
         "agent_error_log": [],
+        "client_profile": create_guest_profile(),
         "agent_status": {
             "CEO Agent": "等待",
             "Market Data Agent": "等待",

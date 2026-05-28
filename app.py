@@ -55,7 +55,9 @@ def _inject_css() -> None:
             }
 
             .stApp {
-                background: var(--bw-bg);
+                background:
+                    radial-gradient(circle at top left, rgba(217, 164, 65, 0.10), transparent 28rem),
+                    linear-gradient(180deg, #f8fafc 0%, var(--bw-bg) 38%, #eef3f8 100%);
                 color: var(--bw-text);
             }
 
@@ -151,6 +153,15 @@ def _inject_css() -> None:
                 font-size: clamp(1.25rem, 5vw, 1.75rem);
             }
 
+            div[data-testid="stDataFrame"] {
+                overflow-x: auto;
+            }
+
+            [data-testid="stVerticalBlockBorderWrapper"] {
+                border-color: rgba(16, 42, 67, 0.12);
+                box-shadow: 0 12px 30px rgba(16, 39, 74, 0.05);
+            }
+
             @media (max-width: 719px) {
                 [data-testid="column"] {
                     width: 100% !important;
@@ -183,6 +194,8 @@ def _init_state() -> None:
         "pdf_warning": "",
         "llm_warning": "",
         "ticker_input_value": "",
+        "selected_demo_ticker": "",
+        "recent_analysis": ["0700.HK", "9988.HK", "0688.HK"],
         "is_generating": False,
         "agent_error_log": [],
         "agent_status": {
@@ -205,6 +218,185 @@ def _section_title(kicker: str, title: str, caption: str = "") -> None:
     st.subheader(title)
     if caption:
         st.caption(caption)
+
+
+DEMO_SNAPSHOTS = [
+    {
+        "ticker": "0700.HK",
+        "company": "騰訊控股",
+        "sector": "科技 / 互聯網",
+        "confidence": "高可信度",
+        "rating": "中性",
+        "snapshot": "大型科技平台，適合展示完整公司資料與機構級 PDF 輸出。",
+    },
+    {
+        "ticker": "9988.HK",
+        "company": "阿里巴巴集團",
+        "sector": "科技 / 電子商務",
+        "confidence": "高可信度",
+        "rating": "觀察",
+        "snapshot": "大型平台型企業，可展示估值、風險與投委會摘要。",
+    },
+    {
+        "ticker": "0688.HK",
+        "company": "中國海外發展",
+        "sector": "地產",
+        "confidence": "部分資料缺失",
+        "rating": "保守觀察",
+        "snapshot": "地產板塊示範案例，適合展示資料邊界與風險控制。",
+    },
+]
+
+
+WORKFLOW_STEPS = [
+    ("市場資料 Agent", "取得價格、成交量、市值與公司 metadata。"),
+    ("財務分析 Agent", "計算估值、財務健康度與核心比率。"),
+    ("風險控制 Agent", "評估流動性、槓桿、波動與下行情境。"),
+    ("新聞分析 Agent", "整理市場情緒與事件風險。"),
+    ("投資委員會", "整合多 agent 觀點並輸出最終結論。"),
+]
+
+
+def _set_demo_ticker(ticker: str) -> None:
+    st.session_state.ticker_input_value = ticker.replace(".HK", "")
+    st.session_state.selected_demo_ticker = ticker
+    st.rerun()
+
+
+def _render_hero() -> None:
+    with st.container(border=True):
+        left, right = st.columns([1.35, 1])
+        with left:
+            st.caption("Buildway SaaS Intelligence")
+            st.title("Buildway AI Financial Intelligence Platform")
+            st.subheader("AI 驅動香港股票研究與風險分析平台")
+            st.write("60 秒內生成 Multi-Agent 分析、財務風險評估、機構級 PDF 報告與投資委員會結論。")
+            if st.button("開始分析", type="primary", use_container_width=True):
+                st.session_state.ticker_input_value = st.session_state.ticker_input_value or "0700"
+                st.rerun()
+        with right:
+            st.metric("平均生成時間", "60 秒內")
+            st.metric("分析架構", "Multi-Agent")
+            st.metric("輸出格式", "PDF 報告")
+
+
+def _render_demo_snapshots() -> None:
+    _section_title("Demo cases", "熱門示範案例", "點選卡片即可自動填入股票代號。")
+    columns = st.columns(3)
+    for column, item in zip(columns, DEMO_SNAPSHOTS):
+        with column:
+            with st.container(border=True):
+                st.caption(item["ticker"])
+                st.markdown(f"**{item['company']}**")
+                st.caption(item["sector"])
+                st.metric("資料可信度", item["confidence"])
+                st.metric("最終評級", item["rating"])
+                st.caption(item["snapshot"])
+                if st.button(f"分析 {item['ticker']}", key=f"demo_{item['ticker']}", use_container_width=True):
+                    _set_demo_ticker(item["ticker"])
+
+
+def _status_to_client_state(raw: Any) -> tuple[str, str]:
+    text = str(raw or "")
+    if any(token in text.lower() for token in ["fallback", "備援"]):
+        return "fallback", "備援"
+    if any(token in text.lower() for token in ["stop", "fail", "stopped", "失敗", "停止"]):
+        return "stopped", "停止"
+    if any(token in text.lower() for token in ["run", "running", "執行", "分析中"]):
+        return "running", "running"
+    if any(token in text.lower() for token in ["complete", "done", "完成", "摰"]):
+        return "completed", "completed"
+    return "waiting", "waiting"
+
+
+def _render_workflow_timeline() -> None:
+    _section_title("Workflow", "AI 分析流程", "每個步驟均可 fallback，單一 agent 失敗不會令整份報告中斷。")
+    status = st.session_state.get("agent_status", {})
+    status_lookup = {
+        "市場資料 Agent": status.get("Market Data Agent"),
+        "財務分析 Agent": status.get("Financial Analyst Agent"),
+        "風險控制 Agent": status.get("Risk Agent"),
+        "新聞分析 Agent": status.get("News Intelligence Agent"),
+        "投資委員會": status.get("Investment Committee Agent"),
+    }
+    for index, (name, description) in enumerate(WORKFLOW_STEPS):
+        state_key, state_label = _status_to_client_state(status_lookup.get(name))
+        with st.container(border=True):
+            cols = st.columns([0.18, 0.58, 0.24])
+            cols[0].metric("Step", f"{index + 1}")
+            cols[1].markdown(f"**{name}**")
+            cols[1].caption(description)
+            if state_key == "completed":
+                cols[2].success(state_label)
+            elif state_key == "running":
+                cols[2].info(state_label)
+            elif state_key == "fallback":
+                cols[2].warning(state_label)
+            elif state_key == "stopped":
+                cols[2].error(state_label)
+            else:
+                cols[2].caption(state_label)
+
+
+def _render_source_transparency() -> None:
+    _section_title("Transparency", "資料來源與分析邊界")
+    rows = [
+        ("市場資料", "Yahoo Finance / 市場資料供應商"),
+        ("公司資料", "HK stock master database"),
+        ("財務計算", "Python calculation engine"),
+        ("AI Narrative", "DeepSeek V3，只負責文字整理，不參與財務計算"),
+    ]
+    _company_cards(rows)
+    st.warning("本系統不構成投資建議。所有結果只供研究、教育及客戶展示用途。")
+
+
+def _render_trust_layer() -> None:
+    _section_title("Trust layer", "為何客戶可以信任本系統")
+    cards = [
+        ("防止 AI 幻覺", "公司資料只引用市場供應商或本地 master database。"),
+        ("INVALID ticker 防護", "無有效市場資料時停止進階公司敘述。"),
+        ("Python 財務計算", "估值、比率、風險分數由 Python engine 產生。"),
+        ("Multi-Agent 交叉分析", "市場、財務、風險、新聞與投委會互相校驗。"),
+        ("PDF 機構級輸出", "客戶可下載一致格式的正式報告。"),
+        ("Fallback 容錯架構", "單一資料源或 agent 失敗不會拖垮整個流程。"),
+    ]
+    columns = st.columns(3)
+    for index, (title, copy) in enumerate(cards):
+        with columns[index % 3]:
+            with st.container(border=True):
+                st.markdown(f"**{title}**")
+                st.caption(copy)
+
+
+def _render_pdf_preview(cover: dict[str, Any]) -> None:
+    _section_title("PDF preview", "PDF 預覽", "下載前先檢視報告封面摘要。")
+    with st.container(border=True):
+        st.caption("Institutional report cover")
+        st.markdown(f"**{_escape(cover.get('company_name', 'N/A'))}**")
+        cols = st.columns(2)
+        cols[0].metric("Ticker", cover.get("ticker", "N/A"))
+        cols[1].metric("Rating", cover.get("final_rating", "N/A"))
+        st.caption(_escape(cover.get("data_confidence_label", "")))
+        st.caption(_escape(cover.get("sector", "")))
+
+
+def _render_empty_state() -> None:
+    left, right = st.columns([1.05, 0.95])
+    with left:
+        with st.container(border=True):
+            st.caption("How it works")
+            st.markdown("**輸入香港股票代號，系統會生成一份可下載的機構級研究報告。**")
+            st.caption("支援 0700、9988、0688、3416 等格式；INVALID ticker 會停止公司基本面敘述。")
+        _render_demo_snapshots()
+    with right:
+        _render_pdf_preview({
+            "company_name": "示範公司",
+            "ticker": "0700.HK",
+            "final_rating": "中性",
+            "data_confidence_label": "高可信度",
+            "sector": "科技 / 互聯網",
+        })
+        _render_workflow_timeline()
 
 
 def _status_cards() -> None:
@@ -317,9 +509,18 @@ _inject_css()
 _init_state()
 
 with st.container(border=True):
+    st.caption("Buildway SaaS Intelligence")
     st.title("Buildway AI Financial Intelligence Platform")
-    st.subheader("香港股票智能分析系統")
-    st.write("為客戶快速整理市場資料、估值觀點、風險訊號與投資委員會結論，輸出可下載的機構級分析報告。")
+    st.subheader("AI 驅動香港股票研究與風險分析平台")
+    st.write("60 秒內生成 Multi-Agent 分析、財務風險評估、機構級 PDF 報告與投資委員會結論。")
+    if st.button("開始分析", type="primary", use_container_width=True):
+        st.session_state.ticker_input_value = st.session_state.ticker_input_value or "0700"
+        st.rerun()
+
+_render_demo_snapshots()
+_render_workflow_timeline()
+_render_source_transparency()
+_render_trust_layer()
 
 
 with st.sidebar:
@@ -330,7 +531,7 @@ with st.sidebar:
     ticker_input = st.text_input(
         "香港股票代號",
         key="ticker_input_value",
-        placeholder="例如：3416、700、0005 或 9988.HK",
+        placeholder="例如：0700、9988、0688 或 3416.HK",
         help="系統會自動轉換為標準港股代號格式。",
     )
     company_name = st.text_input(
@@ -360,14 +561,22 @@ with st.sidebar:
     st.divider()
     st.caption("客戶試用樣本")
     sample_cols = st.columns(3)
-    if sample_cols[0].button("700", use_container_width=True):
-        st.session_state.ticker_input_value = "700"
+    if sample_cols[0].button("0700", use_container_width=True):
+        st.session_state.ticker_input_value = "0700"
         st.rerun()
-    if sample_cols[1].button("3416", use_container_width=True):
-        st.session_state.ticker_input_value = "3416"
+    if sample_cols[1].button("9988", use_container_width=True):
+        st.session_state.ticker_input_value = "9988"
         st.rerun()
-    if sample_cols[2].button("12345", use_container_width=True):
-        st.session_state.ticker_input_value = "12345"
+    if sample_cols[2].button("0688", use_container_width=True):
+        st.session_state.ticker_input_value = "0688"
+        st.rerun()
+    if st.button("Clear / Reset", use_container_width=True):
+        st.session_state.ticker_input_value = ""
+        st.session_state.report_package = None
+        st.session_state.report_sections = None
+        st.session_state.pdf_path = None
+        st.session_state.pdf_warning = ""
+        st.session_state.llm_warning = ""
         st.rerun()
     st.caption("700 展示高可信度；3416 展示部分資料；12345 展示無效代號控制。")
 
@@ -491,6 +700,7 @@ if st.session_state.report_sections:
         st.caption(_escape(sector_preview))
 
     _company_profile_panel(cover)
+    _render_pdf_preview(cover)
 
     if st.session_state.pdf_path and os.path.exists(st.session_state.pdf_path):
         with open(st.session_state.pdf_path, "rb") as pdf_file:
@@ -505,8 +715,7 @@ if st.session_state.report_sections:
     elif st.session_state.get("pdf_warning"):
         st.warning(st.session_state.pdf_warning)
 
-    _section_title("Agent workflow", "Multi-Agent 狀態", "客戶可讀的分析流程概覽")
-    _status_cards()
+    _render_workflow_timeline()
 
     discussion = sections.get("multi_agent_discussion", {})
     _section_title("Committee view", "投資委員會討論摘要", "將代理觀點整理為可掃讀的投資卡片")
@@ -525,6 +734,11 @@ if st.session_state.report_sections:
     _section_title("Company intelligence", "公司基本面與業務分析", "重點內容以卡片形式呈現，方便客戶快速閱讀")
     _company_cards(company.get("rows", [])[:4])
 else:
+    _render_empty_state()
+    st.divider()
+    st.caption(f"2026 {APP_NAME} | {BUILD_VERSION}")
+    st.caption("本系統不構成投資建議；所有輸出只供研究、教育及客戶展示用途。")
+    st.stop()
     col_intro, col_status = st.columns([1.15, 1])
     with col_intro:
         with st.container(border=True):

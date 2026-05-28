@@ -16,7 +16,7 @@ from core.report_builder import ReportBuilder
 
 
 VALID = ["700", "9988", "0005"]
-PARTIAL = ["3416"]
+PARTIAL = ["3416", "0688"]
 INVALID_TICKERS = ["12345", "99999", "ABCDE", "3896", "2638"]
 
 

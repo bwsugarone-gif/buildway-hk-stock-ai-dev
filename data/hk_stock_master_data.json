@@ -61,5 +61,12 @@
     "sector": "金融 / 其他金融",
     "business": "金融服務及相關業務；具體收入結構需以公司公告及年報核對",
     "market_type": "小型金融股"
+  },
+  "0688.HK": {
+    "name_zh": "中國海外發展",
+    "name_en": "China Overseas Land & Investment",
+    "sector": "地產",
+    "business": "中國內地及香港房地產開發、物業投資及相關城市營運業務",
+    "market_type": "大型地產股"
   }
 }

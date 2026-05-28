@@ -364,6 +364,12 @@ def _set_demo_ticker(ticker: str) -> None:
     st.rerun()
 
 
+def make_widget_key(prefix: str, ticker: str, location: str) -> str:
+    clean_ticker = ticker.replace(".", "_").replace("-", "_").replace(" ", "_")
+    clean_location = str(location).replace(".", "_").replace("-", "_").replace(" ", "_").replace("/", "_")
+    return f"{prefix}_{clean_location}_{clean_ticker}"
+
+
 def _render_hero() -> None:
     with st.container(border=True):
         left, right = st.columns([1.35, 1])
@@ -380,7 +386,7 @@ def _render_hero() -> None:
             st.metric("輸出格式", "PDF 報告")
 
 
-def _render_demo_snapshots() -> None:
+def _render_demo_snapshots(location: str) -> None:
     _section_title("Quick test", "快速測試", "用三個案例快速展示資料可信度分層。")
     columns = st.columns(3)
     for column, item in zip(columns, DEMO_SNAPSHOTS):
@@ -392,11 +398,15 @@ def _render_demo_snapshots() -> None:
                 st.metric("資料可信度", item["confidence"])
                 st.metric("最終評級", item["rating"])
                 st.caption(item["snapshot"])
-                if st.button(f"分析 {item['ticker']}", key=f"demo_{item['ticker']}", use_container_width=True):
+                if st.button(
+                    f"分析 {item['ticker']}",
+                    key=make_widget_key("demo", item["ticker"], location),
+                    use_container_width=True,
+                ):
                     _set_demo_ticker(item["ticker"])
 
 
-def _render_stock_showcase_card(ticker: str, metadata: dict[str, Any]) -> None:
+def _render_stock_showcase_card(ticker: str, metadata: dict[str, Any], location: str) -> None:
     market = _load_showcase_market_data(ticker)
     name_zh = metadata.get("name_zh") or "資料待補充"
     name_en = metadata.get("name_en") or "資料待補充"
@@ -419,7 +429,11 @@ def _render_stock_showcase_card(ticker: str, metadata: dict[str, Any]) -> None:
         metric_cols[1].metric("市值", market_cap)
         st.caption(f"資料可信度：{confidence}")
         st.caption(positioning)
-        if st.button("分析此股票", key=f"sector_{ticker}", use_container_width=True):
+        if st.button(
+            "分析此股票",
+            key=make_widget_key("sector", ticker, location),
+            use_container_width=True,
+        ):
             _set_demo_ticker(ticker)
 
 
@@ -433,7 +447,7 @@ def _render_sector_showcase() -> None:
             columns = st.columns(2)
             for index, ticker in enumerate(tickers):
                 with columns[index % 2]:
-                    _render_stock_showcase_card(ticker, master_data.get(ticker, {}))
+                    _render_stock_showcase_card(ticker, master_data.get(ticker, {}), sector_name)
 
 
 def _status_to_client_state(raw: Any) -> tuple[str, str]:
@@ -560,7 +574,7 @@ def _render_empty_state() -> None:
             st.caption("How it works")
             st.markdown("**輸入香港股票代號，系統會生成一份可下載的機構級研究報告。**")
             st.caption("支援 0700、9988、0688、3416 等格式；INVALID ticker 會停止公司基本面敘述。")
-        _render_demo_snapshots()
+        _render_demo_snapshots("empty")
     with right:
         _render_pdf_preview({
             "company_name": "示範公司",
@@ -691,7 +705,7 @@ with st.container(border=True):
 
 main_generate_btn, main_ticker_input, main_risk_preference, main_portfolio_size = _render_main_input_panel()
 _render_sector_showcase()
-_render_demo_snapshots()
+_render_demo_snapshots("landing")
 _render_workflow_timeline()
 _render_source_transparency()
 _render_trust_layer()
@@ -735,13 +749,13 @@ with st.sidebar:
     st.divider()
     st.caption("客戶試用樣本")
     sample_cols = st.columns(3)
-    if sample_cols[0].button("0700", use_container_width=True):
+    if sample_cols[0].button("0700", key=make_widget_key("sample", "0700.HK", "sidebar"), use_container_width=True):
         _set_demo_ticker("0700.HK")
-    if sample_cols[1].button("9988", use_container_width=True):
+    if sample_cols[1].button("9988", key=make_widget_key("sample", "9988.HK", "sidebar"), use_container_width=True):
         _set_demo_ticker("9988.HK")
-    if sample_cols[2].button("0688", use_container_width=True):
+    if sample_cols[2].button("0688", key=make_widget_key("sample", "0688.HK", "sidebar"), use_container_width=True):
         _set_demo_ticker("0688.HK")
-    if st.button("Clear / Reset", use_container_width=True):
+    if st.button("Clear / Reset", key="sidebar_clear_reset", use_container_width=True):
         st.session_state.pending_ticker_value = ""
         st.session_state.selected_ticker = ""
         st.session_state.report_package = None

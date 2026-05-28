@@ -209,6 +209,11 @@ class FontManager:
         print(f"[FontManager] Using primary={primary}, bold={bold}")
         return primary, bold
 
+    @classmethod
+    def setup_traditional_chinese_fonts(cls) -> tuple[str, str]:
+        """Backward-compatible alias for older font verification tests."""
+        return cls.setup()
+
 
 class PDFGenerator:
     """Render a nine-page institutional investment report."""

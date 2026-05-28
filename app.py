@@ -233,6 +233,9 @@ def _init_state() -> None:
         "pending_ticker_value": "",
         "selected_ticker": "",
         "recent_analysis": ["0700.HK", "9988.HK", "0688.HK"],
+        "recent_reports": [],
+        "watchlist": ["0700.HK", "9988.HK", "0688.HK"],
+        "rerun_analysis_request": None,
         "is_generating": False,
         "agent_error_log": [],
         "agent_status": {
@@ -334,6 +337,187 @@ def _set_demo_ticker(ticker: str) -> None:
     st.session_state["pending_ticker_value"] = clean
     st.session_state["selected_ticker"] = clean
     st.rerun()
+
+
+def _request_analysis(
+    ticker: str,
+    risk_preference: str = "銝剔?",
+    portfolio_size: int = 0,
+) -> None:
+    normalized = normalize_hk_ticker(ticker)
+    st.session_state["pending_ticker_value"] = normalized.replace(".HK", "")
+    st.session_state["selected_ticker"] = normalized.replace(".HK", "")
+    st.session_state["rerun_analysis_request"] = {
+        "ticker": normalized,
+        "risk_preference": risk_preference,
+        "portfolio_size": int(portfolio_size or 0),
+    }
+    st.rerun()
+
+
+def _report_identity(cover: dict[str, Any]) -> tuple[str, str]:
+    ticker = normalize_hk_ticker(str(cover.get("ticker") or ""))
+    company = (
+        cover.get("company_name_zh")
+        or cover.get("company_name")
+        or cover.get("company_name_en")
+        or ticker
+    )
+    return ticker, str(company)
+
+
+def _add_watchlist_ticker(ticker: str) -> None:
+    normalized = normalize_hk_ticker(ticker)
+    current = [item for item in st.session_state.get("watchlist", []) if item != normalized]
+    st.session_state["watchlist"] = [normalized, *current][:12]
+
+
+def _remove_watchlist_ticker(ticker: str) -> None:
+    normalized = normalize_hk_ticker(ticker)
+    st.session_state["watchlist"] = [
+        item for item in st.session_state.get("watchlist", []) if item != normalized
+    ]
+
+
+def _save_report_history(
+    ticker: str,
+    risk_preference: str,
+    portfolio_size: int,
+    report_package: dict[str, Any],
+    report_sections: dict[str, Any],
+) -> None:
+    cover = report_sections.get("cover", {}) or {}
+    normalized, company = _report_identity({**cover, "ticker": ticker})
+    record = {
+        "id": datetime.now().strftime("%Y%m%d%H%M%S%f"),
+        "ticker": normalized,
+        "company": company,
+        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "rating": cover.get("final_rating", "N/A"),
+        "risk_label": cover.get("risk_label", ""),
+        "confidence": cover.get("data_confidence_label", ""),
+        "risk_preference": risk_preference,
+        "portfolio_size": int(portfolio_size or 0),
+        "report_package": report_package,
+        "report_sections": report_sections,
+        "pdf_path": st.session_state.get("pdf_path"),
+        "pdf_warning": st.session_state.get("pdf_warning", ""),
+        "llm_warning": st.session_state.get("llm_warning", ""),
+    }
+    previous = [
+        item
+        for item in st.session_state.get("recent_reports", [])
+        if item.get("ticker") != normalized
+    ]
+    st.session_state["recent_reports"] = [record, *previous][:8]
+
+
+def _open_history_record(record: dict[str, Any]) -> None:
+    st.session_state.report_package = record.get("report_package")
+    st.session_state.report_sections = record.get("report_sections")
+    st.session_state.pdf_path = record.get("pdf_path")
+    st.session_state.pdf_warning = record.get("pdf_warning", "")
+    st.session_state.llm_warning = record.get("llm_warning", "")
+    st.session_state.selected_ticker = str(record.get("ticker", "")).replace(".HK", "")
+    st.rerun()
+
+
+def _render_recent_reports(location: str) -> None:
+    reports = st.session_state.get("recent_reports", [])
+    with st.container(border=True):
+        st.caption("Report history")
+        st.markdown("**Recent reports**")
+        if not reports:
+            st.caption("Generated reports will appear here during this session.")
+            return
+        for index, record in enumerate(reports):
+            row = st.columns([0.48, 0.18, 0.17, 0.17])
+            row[0].markdown(f"**{_escape(record.get('ticker'))}**")
+            row[0].caption(
+                f"{_escape(record.get('company'))} | {_escape(record.get('generated_at'))}"
+            )
+            row[1].caption(_escape(record.get("rating", "N/A")))
+            if row[2].button(
+                "Open",
+                key=f"open_report_{location}_{index}_{record.get('id')}",
+                use_container_width=True,
+            ):
+                _open_history_record(record)
+            if row[3].button(
+                "Re-run",
+                key=f"rerun_report_{location}_{index}_{record.get('id')}",
+                use_container_width=True,
+            ):
+                _request_analysis(
+                    str(record.get("ticker", "")),
+                    str(record.get("risk_preference") or "銝剔?"),
+                    int(record.get("portfolio_size") or 0),
+                )
+        if st.button(
+            "Clear history",
+            key=f"clear_history_{location}",
+            use_container_width=True,
+        ):
+            st.session_state["recent_reports"] = []
+            st.rerun()
+
+
+def _render_watchlist(location: str) -> None:
+    watchlist = st.session_state.get("watchlist", [])
+    with st.container(border=True):
+        st.caption("Watchlist")
+        st.markdown("**Client watchlist**")
+        add_cols = st.columns([0.62, 0.38])
+        candidate = add_cols[0].text_input(
+            "Add ticker",
+            value="",
+            placeholder="0700 or 9988.HK",
+            key=f"watchlist_input_{location}",
+            label_visibility="collapsed",
+        )
+        if add_cols[1].button(
+            "Add",
+            key=f"watchlist_add_{location}",
+            use_container_width=True,
+        ):
+            is_valid, _ = validate_hk_ticker(candidate)
+            if is_valid:
+                _add_watchlist_ticker(candidate)
+                st.rerun()
+            else:
+                st.warning("Please enter a valid HK ticker.")
+        if not watchlist:
+            st.caption("Add tickers clients want to monitor this session.")
+            return
+        for index, ticker in enumerate(watchlist):
+            row = st.columns([0.45, 0.35, 0.20])
+            row[0].markdown(f"**{_escape(ticker)}**")
+            if row[1].button(
+                "Analyze",
+                key=f"watch_analyze_{location}_{index}_{ticker}",
+                use_container_width=True,
+            ):
+                _request_analysis(ticker)
+            if row[2].button(
+                "X",
+                key=f"watch_remove_{location}_{index}_{ticker}",
+                use_container_width=True,
+            ):
+                _remove_watchlist_ticker(ticker)
+                st.rerun()
+
+
+def _render_workspace_layer(location: str) -> None:
+    _section_title(
+        "Workspace",
+        "Report history + watchlist",
+        "Session-only workspace for client follow-up and repeat analysis.",
+    )
+    cols = st.columns([1.1, 0.9])
+    with cols[0]:
+        _render_recent_reports(location)
+    with cols[1]:
+        _render_watchlist(location)
 
 
 def make_widget_key(prefix: str, ticker: str, location: str) -> str:
@@ -697,6 +881,7 @@ with st.container(border=True):
     st.caption("60 秒內生成 Multi-Agent 分析、財務風險評估、機構級 PDF 報告")
 
 main_generate_btn, main_ticker_input, main_risk_preference, main_portfolio_size = _render_main_input_panel()
+_render_workspace_layer("main")
 _render_sector_showcase()
 _render_workflow_timeline()
 _render_source_transparency()
@@ -739,6 +924,10 @@ with st.sidebar:
     )
 
     st.divider()
+    _render_recent_reports("sidebar")
+    _render_watchlist("sidebar")
+
+    st.divider()
     if st.button("Clear / Reset", key="sidebar_clear_reset", use_container_width=True):
         st.session_state.pending_ticker_value = ""
         st.session_state.selected_ticker = ""
@@ -759,10 +948,20 @@ with st.sidebar:
     st.caption(f"Commit: {BUILD_COMMIT}")
 
 
-analysis_requested = bool(main_generate_btn or generate_btn)
-request_ticker_input = main_ticker_input if main_generate_btn else ticker_input
-request_risk_preference = main_risk_preference if main_generate_btn else risk_preference
-request_portfolio_size = main_portfolio_size if main_generate_btn else portfolio_size
+rerun_request = st.session_state.pop("rerun_analysis_request", None)
+analysis_requested = bool(main_generate_btn or generate_btn or rerun_request)
+if rerun_request:
+    request_ticker_input = rerun_request.get("ticker", "")
+    request_risk_preference = rerun_request.get("risk_preference", risk_preference)
+    request_portfolio_size = int(rerun_request.get("portfolio_size", 0) or 0)
+elif main_generate_btn:
+    request_ticker_input = main_ticker_input
+    request_risk_preference = main_risk_preference
+    request_portfolio_size = main_portfolio_size
+else:
+    request_ticker_input = ticker_input
+    request_risk_preference = risk_preference
+    request_portfolio_size = portfolio_size
 
 if analysis_requested:
     is_valid_ticker, _ticker_error = validate_hk_ticker(request_ticker_input)
@@ -831,6 +1030,15 @@ if analysis_requested:
                 print(f"[APP] PDF generation failed but report remains available: {pdf_exc}")
                 st.session_state.pdf_warning = "PDF 暫時無法生成，請稍後再試"
 
+            _save_report_history(
+                ticker=ticker,
+                risk_preference=request_risk_preference,
+                portfolio_size=request_portfolio_size,
+                report_package=report_package,
+                report_sections=report_sections,
+            )
+            _add_watchlist_ticker(ticker)
+
             progress.progress(1.0)
             status_text.text("報告生成完成。")
             if st.session_state.pdf_warning:
@@ -863,6 +1071,20 @@ if st.session_state.report_sections:
     # 1. 報告摘要 card（含公司 logo、名稱、ticker、風險分數、投委會結論）
     confidence_label = cover.get("data_confidence_label", "🟡 部分資料缺失")
     _render_report_summary_card(cover)
+    current_ticker = cover.get("ticker", st.session_state.get("selected_ticker", ""))
+    action_cols = st.columns(3)
+    if action_cols[0].button("Add to watchlist", key="current_add_watchlist", use_container_width=True):
+        _add_watchlist_ticker(str(current_ticker))
+        st.rerun()
+    if action_cols[1].button("Re-run analysis", key="current_rerun_analysis", use_container_width=True):
+        _request_analysis(str(current_ticker), request_risk_preference, request_portfolio_size)
+    if action_cols[2].button("Clear current report", key="current_clear_report", use_container_width=True):
+        st.session_state.report_package = None
+        st.session_state.report_sections = None
+        st.session_state.pdf_path = None
+        st.session_state.pdf_warning = ""
+        st.session_state.llm_warning = ""
+        st.rerun()
 
     # 2. 下載按鈕（緊接摘要 card 下方）
     if st.session_state.pdf_path and os.path.exists(st.session_state.pdf_path):

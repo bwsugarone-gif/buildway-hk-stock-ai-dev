@@ -37,10 +37,10 @@ def main():
     try:
         font_mgr = FontManager()
         primary_font, bold_font = font_mgr.setup_traditional_chinese_fonts()
-        print(f"   ✓ Primary font: {primary_font}")
-        print(f"   ✓ Bold font: {bold_font}")
+        print(f"   [OK] Primary font: {primary_font}")
+        print(f"   [OK] Bold font: {bold_font}")
     except Exception as e:
-        print(f"   ✗ Error: {e}")
+        print(f"   [ERROR] {e}")
         return False
     
     # 2. Test Unicode symbol rendering
@@ -48,7 +48,7 @@ def main():
     try:
         test_font_rendering()
     except Exception as e:
-        print(f"   ✗ Error: {e}")
+        print(f"   [ERROR] {e}")
         return False
     
     # 3. Test critical strings
@@ -64,28 +64,28 @@ def main():
     for chinese, english in critical_strings:
         try:
             encoded = chinese.encode('utf-8')
-            print(f"   ✓ {chinese} ({english})")
+            print(f"   [OK] {chinese} ({english})")
         except Exception as e:
-            print(f"   ✗ {chinese} - Error: {e}")
+            print(f"   [ERROR] {chinese} - {e}")
             all_passed = False
     
     # 4. Test PDF generation capabilities
     print_header("PDF Generation Readiness")
     
     if primary_font != "Helvetica":
-        print(f"   ✓ CJK font found: {primary_font}")
-        print(f"   ✓ Ready to generate PDFs with Chinese text")
+        print(f"   [OK] CJK font found: {primary_font}")
+        print(f"   [OK] Ready to generate PDFs with Chinese text")
         readiness = "READY"
     else:
-        print(f"   ⚠ No CJK font found, using fallback: {primary_font}")
-        print(f"   ⚠ PDFs may not render Chinese text correctly")
+        print(f"   [WARN] No CJK font found, using fallback: {primary_font}")
+        print(f"   [WARN] PDFs may not render Chinese text correctly")
         readiness = "NOT READY"
     
     # 5. Summary
     print_header("Verification Summary")
     
     if all_passed and primary_font != "Helvetica":
-        print("✅ Font setup is COMPLETE and READY")
+        print("[OK] Font setup is COMPLETE and READY")
         print("\nYou can now generate PDFs with proper Traditional Chinese rendering:")
         print("  - 繁體中文 will display correctly")
         print("  - 投委會評級 will display correctly")
@@ -93,14 +93,14 @@ def main():
         print("  - 觀察名單 will display correctly")
         return True
     elif all_passed:
-        print("⚠️  Font setup is INCOMPLETE")
+        print("[WARN] Font setup is INCOMPLETE")
         print("\nTo enable proper Chinese character rendering:")
         print("  1. Install Microsoft JhengHei (recommended for HK)")
         print("  2. Or install Noto Sans CJK TC")
         print("\nSee FONT_SETUP_GUIDE.md for detailed instructions")
         return False
     else:
-        print("❌ Font setup has ERRORS")
+        print("[ERROR] Font setup has ERRORS")
         print("\nPlease check the errors above and refer to FONT_SETUP_GUIDE.md")
         return False
 

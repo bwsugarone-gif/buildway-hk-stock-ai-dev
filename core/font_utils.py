@@ -211,9 +211,9 @@ def test_font_rendering() -> None:
         try:
             # Verify UTF-8 encoding
             encoded = test_str.encode('utf-8')
-            print(f"✓ {test_str}")
+            print(f"[OK] {test_str}")
         except Exception as e:
-            print(f"✗ {test_str} - Error: {e}")
+            print(f"[ERROR] {test_str} - {e}")
     
     print("\n=== Font Recommendations ===")
     recommendations = FontRecommendations.get_recommended_fonts("windows")

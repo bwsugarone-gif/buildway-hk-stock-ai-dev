@@ -30,9 +30,9 @@ def _get_secret(key: str, default: str = "") -> str:
 
 # ─── App Identity ────────────────────────────────────────────────────────────
 APP_NAME = "Buildway Tech (HK) Limited"
-APP_SUBTITLE = "香港股票智能分析系統 — Report Page Layout Cleanup Layer"
-APP_VERSION = "v0.6.5"
-BUILD_STAGE = "Report Page Layout Cleanup Layer"
+APP_SUBTITLE = "香港股票智能分析系統 — Landing + Report Summary Cleanup Layer"
+APP_VERSION = "v0.7.0"
+BUILD_STAGE = "Report History + Watchlist Layer"
 APP_LANG = "zh-HK"
 
 # ─── Deployment Environment Detection ────────────────────────────────────────

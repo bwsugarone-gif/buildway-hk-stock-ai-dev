@@ -230,9 +230,8 @@ def _init_state() -> None:
         "pdf_path": None,
         "pdf_warning": "",
         "llm_warning": "",
-        "ticker_input_value": "",
-        "main_ticker_input_value": "",
-        "selected_demo_ticker": "",
+        "pending_ticker_value": "",
+        "selected_ticker": "",
         "recent_analysis": ["0700.HK", "9988.HK", "0688.HK"],
         "is_generating": False,
         "agent_error_log": [],
@@ -359,9 +358,9 @@ def _plain_confidence(label: Any, level: Any = "") -> str:
 
 
 def _set_demo_ticker(ticker: str) -> None:
-    st.session_state.ticker_input_value = ticker.replace(".HK", "")
-    st.session_state.main_ticker_input_value = ticker.replace(".HK", "")
-    st.session_state.selected_demo_ticker = ticker
+    clean = ticker.replace(".HK", "")
+    st.session_state["pending_ticker_value"] = clean
+    st.session_state["selected_ticker"] = clean
     st.rerun()
 
 
@@ -374,8 +373,7 @@ def _render_hero() -> None:
             st.subheader("AI 驅動香港股票研究與風險分析平台")
             st.write("60 秒內生成 Multi-Agent 分析、財務風險評估、機構級 PDF 報告與投資委員會結論。")
             if st.button("開始分析", type="primary", use_container_width=True):
-                st.session_state.ticker_input_value = st.session_state.ticker_input_value or "0700"
-                st.rerun()
+                _set_demo_ticker("0700.HK")
         with right:
             st.metric("平均生成時間", "60 秒內")
             st.metric("分析架構", "Multi-Agent")
@@ -526,9 +524,10 @@ def _render_main_input_panel() -> tuple[bool, str, str, int]:
     _section_title("Start", "開始分析", "手機版可直接在主頁完成輸入，不需要打開 sidebar。")
     with st.container(border=True):
         with st.form("main_analysis_form"):
+            default_ticker = st.session_state.pop("pending_ticker_value", "") or st.session_state.get("selected_ticker", "")
             main_ticker = st.text_input(
                 "香港股票代號",
-                key="main_ticker_input_value",
+                value=default_ticker,
                 placeholder="例如：0700、9988、0688、3416",
                 help="支援 700、0700、700.HK、9988、3416 等格式。",
             )
@@ -688,9 +687,7 @@ with st.container(border=True):
     st.subheader("AI 驅動香港股票研究與風險分析平台")
     st.write("60 秒內生成 Multi-Agent 分析、財務風險評估、機構級 PDF 報告與投資委員會結論。")
     if st.button("開始分析", type="primary", use_container_width=True):
-        st.session_state.ticker_input_value = st.session_state.ticker_input_value or "0700"
-        st.session_state.main_ticker_input_value = st.session_state.main_ticker_input_value or "0700"
-        st.rerun()
+        _set_demo_ticker("0700.HK")
 
 main_generate_btn, main_ticker_input, main_risk_preference, main_portfolio_size = _render_main_input_panel()
 _render_sector_showcase()
@@ -707,7 +704,7 @@ with st.sidebar:
     st.header("分析設定")
     ticker_input = st.text_input(
         "香港股票代號",
-        key="ticker_input_value",
+        value=st.session_state.get("selected_ticker", ""),
         placeholder="例如：0700、9988、0688 或 3416.HK",
         help="系統會自動轉換為標準港股代號格式。",
     )
@@ -739,20 +736,14 @@ with st.sidebar:
     st.caption("客戶試用樣本")
     sample_cols = st.columns(3)
     if sample_cols[0].button("0700", use_container_width=True):
-        st.session_state.ticker_input_value = "0700"
-        st.session_state.main_ticker_input_value = "0700"
-        st.rerun()
+        _set_demo_ticker("0700.HK")
     if sample_cols[1].button("9988", use_container_width=True):
-        st.session_state.ticker_input_value = "9988"
-        st.session_state.main_ticker_input_value = "9988"
-        st.rerun()
+        _set_demo_ticker("9988.HK")
     if sample_cols[2].button("0688", use_container_width=True):
-        st.session_state.ticker_input_value = "0688"
-        st.session_state.main_ticker_input_value = "0688"
-        st.rerun()
+        _set_demo_ticker("0688.HK")
     if st.button("Clear / Reset", use_container_width=True):
-        st.session_state.ticker_input_value = ""
-        st.session_state.main_ticker_input_value = ""
+        st.session_state.pending_ticker_value = ""
+        st.session_state.selected_ticker = ""
         st.session_state.report_package = None
         st.session_state.report_sections = None
         st.session_state.pdf_path = None
@@ -783,8 +774,7 @@ if analysis_requested:
         st.session_state.is_generating = True
         st.session_state.pdf_warning = ""
         ticker = normalize_hk_ticker(request_ticker_input)
-        st.session_state.ticker_input_value = request_ticker_input
-        st.session_state.main_ticker_input_value = request_ticker_input
+        st.session_state.selected_ticker = ticker.replace(".HK", "")
         print(f"[APP] User input stock_code = {ticker}")
         progress = st.progress(0)
         status_text = st.empty()

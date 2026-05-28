@@ -257,34 +257,6 @@ def _section_title(kicker: str, title: str, caption: str = "") -> None:
         st.caption(caption)
 
 
-DEMO_SNAPSHOTS = [
-    {
-        "ticker": "0700.HK",
-        "company": "騰訊控股",
-        "sector": "科技 / 互聯網",
-        "confidence": "高可信度",
-        "rating": "中性",
-        "snapshot": "大型科技平台，適合展示完整公司資料與機構級 PDF 輸出。",
-    },
-    {
-        "ticker": "9988.HK",
-        "company": "阿里巴巴集團",
-        "sector": "科技 / 電子商務",
-        "confidence": "高可信度",
-        "rating": "觀察",
-        "snapshot": "大型平台型企業，可展示估值、風險與投委會摘要。",
-    },
-    {
-        "ticker": "0688.HK",
-        "company": "中國海外發展",
-        "sector": "地產",
-        "confidence": "部分資料缺失",
-        "rating": "保守觀察",
-        "snapshot": "地產板塊示範案例，適合展示資料邊界與風險控制。",
-    },
-]
-
-
 WORKFLOW_STEPS = [
     ("市場資料 Agent", "取得價格、成交量、市值與公司 metadata。"),
     ("財務分析 Agent", "計算估值、財務健康度與核心比率。"),
@@ -370,40 +342,6 @@ def make_widget_key(prefix: str, ticker: str, location: str) -> str:
     return f"{prefix}_{clean_location}_{clean_ticker}"
 
 
-def _render_hero() -> None:
-    with st.container(border=True):
-        left, right = st.columns([1.35, 1])
-        with left:
-            st.caption("Buildway SaaS Intelligence")
-            st.title("Buildway AI Financial Intelligence Platform")
-            st.subheader("AI 驅動香港股票研究與風險分析平台")
-            st.write("60 秒內生成 Multi-Agent 分析、財務風險評估、機構級 PDF 報告與投資委員會結論。")
-            if st.button("開始分析", type="primary", use_container_width=True):
-                _set_demo_ticker("0700.HK")
-        with right:
-            st.metric("平均生成時間", "60 秒內")
-            st.metric("分析架構", "Multi-Agent")
-            st.metric("輸出格式", "PDF 報告")
-
-
-def _render_demo_snapshots(location: str) -> None:
-    _section_title("Quick test", "快速測試", "用三個案例快速展示資料可信度分層。")
-    columns = st.columns(3)
-    for column, item in zip(columns, DEMO_SNAPSHOTS):
-        with column:
-            with st.container(border=True):
-                st.caption(item["ticker"])
-                st.markdown(f"**{item['company']}**")
-                st.caption(item["sector"])
-                st.metric("資料可信度", item["confidence"])
-                st.metric("最終評級", item["rating"])
-                st.caption(item["snapshot"])
-                if st.button(
-                    f"分析 {item['ticker']}",
-                    key=make_widget_key("demo", item["ticker"], location),
-                    use_container_width=True,
-                ):
-                    _set_demo_ticker(item["ticker"])
 
 
 def _render_stock_showcase_card(ticker: str, metadata: dict[str, Any], location: str) -> None:
@@ -562,7 +500,6 @@ def _render_empty_state() -> None:
             st.caption("How it works")
             st.markdown("**輸入香港股票代號，系統會生成一份可下載的機構級研究報告。**")
             st.caption("支援 0700、9988、0688、3416 等格式；INVALID ticker 會停止公司基本面敘述。")
-        _render_demo_snapshots("empty")
     with right:
         _render_workflow_timeline()
 
@@ -606,7 +543,7 @@ def _company_cards(rows: list[tuple[Any, Any]]) -> None:
 
 
 def _company_profile_panel(cover: dict[str, Any]) -> None:
-    _section_title("Company profile", "公司資料", "資料只來自市場資料供應商或本地HK stock master database。")
+    _section_title("Company profile", "公司資料與市場概覽", "資料只來自市場資料供應商或本地HK stock master database。")
     profile_rows = [
         ("中文公司名", cover.get("company_name_zh") or cover.get("company_name") or "資料待補充"),
         ("英文名", cover.get("company_name_en") or "資料待補充"),
@@ -620,6 +557,100 @@ def _company_profile_panel(cover: dict[str, Any]) -> None:
             with st.container(border=True):
                 st.markdown(f"**{label}**")
                 st.caption(str(value))
+
+
+def _logo_url_for_cover(cover: dict[str, Any]) -> str:
+    ticker = normalize_hk_ticker(str(cover.get("ticker", ""))) if cover.get("ticker") else ""
+    metadata = _load_hk_master_data().get(ticker, {})
+    return str(cover.get("logo_url") or metadata.get("logo_url") or "").strip()
+
+
+def _render_company_logo(cover: dict[str, Any], width: int = 76) -> None:
+    logo_url = _logo_url_for_cover(cover)
+    try:
+        if logo_url:
+            st.image(logo_url, width=width)
+        elif os.path.exists(LOGO_PATH):
+            st.image(str(LOGO_PATH), width=width)
+    except Exception as exc:
+        print(f"[APP] Company logo unavailable: {exc}")
+
+
+def _render_report_summary_card(cover: dict[str, Any]) -> None:
+    company_name = cover.get("company_name_zh") or cover.get("company_name") or "資料待補充"
+    company_name_en = cover.get("company_name_en", "")
+    ticker = cover.get("ticker", "N/A")
+    sector = cover.get("sector", "資料待補充")
+    confidence_label = cover.get("data_confidence_label", "🟡 部分資料缺失")
+
+    with st.container(border=True):
+        logo_col, detail_col = st.columns([0.22, 0.78])
+        with logo_col:
+            _render_company_logo(cover)
+        with detail_col:
+            st.markdown(f"**{_escape(company_name)}**")
+            if company_name_en:
+                st.caption(_escape(company_name_en))
+            st.caption(f"{_escape(ticker)} | {_escape(sector)}")
+            st.caption(f"資料可信度：{_escape(confidence_label)}")
+
+        metric_cols = st.columns(3)
+        metric_cols[0].metric("投資委員會結論", cover.get("final_rating", "N/A"))
+        metric_cols[1].metric("風險分數", cover.get("risk_score", "N/A"), cover.get("risk_label", ""))
+        metric_cols[2].metric("股票代號", ticker)
+
+
+def _render_financial_sections(sections: dict[str, Any], report_package: dict[str, Any] | None = None) -> None:
+    financial = sections.get("financial_analysis", {}) or {}
+    metrics = financial.get("metrics", []) or []
+    history = financial.get("history", []) or []
+    risk = sections.get("risk_analysis", {}) or {}
+    market = (report_package or {}).get("market_data", {}) or {}
+
+    _section_title("Market metrics", "價格與市場指標")
+    market_metrics = [
+        ("現價", _format_showcase_price(market.get("current_price"))),
+        ("市值", _format_showcase_market_cap(market.get("market_cap"))),
+        ("成交量", _value_or_pending(market.get("volume"))),
+        ("P/E", _value_or_pending(market.get("pe_ratio"))),
+        ("P/B", _value_or_pending(market.get("pb_ratio"))),
+        ("貨幣", _value_or_pending(market.get("currency"))),
+    ]
+    market_cols = st.columns(3)
+    for index, (label, value) in enumerate(market_metrics):
+        market_cols[index % 3].metric(label, value)
+
+    if metrics:
+        _section_title("Financial metrics", "核心財務指標")
+        columns = st.columns(2)
+        for index, (label, value) in enumerate(metrics):
+            with columns[index % 2]:
+                st.metric(str(label), str(value))
+
+    if history:
+        _section_title("Financial history", "歷史財務摘要")
+        history_rows = [
+            {"年度": row[0], "收入": row[1], "EBITDA": row[2], "淨利潤": row[3]}
+            for row in history
+            if isinstance(row, (list, tuple)) and len(row) >= 4
+        ]
+        st.dataframe(
+            history_rows or history,
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    if risk:
+        _section_title("Risk analysis", "風險分析")
+        cols = st.columns(2)
+        cols[0].metric("綜合風險分數", risk.get("composite_score", "N/A"))
+        cols[1].metric("風險等級", risk.get("risk_label", "N/A"))
+        top_risks = risk.get("top_risks", []) or []
+        if top_risks:
+            for item in top_risks[:5]:
+                with st.container(border=True):
+                    st.markdown(f"**{_escape(item.get('dimension', '風險項目'))}**")
+                    st.caption(f"分數：{_escape(item.get('score', 'N/A'))} | 等級：{_escape(item.get('level', 'N/A'))} | 權重：{_escape(item.get('weight', 'N/A'))}")
 
 
 def _confidence_badge(label: str) -> None:
@@ -642,21 +673,6 @@ def _confidence_note(label: str) -> None:
     st.info(f"資料可信度說明：{copy}")
 
 
-def _sample_report_cards() -> None:
-    cols = st.columns(3)
-    samples = [
-        ("高可信度示例", "0700.HK / 9988.HK / 0005.HK", "適合展示完整客戶報告流程。"),
-        ("部分資料示例", "3416.HK", "適合展示保守假設與資料提示。"),
-        ("無效代號示例", "12345.HK", "適合展示防幻覺控制。"),
-    ]
-    for col, (title, value, note) in zip(cols, samples):
-        with col:
-            with st.container(border=True):
-                st.markdown(f"**{title}**")
-                st.metric("股票代號", value)
-                st.caption(note)
-
-
 def _mark_agent(message: str) -> None:
     status = st.session_state.agent_status
     mapping = [
@@ -677,16 +693,11 @@ _inject_css()
 _init_state()
 
 with st.container(border=True):
-    st.caption("Buildway SaaS Intelligence")
     st.title("Buildway AI Financial Intelligence Platform")
-    st.subheader("AI 驅動香港股票研究與風險分析平台")
-    st.write("60 秒內生成 Multi-Agent 分析、財務風險評估、機構級 PDF 報告與投資委員會結論。")
-    if st.button("開始分析", type="primary", use_container_width=True):
-        _set_demo_ticker("0700.HK")
+    st.caption("60 秒內生成 Multi-Agent 分析、財務風險評估、機構級 PDF 報告")
 
 main_generate_btn, main_ticker_input, main_risk_preference, main_portfolio_size = _render_main_input_panel()
 _render_sector_showcase()
-_render_demo_snapshots("landing")
 _render_workflow_timeline()
 _render_source_transparency()
 _render_trust_layer()
@@ -728,14 +739,6 @@ with st.sidebar:
     )
 
     st.divider()
-    st.caption("客戶試用樣本")
-    sample_cols = st.columns(3)
-    if sample_cols[0].button("0700", key=make_widget_key("sample", "0700.HK", "sidebar"), use_container_width=True):
-        _set_demo_ticker("0700.HK")
-    if sample_cols[1].button("9988", key=make_widget_key("sample", "9988.HK", "sidebar"), use_container_width=True):
-        _set_demo_ticker("9988.HK")
-    if sample_cols[2].button("0688", key=make_widget_key("sample", "0688.HK", "sidebar"), use_container_width=True):
-        _set_demo_ticker("0688.HK")
     if st.button("Clear / Reset", key="sidebar_clear_reset", use_container_width=True):
         st.session_state.pending_ticker_value = ""
         st.session_state.selected_ticker = ""
@@ -856,8 +859,14 @@ if st.session_state.report_sections:
     cover = sections.get("cover", {})
 
     _section_title("Report preview", "報告摘要", "核心結論與報告下載")
+
+    # 1. 報告摘要 card（含公司 logo、名稱、ticker、風險分數、投委會結論）
+    confidence_label = cover.get("data_confidence_label", "🟡 部分資料缺失")
+    _render_report_summary_card(cover)
+
+    # 2. 下載按鈕（緊接摘要 card 下方）
     if st.session_state.pdf_path and os.path.exists(st.session_state.pdf_path):
-        st.success("PDF報告已成功生成")
+        st.success("報告生成完成")
         with open(st.session_state.pdf_path, "rb") as pdf_file:
             st.download_button(
                 label="下載機構級分析報告",
@@ -870,24 +879,17 @@ if st.session_state.report_sections:
     elif st.session_state.get("pdf_warning"):
         st.warning(st.session_state.pdf_warning)
 
-    confidence_label = cover.get("data_confidence_label", "🟡 部分資料缺失")
+    # 3. 資料可信度說明
     _confidence_badge(confidence_label)
     _confidence_note(confidence_label)
-    col1, col2, col3 = st.columns(3)
-    col1.metric("投資委員會結論", cover.get("final_rating", "N/A"))
-    col2.metric("風險分數", cover.get("risk_score", "N/A"), cover.get("risk_label", ""))
-    col3.metric("股票代號", cover.get("ticker", "N/A"))
 
-    company_name_preview = cover.get("company_name", "N/A")
-    sector_preview = cover.get("sector", "香港上市公司")
-    with st.container(border=True):
-        st.caption("Client-ready snapshot")
-        st.markdown(f"**{_escape(company_name_preview)} | {_escape(cover.get('ticker', 'N/A'))}**")
-        st.caption(_escape(cover.get("data_confidence_label", "")))
-        st.caption(_escape(sector_preview))
-
+    # 4. 公司資料與市場概覽
     _company_profile_panel(cover)
 
+    # 5. 價格指標、歷史財務、風險分析
+    _render_financial_sections(sections, st.session_state.get("report_package"))
+
+    # 6. Workflow + 投委會討論（放最底）
     _render_workflow_timeline()
 
     discussion = sections.get("multi_agent_discussion", {})
@@ -909,16 +911,6 @@ else:
     st.caption(f"2026 {APP_NAME} | {BUILD_VERSION}")
     st.caption("本系統不構成投資建議；所有輸出只供研究、教育及客戶展示用途。")
     st.stop()
-    col_intro, col_status = st.columns([1.15, 1])
-    with col_intro:
-        with st.container(border=True):
-            st.caption("開始分析")
-            st.markdown("**輸入香港股票代號即可生成客戶版研究報告。**")
-            st.caption("系統會整合市場、財務、風險、新聞與組合觀點，並輸出可下載 PDF。")
-        _sample_report_cards()
-    with col_status:
-        _section_title("Workflow", "Multi-Agent 狀態")
-        _status_cards()
 
 st.divider()
 st.caption(f"© 2026 {APP_NAME} | {BUILD_VERSION}")

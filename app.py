@@ -366,6 +366,11 @@ def _report_identity(cover: dict[str, Any]) -> tuple[str, str]:
     return ticker, str(company)
 
 
+def _stock_display_name(ticker: str) -> str:
+    metadata = _load_hk_master_data().get(normalize_hk_ticker(ticker), {})
+    return str(metadata.get("name_zh") or metadata.get("name_en") or "").strip()
+
+
 def _add_watchlist_ticker(ticker: str) -> None:
     normalized = normalize_hk_ticker(ticker)
     current = [item for item in st.session_state.get("watchlist", []) if item != normalized]
@@ -394,6 +399,7 @@ def _save_report_history(
         "company": company,
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "rating": cover.get("final_rating", "N/A"),
+        "risk_score": cover.get("risk_score", "N/A"),
         "risk_label": cover.get("risk_label", ""),
         "confidence": cover.get("data_confidence_label", ""),
         "risk_preference": risk_preference,
@@ -425,93 +431,95 @@ def _open_history_record(record: dict[str, Any]) -> None:
 def _render_recent_reports(location: str) -> None:
     reports = st.session_state.get("recent_reports", [])
     with st.container(border=True):
-        st.caption("Report history")
-        st.markdown("**Recent reports**")
+        st.caption("報告紀錄")
+        st.markdown("**最近生成報告**")
         if not reports:
-            st.caption("Generated reports will appear here during this session.")
+            st.caption("本次生成的報告會顯示在這裡。")
             return
         for index, record in enumerate(reports):
-            row = st.columns([0.48, 0.18, 0.17, 0.17])
-            row[0].markdown(f"**{_escape(record.get('ticker'))}**")
-            row[0].caption(
-                f"{_escape(record.get('company'))} | {_escape(record.get('generated_at'))}"
-            )
-            row[1].caption(_escape(record.get("rating", "N/A")))
-            if row[2].button(
-                "Open",
-                key=f"open_report_{location}_{index}_{record.get('id')}",
-                use_container_width=True,
-            ):
-                _open_history_record(record)
-            if row[3].button(
-                "Re-run",
-                key=f"rerun_report_{location}_{index}_{record.get('id')}",
-                use_container_width=True,
-            ):
-                _request_analysis(
-                    str(record.get("ticker", "")),
-                    str(record.get("risk_preference") or "銝剔?"),
-                    int(record.get("portfolio_size") or 0),
-                )
-        if st.button(
-            "Clear history",
-            key=f"clear_history_{location}",
-            use_container_width=True,
-        ):
+            with st.container(border=True):
+                top = st.columns([0.34, 0.66])
+                top[0].markdown(f"**{_escape(record.get('ticker'))}**")
+                top[1].caption(_escape(record.get("company")))
+                metrics = st.columns(3)
+                metrics[0].metric("評級", _escape(record.get("rating", "N/A")))
+                metrics[1].metric("風險分數", _escape(record.get("risk_score", "N/A")))
+                metrics[2].caption(f"生成時間\n\n{_escape(record.get('generated_at'))}")
+                actions = st.columns(2)
+                if actions[0].button(
+                    "開啟",
+                    key=f"open_report_{location}_{index}_{record.get('id')}",
+                    use_container_width=True,
+                ):
+                    _open_history_record(record)
+                if actions[1].button(
+                    "重新分析",
+                    key=f"rerun_report_{location}_{index}_{record.get('id')}",
+                    use_container_width=True,
+                ):
+                    _request_analysis(
+                        str(record.get("ticker", "")),
+                        str(record.get("risk_preference") or "???"),
+                        int(record.get("portfolio_size") or 0),
+                    )
+        if st.button("清除紀錄", key=f"clear_history_{location}", use_container_width=True):
             st.session_state["recent_reports"] = []
             st.rerun()
-
+    return
 
 def _render_watchlist(location: str) -> None:
     watchlist = st.session_state.get("watchlist", [])
     with st.container(border=True):
-        st.caption("Watchlist")
-        st.markdown("**Client watchlist**")
-        add_cols = st.columns([0.62, 0.38])
+        st.caption("觀察名單")
+        st.markdown("**客戶觀察名單**")
+        add_cols = st.columns([0.68, 0.32])
         candidate = add_cols[0].text_input(
-            "Add ticker",
+            "加入股票代號",
             value="",
-            placeholder="0700 or 9988.HK",
+            placeholder="0700 或 9988.HK",
             key=f"watchlist_input_{location}",
             label_visibility="collapsed",
         )
-        if add_cols[1].button(
-            "Add",
-            key=f"watchlist_add_{location}",
-            use_container_width=True,
-        ):
+        if add_cols[1].button("加入", key=f"watchlist_add_{location}", use_container_width=True):
             is_valid, _ = validate_hk_ticker(candidate)
             if is_valid:
                 _add_watchlist_ticker(candidate)
                 st.rerun()
             else:
-                st.warning("Please enter a valid HK ticker.")
+                st.warning("請輸入有效的香港股票代號。")
         if not watchlist:
-            st.caption("Add tickers clients want to monitor this session.")
+            st.caption("加入客戶希望追蹤的股票，方便之後快速重新分析。")
             return
-        for index, ticker in enumerate(watchlist):
-            row = st.columns([0.45, 0.35, 0.20])
-            row[0].markdown(f"**{_escape(ticker)}**")
-            if row[1].button(
-                "Analyze",
-                key=f"watch_analyze_{location}_{index}_{ticker}",
-                use_container_width=True,
-            ):
-                _request_analysis(ticker)
-            if row[2].button(
-                "X",
-                key=f"watch_remove_{location}_{index}_{ticker}",
-                use_container_width=True,
-            ):
-                _remove_watchlist_ticker(ticker)
-                st.rerun()
-
+        for start in range(0, len(watchlist), 3):
+            columns = st.columns(3)
+            for column, ticker in zip(columns, watchlist[start:start + 3]):
+                with column:
+                    with st.container(border=True):
+                        st.markdown(f"**{_escape(ticker)}**")
+                        company_name = _stock_display_name(ticker)
+                        if company_name:
+                            st.caption(_escape(company_name))
+                        actions = st.columns(2)
+                        if actions[0].button(
+                            "分析",
+                            key=f"watch_analyze_{location}_{start}_{ticker}",
+                            use_container_width=True,
+                        ):
+                            _request_analysis(ticker)
+                        if actions[1].button(
+                            "移除",
+                            key=f"watch_remove_{location}_{start}_{ticker}",
+                            use_container_width=True,
+                        ):
+                            _remove_watchlist_ticker(ticker)
+                            st.rerun()
+    return
 
 def _render_workspace_layer(location: str) -> None:
     _section_title(
-        "Workspace",
-        "Report history + watchlist",
-        "Session-only workspace for client follow-up and repeat analysis.",
+        "工作區",
+        "報告紀錄與觀察名單",
+        "本工作區只會保留於目前瀏覽 session，方便客戶重複分析。",
     )
     cols = st.columns([1.1, 0.9])
     with cols[0]:
@@ -560,7 +568,7 @@ def _render_stock_showcase_card(ticker: str, metadata: dict[str, Any], location:
 
 
 def _render_sector_showcase() -> None:
-    _section_title("Sector showcase", "香港市場板塊", "按板塊瀏覽香港股票案例，點選即可填入分析代號。")
+    _section_title("香港市場板塊", "快速測試", "按板塊瀏覽香港股票案例，點選即可填入分析代號。")
     master_data = _load_hk_master_data()
     tabs = st.tabs(list(SECTOR_SHOWCASE.keys()))
     for tab, (sector_name, tickers) in zip(tabs, SECTOR_SHOWCASE.items()):
@@ -577,16 +585,16 @@ def _status_to_client_state(raw: Any) -> tuple[str, str]:
     if any(token in text.lower() for token in ["fallback", "備援"]):
         return "fallback", "備援"
     if any(token in text.lower() for token in ["stop", "fail", "stopped", "失敗", "停止"]):
-        return "stopped", "停止"
+        return "stopped", "已停止"
     if any(token in text.lower() for token in ["run", "running", "執行", "分析中"]):
-        return "running", "running"
+        return "running", "分析中"
     if any(token in text.lower() for token in ["complete", "done", "完成", "摰"]):
-        return "completed", "completed"
-    return "waiting", "waiting"
+        return "completed", "完成"
+    return "waiting", "等待"
 
 
 def _render_workflow_timeline() -> None:
-    _section_title("Workflow", "AI 分析流程", "每個步驟均可 fallback，單一 agent 失敗不會令整份報告中斷。")
+    _section_title("AI 分析流程", "AI 分析流程", "每個步驟均設有備援機制，單一 agent 失敗不會中斷整份報告。")
     status = st.session_state.get("agent_status", {})
     status_lookup = {
         "市場資料 Agent": status.get("Market Data Agent"),
@@ -599,7 +607,7 @@ def _render_workflow_timeline() -> None:
         state_key, state_label = _status_to_client_state(status_lookup.get(name))
         with st.container(border=True):
             cols = st.columns([0.18, 0.58, 0.24])
-            cols[0].metric("Step", f"{index + 1}")
+            cols[0].metric("步驟", f"{index + 1}")
             cols[1].markdown(f"**{name}**")
             cols[1].caption(description)
             if state_key == "completed":
@@ -615,7 +623,7 @@ def _render_workflow_timeline() -> None:
 
 
 def _render_source_transparency() -> None:
-    _section_title("Transparency", "資料來源與分析邊界")
+    _section_title("資料透明度", "資料來源與分析邊界")
     rows = [
         ("市場資料", "Yahoo Finance / 市場資料供應商"),
         ("公司資料", "HK stock master database"),
@@ -627,14 +635,14 @@ def _render_source_transparency() -> None:
 
 
 def _render_trust_layer() -> None:
-    _section_title("Trust layer", "為何客戶可以信任本系統")
+    _section_title("信任層", "為何客戶可以信任本系統")
     cards = [
         ("防止 AI 幻覺", "公司資料只引用市場供應商或本地 master database。"),
-        ("INVALID ticker 防護", "無有效市場資料時停止進階公司敘述。"),
+        ("無效代號防護", "無有效市場資料時停止進階公司敘述。"),
         ("Python 財務計算", "估值、比率、風險分數由 Python engine 產生。"),
         ("Multi-Agent 交叉分析", "市場、財務、風險、新聞與投委會互相校驗。"),
         ("PDF 機構級輸出", "客戶可下載一致格式的正式報告。"),
-        ("Fallback 容錯架構", "單一資料源或 agent 失敗不會拖垮整個流程。"),
+        ("備援容錯架構", "單一資料源或 agent 失敗不會拖垮整個流程。"),
     ]
     columns = st.columns(3)
     for index, (title, copy) in enumerate(cards):
@@ -645,7 +653,7 @@ def _render_trust_layer() -> None:
 
 
 def _render_main_input_panel() -> tuple[bool, str, str, int]:
-    _section_title("Start", "開始分析", "手機版可直接在主頁完成輸入，不需要打開 sidebar。")
+    _section_title("開始", "開始分析", "手機版可直接在主頁完成輸入，不需要打開側邊欄。")
     with st.container(border=True):
         with st.form("main_analysis_form"):
             default_ticker = st.session_state.pop("pending_ticker_value", "") or st.session_state.get("selected_ticker", "")
@@ -681,9 +689,9 @@ def _render_empty_state() -> None:
     left, right = st.columns([1.05, 0.95])
     with left:
         with st.container(border=True):
-            st.caption("How it works")
+            st.caption("使用方式")
             st.markdown("**輸入香港股票代號，系統會生成一份可下載的機構級研究報告。**")
-            st.caption("支援 0700、9988、0688、3416 等格式；INVALID ticker 會停止公司基本面敘述。")
+            st.caption("支援 0700、9988、0688、3416 等格式；資料驗證未完成時會停止公司基本面敘述。")
     with right:
         _render_workflow_timeline()
 
@@ -727,7 +735,7 @@ def _company_cards(rows: list[tuple[Any, Any]]) -> None:
 
 
 def _company_profile_panel(cover: dict[str, Any]) -> None:
-    _section_title("Company profile", "公司資料與市場概覽", "資料只來自市場資料供應商或本地HK stock master database。")
+    _section_title("公司資料", "公司資料與市場概覽", "資料只來自市場資料供應商或本地香港股票主資料庫。")
     profile_rows = [
         ("中文公司名", cover.get("company_name_zh") or cover.get("company_name") or "資料待補充"),
         ("英文名", cover.get("company_name_en") or "資料待補充"),
@@ -791,7 +799,7 @@ def _render_financial_sections(sections: dict[str, Any], report_package: dict[st
     risk = sections.get("risk_analysis", {}) or {}
     market = (report_package or {}).get("market_data", {}) or {}
 
-    _section_title("Market metrics", "價格與市場指標")
+    _section_title("市場指標", "價格與市場指標")
     market_metrics = [
         ("現價", _format_showcase_price(market.get("current_price"))),
         ("市值", _format_showcase_market_cap(market.get("market_cap"))),
@@ -805,14 +813,14 @@ def _render_financial_sections(sections: dict[str, Any], report_package: dict[st
         market_cols[index % 3].metric(label, value)
 
     if metrics:
-        _section_title("Financial metrics", "核心財務指標")
+        _section_title("財務指標", "核心財務指標")
         columns = st.columns(2)
         for index, (label, value) in enumerate(metrics):
             with columns[index % 2]:
                 st.metric(str(label), str(value))
 
     if history:
-        _section_title("Financial history", "歷史財務摘要")
+        _section_title("歷史財務", "歷史財務摘要")
         history_rows = [
             {"年度": row[0], "收入": row[1], "EBITDA": row[2], "淨利潤": row[3]}
             for row in history
@@ -825,7 +833,7 @@ def _render_financial_sections(sections: dict[str, Any], report_package: dict[st
         )
 
     if risk:
-        _section_title("Risk analysis", "風險分析")
+        _section_title("風險分析", "風險分析")
         cols = st.columns(2)
         cols[0].metric("綜合風險分數", risk.get("composite_score", "N/A"))
         cols[1].metric("風險等級", risk.get("risk_label", "N/A"))
@@ -928,7 +936,7 @@ with st.sidebar:
     _render_watchlist("sidebar")
 
     st.divider()
-    if st.button("Clear / Reset", key="sidebar_clear_reset", use_container_width=True):
+    if st.button("清除 / 重設", key="sidebar_clear_reset", use_container_width=True):
         st.session_state.pending_ticker_value = ""
         st.session_state.selected_ticker = ""
         st.session_state.report_package = None
@@ -944,8 +952,8 @@ with st.sidebar:
     _env_label = "Streamlit Cloud" if DEPLOY_ENV == "streamlit-cloud" else "Local"
     st.caption(f"{APP_VERSION} | {BUILD_STAGE}")
     st.caption(f"{_today} | {_env_label}")
-    st.caption(f"Build: {BUILD_VERSION}")
-    st.caption(f"Commit: {BUILD_COMMIT}")
+    st.caption(f"版本：{BUILD_VERSION}")
+    st.caption(f"提交：{BUILD_COMMIT}")
 
 
 rerun_request = st.session_state.pop("rerun_analysis_request", None)
@@ -1066,19 +1074,19 @@ if st.session_state.report_sections:
     sections = st.session_state.report_sections
     cover = sections.get("cover", {})
 
-    _section_title("Report preview", "報告摘要", "核心結論與報告下載")
+    _section_title("報告摘要", "客戶報告摘要", "核心結論與報告下載")
 
     # 1. 報告摘要 card（含公司 logo、名稱、ticker、風險分數、投委會結論）
     confidence_label = cover.get("data_confidence_label", "🟡 部分資料缺失")
     _render_report_summary_card(cover)
     current_ticker = cover.get("ticker", st.session_state.get("selected_ticker", ""))
     action_cols = st.columns(3)
-    if action_cols[0].button("Add to watchlist", key="current_add_watchlist", use_container_width=True):
+    if action_cols[0].button("加入觀察名單", key="current_add_watchlist", use_container_width=True):
         _add_watchlist_ticker(str(current_ticker))
         st.rerun()
-    if action_cols[1].button("Re-run analysis", key="current_rerun_analysis", use_container_width=True):
+    if action_cols[1].button("重新分析", key="current_rerun_analysis", use_container_width=True):
         _request_analysis(str(current_ticker), request_risk_preference, request_portfolio_size)
-    if action_cols[2].button("Clear current report", key="current_clear_report", use_container_width=True):
+    if action_cols[2].button("清除目前報告", key="current_clear_report", use_container_width=True):
         st.session_state.report_package = None
         st.session_state.report_sections = None
         st.session_state.pdf_path = None
@@ -1111,18 +1119,18 @@ if st.session_state.report_sections:
     # 5. 價格指標、歷史財務、風險分析
     _render_financial_sections(sections, st.session_state.get("report_package"))
 
-    # 6. Workflow + 投委會討論（放最底）
+    # 6. 分析流程 + 投委會討論（放最底）
     _render_workflow_timeline()
 
     discussion = sections.get("multi_agent_discussion", {})
-    _section_title("Committee view", "投資委員會討論摘要", "將代理觀點整理為可掃讀的投資卡片")
+    _section_title("投委會觀點", "投資委員會討論摘要", "將代理觀點整理為可掃讀的投資卡片")
     _agent_discussion_cards(discussion.get("table", []))
     if discussion.get("final_statement"):
         st.info(discussion.get("final_statement"))
 
     stability = sections.get("system_stability", {})
     if stability.get("has_failures"):
-        _section_title("System note", "系統穩定性提示")
+        _section_title("系統提示", "系統穩定性提示")
         st.warning(stability.get("message", "部分 Agent 分析未能完成，系統已自動切換至備援分析流程。"))
         failed_agents = ", ".join(stability.get("failed_agents", []))
         st.warning(f"受影響模組：{failed_agents}")

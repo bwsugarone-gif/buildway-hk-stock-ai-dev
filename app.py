@@ -8,20 +8,26 @@ Hong Kong AI Multi-Agent Stock Analysis Platform
 from __future__ import annotations
 
 import html
+import json
 import os
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 import streamlit as st
 
 from agents.ceo_agent import CEOAgent
+from agents.market_data_agent import MarketDataAgent
 from core.config import (
     APP_NAME, APP_VERSION, BUILD_STAGE, BUILD_VERSION, BUILD_COMMIT,
     LOGO_PATH, DEPLOY_ENV,
 )
 from core.pdf_generator import PDFGenerator
 from core.report_builder import ReportBuilder
-from core.utils import normalize_hk_ticker, validate_hk_ticker
+from core.utils import format_currency_hkd, normalize_hk_ticker, validate_hk_ticker
+
+
+MASTER_DATA_PATH = Path(__file__).resolve().parent / "data" / "hk_stock_master_data.json"
 
 
 st.set_page_config(
@@ -289,6 +295,69 @@ WORKFLOW_STEPS = [
 ]
 
 
+SECTOR_SHOWCASE = {
+    "科技 / 互聯網": ["0700.HK", "9988.HK"],
+    "銀行 / 金融": ["0005.HK", "1299.HK"],
+    "地產 / 內房": ["0688.HK", "1109.HK"],
+    "電訊 / 公用": ["0941.HK", "0002.HK"],
+    "消費 / 平台": ["3690.HK", "9618.HK"],
+}
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def _load_hk_master_data() -> dict[str, dict[str, Any]]:
+    try:
+        with open(MASTER_DATA_PATH, "r", encoding="utf-8") as file:
+            return json.load(file)
+    except Exception as exc:
+        print(f"[APP] HK stock master data unavailable: {exc}")
+        return {}
+
+
+@st.cache_data(ttl=900, show_spinner=False)
+def _load_showcase_market_data(ticker: str) -> dict[str, Any]:
+    try:
+        return MarketDataAgent().fetch(ticker)
+    except Exception as exc:
+        print(f"[APP] Showcase market data unavailable for {ticker}: {exc}")
+        return {}
+
+
+def _value_or_pending(value: Any) -> str:
+    text = str(value or "").strip()
+    if not text or text in {"0", "0.0", "N/A", "None"}:
+        return "資料待補充"
+    return text
+
+
+def _format_showcase_price(value: Any) -> str:
+    try:
+        number = float(value or 0)
+    except (TypeError, ValueError):
+        number = 0
+    return f"HK${number:.2f}" if number > 0 else "資料待補充"
+
+
+def _format_showcase_market_cap(value: Any) -> str:
+    try:
+        number = float(value or 0)
+    except (TypeError, ValueError):
+        number = 0
+    return format_currency_hkd(number) if number > 0 else "資料待補充"
+
+
+def _plain_confidence(label: Any, level: Any = "") -> str:
+    text = str(label or "")
+    level_text = str(level or "").upper()
+    if "HIGH" in level_text or "高可信度" in text:
+        return "高可信度"
+    if "INVALID" in level_text or "資料驗證未完成" in text:
+        return "資料驗證未完成"
+    if "LOW" in level_text or "MEDIUM" in level_text or "部分資料缺失" in text:
+        return "部分資料缺失"
+    return "資料待補充"
+
+
 def _set_demo_ticker(ticker: str) -> None:
     st.session_state.ticker_input_value = ticker.replace(".HK", "")
     st.session_state.main_ticker_input_value = ticker.replace(".HK", "")
@@ -314,7 +383,7 @@ def _render_hero() -> None:
 
 
 def _render_demo_snapshots() -> None:
-    _section_title("Demo cases", "熱門示範案例", "點選卡片即可自動填入股票代號。")
+    _section_title("Quick test", "快速測試", "用三個案例快速展示資料可信度分層。")
     columns = st.columns(3)
     for column, item in zip(columns, DEMO_SNAPSHOTS):
         with column:
@@ -327,6 +396,46 @@ def _render_demo_snapshots() -> None:
                 st.caption(item["snapshot"])
                 if st.button(f"分析 {item['ticker']}", key=f"demo_{item['ticker']}", use_container_width=True):
                     _set_demo_ticker(item["ticker"])
+
+
+def _render_stock_showcase_card(ticker: str, metadata: dict[str, Any]) -> None:
+    market = _load_showcase_market_data(ticker)
+    name_zh = metadata.get("name_zh") or "資料待補充"
+    name_en = metadata.get("name_en") or "資料待補充"
+    sector = metadata.get("sector_zh") or metadata.get("sector") or "資料待補充"
+    positioning = metadata.get("short_positioning_zh") or "資料待補充"
+    price = _format_showcase_price(market.get("current_price"))
+    market_cap = _format_showcase_market_cap(market.get("market_cap"))
+    confidence = _plain_confidence(
+        market.get("data_confidence_label"),
+        market.get("data_confidence"),
+    )
+
+    with st.container(border=True):
+        st.caption(ticker)
+        st.markdown(f"**{name_zh}**")
+        st.caption(name_en)
+        st.caption(sector)
+        metric_cols = st.columns(2)
+        metric_cols[0].metric("現價", price)
+        metric_cols[1].metric("市值", market_cap)
+        st.caption(f"資料可信度：{confidence}")
+        st.caption(positioning)
+        if st.button("分析此股票", key=f"sector_{ticker}", use_container_width=True):
+            _set_demo_ticker(ticker)
+
+
+def _render_sector_showcase() -> None:
+    _section_title("Sector showcase", "香港市場板塊", "按板塊瀏覽香港股票案例，點選即可填入分析代號。")
+    master_data = _load_hk_master_data()
+    tabs = st.tabs(list(SECTOR_SHOWCASE.keys()))
+    for tab, (sector_name, tickers) in zip(tabs, SECTOR_SHOWCASE.items()):
+        with tab:
+            st.caption(sector_name)
+            columns = st.columns(2)
+            for index, ticker in enumerate(tickers):
+                with columns[index % 2]:
+                    _render_stock_showcase_card(ticker, master_data.get(ticker, {}))
 
 
 def _status_to_client_state(raw: Any) -> tuple[str, str]:
@@ -584,6 +693,7 @@ with st.container(border=True):
         st.rerun()
 
 main_generate_btn, main_ticker_input, main_risk_preference, main_portfolio_size = _render_main_input_panel()
+_render_sector_showcase()
 _render_demo_snapshots()
 _render_workflow_timeline()
 _render_source_transparency()

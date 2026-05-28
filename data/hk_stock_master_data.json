@@ -1,72 +1,170 @@
 {
-  "0700.HK": {
-    "name_zh": "騰訊控股",
-    "name_en": "Tencent Holdings",
-    "sector": "科技",
-    "business": "社交平台、遊戲、雲服務、金融科技及企業服務",
-    "market_type": "大型科技股"
-  },
-  "9988.HK": {
-    "name_zh": "阿里巴巴集團",
-    "name_en": "Alibaba Group Holding",
-    "sector": "科技 / 電子商貿",
-    "business": "電子商貿、雲計算、本地生活服務及數字媒體",
-    "market_type": "大型科技股"
+  "0002.HK": {
+    "name_zh": "中電控股",
+    "name_en": "CLP Holdings",
+    "sector": "電訊 / 公用",
+    "sector_zh": "電訊 / 公用",
+    "sector_en": "Utilities",
+    "business": "香港及亞太地區電力生產、輸配電、零售及能源基建投資",
+    "business_zh": "香港及亞太地區電力生產、輸配電、零售及能源基建投資",
+    "business_en": "Electricity generation, transmission, distribution, retail and energy infrastructure investment.",
+    "market_type": "大型公用股",
+    "market_type_zh": "大型公用股",
+    "market_type_en": "Large-cap utility stock",
+    "short_positioning_zh": "香港防守型公用事業代表。"
   },
   "0005.HK": {
     "name_zh": "匯豐控股",
     "name_en": "HSBC Holdings",
-    "sector": "金融 / 銀行",
+    "sector": "銀行 / 金融",
+    "sector_zh": "銀行 / 金融",
+    "sector_en": "Banking / Financials",
     "business": "零售銀行、工商金融、環球銀行及財富管理",
-    "market_type": "大型金融股"
+    "business_zh": "零售銀行、工商金融、環球銀行及財富管理",
+    "business_en": "Retail banking, commercial banking, global banking and wealth management.",
+    "market_type": "大型金融股",
+    "market_type_zh": "大型金融股",
+    "market_type_en": "Large-cap financial stock",
+    "short_positioning_zh": "香港市場國際銀行與高息金融股代表。"
+  },
+  "0688.HK": {
+    "name_zh": "中國海外發展",
+    "name_en": "China Overseas Land & Investment",
+    "sector": "地產 / 內房",
+    "sector_zh": "地產 / 內房",
+    "sector_en": "Property / Mainland China real estate",
+    "business": "中國內地及香港房地產開發、物業投資及相關城市營運業務",
+    "business_zh": "中國內地及香港房地產開發、物業投資及相關城市營運業務",
+    "business_en": "Property development, property investment and related urban operation businesses in Mainland China and Hong Kong.",
+    "market_type": "大型地產股",
+    "market_type_zh": "大型地產股",
+    "market_type_en": "Large-cap property stock",
+    "short_positioning_zh": "內房央企龍頭，適合展示地產風險與估值分析。"
+  },
+  "0700.HK": {
+    "name_zh": "騰訊控股",
+    "name_en": "Tencent Holdings",
+    "sector": "科技 / 互聯網",
+    "sector_zh": "科技 / 互聯網",
+    "sector_en": "Technology / Internet",
+    "business": "社交平台、遊戲、雲服務、金融科技及企業服務",
+    "business_zh": "社交平台、遊戲、雲服務、金融科技及企業服務",
+    "business_en": "Social platforms, games, cloud services, fintech and business services.",
+    "market_type": "大型科技股",
+    "market_type_zh": "大型科技股",
+    "market_type_en": "Large-cap technology stock",
+    "short_positioning_zh": "香港大型科技平台龍頭，適合展示完整 SaaS 分析流程。"
   },
   "0941.HK": {
     "name_zh": "中國移動",
     "name_en": "China Mobile",
-    "sector": "電訊",
+    "sector": "電訊 / 公用",
+    "sector_zh": "電訊 / 公用",
+    "sector_en": "Telecom / Utilities",
     "business": "移動通信、寬頻、數據中心、雲服務及企業通信方案",
-    "market_type": "大型電訊股"
+    "business_zh": "移動通信、寬頻、數據中心、雲服務及企業通信方案",
+    "business_en": "Mobile communications, broadband, data centers, cloud services and enterprise communication solutions.",
+    "market_type": "大型電訊股",
+    "market_type_zh": "大型電訊股",
+    "market_type_en": "Large-cap telecom stock",
+    "short_positioning_zh": "高現金流電訊龍頭，適合展示防守型收益分析。"
+  },
+  "1109.HK": {
+    "name_zh": "華潤置地",
+    "name_en": "China Resources Land",
+    "sector": "地產 / 內房",
+    "sector_zh": "地產 / 內房",
+    "sector_en": "Property / Mainland China real estate",
+    "business": "住宅開發、商業地產投資、物業管理及城市更新相關業務",
+    "business_zh": "住宅開發、商業地產投資、物業管理及城市更新相關業務",
+    "business_en": "Residential development, commercial property investment, property management and urban renewal businesses.",
+    "market_type": "大型地產股",
+    "market_type_zh": "大型地產股",
+    "market_type_en": "Large-cap property stock",
+    "short_positioning_zh": "大型綜合地產平台，適合比較內房財務與週期風險。"
   },
   "1299.HK": {
     "name_zh": "友邦保險",
     "name_en": "AIA Group",
-    "sector": "金融 / 保險",
+    "sector": "銀行 / 金融",
+    "sector_zh": "銀行 / 金融",
+    "sector_en": "Insurance / Financials",
     "business": "人壽保險、健康保障、儲蓄及退休保障產品",
-    "market_type": "大型保險股"
+    "business_zh": "人壽保險、健康保障、儲蓄及退休保障產品",
+    "business_en": "Life insurance, health protection, savings and retirement protection products.",
+    "market_type": "大型保險股",
+    "market_type_zh": "大型保險股",
+    "market_type_en": "Large-cap insurance stock",
+    "short_positioning_zh": "泛亞洲保險龍頭，適合展示金融與利率敏感度分析。"
   },
   "1810.HK": {
     "name_zh": "小米集團",
     "name_en": "Xiaomi Corporation",
     "sector": "科技 / 消費電子",
+    "sector_zh": "科技 / 消費電子",
+    "sector_en": "Technology / Consumer electronics",
     "business": "智能手機、IoT與生活消費產品、互聯網服務及智能電動車相關業務",
-    "market_type": "大型科技股"
-  },
-  "3690.HK": {
-    "name_zh": "美團",
-    "name_en": "Meituan",
-    "sector": "科技 / 本地生活",
-    "business": "本地生活服務、外賣、到店酒旅、新業務及數字化商戶服務",
-    "market_type": "大型科技股"
-  },
-  "9618.HK": {
-    "name_zh": "京東集團",
-    "name_en": "JD.com",
-    "sector": "科技 / 電子商貿",
-    "business": "自營電商、物流、供應鏈服務、零售科技及平台服務",
-    "market_type": "大型科技股"
+    "business_zh": "智能手機、IoT與生活消費產品、互聯網服務及智能電動車相關業務",
+    "business_en": "Smartphones, IoT and lifestyle products, internet services and smart EV-related businesses.",
+    "market_type": "大型科技股",
+    "market_type_zh": "大型科技股",
+    "market_type_en": "Large-cap technology stock",
+    "short_positioning_zh": "消費電子與智能硬件平台。"
   },
   "3416.HK": {
     "name_zh": "保興財務集團",
     "name_en": "Build King / Local financial services reference",
     "sector": "金融 / 其他金融",
+    "sector_zh": "金融 / 其他金融",
+    "sector_en": "Financials / Other financial services",
     "business": "金融服務及相關業務；具體收入結構需以公司公告及年報核對",
-    "market_type": "小型金融股"
+    "business_zh": "金融服務及相關業務；具體收入結構需以公司公告及年報核對",
+    "business_en": "Financial services and related businesses; revenue mix should be verified against filings and annual reports.",
+    "market_type": "小型金融股",
+    "market_type_zh": "小型金融股",
+    "market_type_en": "Small-cap financial stock",
+    "short_positioning_zh": "資料覆蓋較少的示範案例，適合展示部分資料缺失處理。"
   },
-  "0688.HK": {
-    "name_zh": "中國海外發展",
-    "name_en": "China Overseas Land & Investment",
-    "sector": "地產",
-    "business": "中國內地及香港房地產開發、物業投資及相關城市營運業務",
-    "market_type": "大型地產股"
+  "3690.HK": {
+    "name_zh": "美團",
+    "name_en": "Meituan",
+    "sector": "消費 / 平台",
+    "sector_zh": "消費 / 平台",
+    "sector_en": "Consumer / Platform",
+    "business": "本地生活服務、外賣、到店酒旅、新業務及數字化商戶服務",
+    "business_zh": "本地生活服務、外賣、到店酒旅、新業務及數字化商戶服務",
+    "business_en": "Local services, food delivery, in-store hotel and travel, new initiatives and merchant digital services.",
+    "market_type": "大型平台股",
+    "market_type_zh": "大型平台股",
+    "market_type_en": "Large-cap platform stock",
+    "short_positioning_zh": "中國本地生活平台代表，適合展示平台經濟風險。"
+  },
+  "9618.HK": {
+    "name_zh": "京東集團",
+    "name_en": "JD.com",
+    "sector": "消費 / 平台",
+    "sector_zh": "消費 / 平台",
+    "sector_en": "Consumer / Platform",
+    "business": "自營電商、物流、供應鏈服務、零售科技及平台服務",
+    "business_zh": "自營電商、物流、供應鏈服務、零售科技及平台服務",
+    "business_en": "First-party ecommerce, logistics, supply chain services, retail technology and platform services.",
+    "market_type": "大型平台股",
+    "market_type_zh": "大型平台股",
+    "market_type_en": "Large-cap platform stock",
+    "short_positioning_zh": "供應鏈與自營電商平台，適合展示營運效率分析。"
+  },
+  "9988.HK": {
+    "name_zh": "阿里巴巴集團",
+    "name_en": "Alibaba Group Holding",
+    "sector": "科技 / 互聯網",
+    "sector_zh": "科技 / 互聯網",
+    "sector_en": "Technology / Internet",
+    "business": "電子商貿、雲計算、本地生活服務及數字媒體",
+    "business_zh": "電子商貿、雲計算、本地生活服務及數字媒體",
+    "business_en": "Ecommerce, cloud computing, local services and digital media.",
+    "market_type": "大型科技股",
+    "market_type_zh": "大型科技股",
+    "market_type_en": "Large-cap technology stock",
+    "short_positioning_zh": "大型電商與雲服務平台，適合展示平台估值與重組分析。"
   }
 }

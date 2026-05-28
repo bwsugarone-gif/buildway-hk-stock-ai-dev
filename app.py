@@ -28,7 +28,7 @@ st.set_page_config(
     page_title=f"{APP_NAME} - 香港股票智能分析報告",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 
@@ -64,6 +64,7 @@ def _inject_css() -> None:
             .block-container {
                 padding: 0.85rem 0.85rem 2.5rem;
                 max-width: 1180px;
+                overflow-x: hidden;
             }
 
             [data-testid="stSidebar"] {
@@ -163,6 +164,22 @@ def _inject_css() -> None:
             }
 
             @media (max-width: 719px) {
+                html, body, .stApp, .block-container {
+                    max-width: 100% !important;
+                    overflow-x: hidden !important;
+                }
+
+                h1 {
+                    font-size: 2rem !important;
+                    line-height: 1.15 !important;
+                    word-break: break-word !important;
+                }
+
+                h2, h3 {
+                    line-height: 1.22 !important;
+                    word-break: break-word !important;
+                }
+
                 [data-testid="column"] {
                     width: 100% !important;
                     flex: 1 1 100% !important;
@@ -170,7 +187,21 @@ def _inject_css() -> None:
                 }
 
                 [data-testid="stSidebar"] {
-                    min-width: 100% !important;
+                    min-width: 0 !important;
+                    width: min(82vw, 20rem) !important;
+                    max-width: 82vw !important;
+                }
+
+                [data-testid="stSidebar"] img {
+                    max-width: 72px !important;
+                }
+
+                .stButton > button,
+                .stDownloadButton > button,
+                div[data-testid="stFormSubmitButton"] button {
+                    width: 100% !important;
+                    min-height: 48px !important;
+                    white-space: normal !important;
                 }
 
             }
@@ -194,6 +225,7 @@ def _init_state() -> None:
         "pdf_warning": "",
         "llm_warning": "",
         "ticker_input_value": "",
+        "main_ticker_input_value": "",
         "selected_demo_ticker": "",
         "recent_analysis": ["0700.HK", "9988.HK", "0688.HK"],
         "is_generating": False,
@@ -259,6 +291,7 @@ WORKFLOW_STEPS = [
 
 def _set_demo_ticker(ticker: str) -> None:
     st.session_state.ticker_input_value = ticker.replace(".HK", "")
+    st.session_state.main_ticker_input_value = ticker.replace(".HK", "")
     st.session_state.selected_demo_ticker = ticker
     st.rerun()
 
@@ -378,6 +411,38 @@ def _render_pdf_preview(cover: dict[str, Any]) -> None:
         cols[1].metric("Rating", cover.get("final_rating", "N/A"))
         st.caption(_escape(cover.get("data_confidence_label", "")))
         st.caption(_escape(cover.get("sector", "")))
+
+
+def _render_main_input_panel() -> tuple[bool, str, str, int]:
+    _section_title("Start", "開始分析", "手機版可直接在主頁完成輸入，不需要打開 sidebar。")
+    with st.container(border=True):
+        with st.form("main_analysis_form"):
+            main_ticker = st.text_input(
+                "香港股票代號",
+                key="main_ticker_input_value",
+                placeholder="例如：0700、9988、0688、3416",
+                help="支援 700、0700、700.HK、9988、3416 等格式。",
+            )
+            main_risk = st.selectbox(
+                "投資者風險取向",
+                options=["保守", "中等", "進取"],
+                index=1,
+                key="main_risk_preference",
+            )
+            main_portfolio = st.number_input(
+                "投資組合規模（HKD，可選）",
+                min_value=0,
+                value=0,
+                step=100000,
+                key="main_portfolio_size",
+            )
+            submitted = st.form_submit_button(
+                "生成機構級分析報告",
+                type="primary",
+                use_container_width=True,
+                disabled=st.session_state.get("is_generating", False),
+            )
+    return submitted, main_ticker, main_risk, main_portfolio
 
 
 def _render_empty_state() -> None:
@@ -515,8 +580,10 @@ with st.container(border=True):
     st.write("60 秒內生成 Multi-Agent 分析、財務風險評估、機構級 PDF 報告與投資委員會結論。")
     if st.button("開始分析", type="primary", use_container_width=True):
         st.session_state.ticker_input_value = st.session_state.ticker_input_value or "0700"
+        st.session_state.main_ticker_input_value = st.session_state.main_ticker_input_value or "0700"
         st.rerun()
 
+main_generate_btn, main_ticker_input, main_risk_preference, main_portfolio_size = _render_main_input_panel()
 _render_demo_snapshots()
 _render_workflow_timeline()
 _render_source_transparency()
@@ -563,15 +630,19 @@ with st.sidebar:
     sample_cols = st.columns(3)
     if sample_cols[0].button("0700", use_container_width=True):
         st.session_state.ticker_input_value = "0700"
+        st.session_state.main_ticker_input_value = "0700"
         st.rerun()
     if sample_cols[1].button("9988", use_container_width=True):
         st.session_state.ticker_input_value = "9988"
+        st.session_state.main_ticker_input_value = "9988"
         st.rerun()
     if sample_cols[2].button("0688", use_container_width=True):
         st.session_state.ticker_input_value = "0688"
+        st.session_state.main_ticker_input_value = "0688"
         st.rerun()
     if st.button("Clear / Reset", use_container_width=True):
         st.session_state.ticker_input_value = ""
+        st.session_state.main_ticker_input_value = ""
         st.session_state.report_package = None
         st.session_state.report_sections = None
         st.session_state.pdf_path = None
@@ -589,14 +660,21 @@ with st.sidebar:
     st.caption(f"Commit: {BUILD_COMMIT}")
 
 
-if generate_btn:
-    is_valid_ticker, _ticker_error = validate_hk_ticker(ticker_input)
+analysis_requested = bool(main_generate_btn or generate_btn)
+request_ticker_input = main_ticker_input if main_generate_btn else ticker_input
+request_risk_preference = main_risk_preference if main_generate_btn else risk_preference
+request_portfolio_size = main_portfolio_size if main_generate_btn else portfolio_size
+
+if analysis_requested:
+    is_valid_ticker, _ticker_error = validate_hk_ticker(request_ticker_input)
     if not is_valid_ticker:
         st.error("請輸入有效香港股票代號")
     else:
         st.session_state.is_generating = True
         st.session_state.pdf_warning = ""
-        ticker = normalize_hk_ticker(ticker_input)
+        ticker = normalize_hk_ticker(request_ticker_input)
+        st.session_state.ticker_input_value = request_ticker_input
+        st.session_state.main_ticker_input_value = request_ticker_input
         print(f"[APP] User input stock_code = {ticker}")
         progress = st.progress(0)
         status_text = st.empty()
@@ -622,9 +700,9 @@ if generate_btn:
             report_package = ceo.run_analysis(
                 ticker=ticker,
                 company_name=company_name or None,
-                risk_preference=risk_preference,
+                risk_preference=request_risk_preference,
                 report_type="HK Stock Investment Analysis Report",
-                portfolio_size_hkd=portfolio_size if portfolio_size > 0 else None,
+                portfolio_size_hkd=request_portfolio_size if request_portfolio_size > 0 else None,
                 manual_news=None,
                 progress_callback=update_progress,
             )

@@ -522,18 +522,6 @@ def _render_trust_layer() -> None:
                 st.caption(copy)
 
 
-def _render_pdf_preview(cover: dict[str, Any]) -> None:
-    _section_title("PDF preview", "PDF 預覽", "下載前先檢視報告封面摘要。")
-    with st.container(border=True):
-        st.caption("Institutional report cover")
-        st.markdown(f"**{_escape(cover.get('company_name', 'N/A'))}**")
-        cols = st.columns(2)
-        cols[0].metric("Ticker", cover.get("ticker", "N/A"))
-        cols[1].metric("Rating", cover.get("final_rating", "N/A"))
-        st.caption(_escape(cover.get("data_confidence_label", "")))
-        st.caption(_escape(cover.get("sector", "")))
-
-
 def _render_main_input_panel() -> tuple[bool, str, str, int]:
     _section_title("Start", "開始分析", "手機版可直接在主頁完成輸入，不需要打開 sidebar。")
     with st.container(border=True):
@@ -576,13 +564,6 @@ def _render_empty_state() -> None:
             st.caption("支援 0700、9988、0688、3416 等格式；INVALID ticker 會停止公司基本面敘述。")
         _render_demo_snapshots("empty")
     with right:
-        _render_pdf_preview({
-            "company_name": "示範公司",
-            "ticker": "0700.HK",
-            "final_rating": "中性",
-            "data_confidence_label": "高可信度",
-            "sector": "科技 / 互聯網",
-        })
         _render_workflow_timeline()
 
 
@@ -875,6 +856,20 @@ if st.session_state.report_sections:
     cover = sections.get("cover", {})
 
     _section_title("Report preview", "報告摘要", "核心結論與報告下載")
+    if st.session_state.pdf_path and os.path.exists(st.session_state.pdf_path):
+        st.success("PDF報告已成功生成")
+        with open(st.session_state.pdf_path, "rb") as pdf_file:
+            st.download_button(
+                label="下載機構級分析報告",
+                data=pdf_file,
+                file_name=os.path.basename(st.session_state.pdf_path),
+                mime="application/pdf",
+                type="primary",
+                use_container_width=True,
+            )
+    elif st.session_state.get("pdf_warning"):
+        st.warning(st.session_state.pdf_warning)
+
     confidence_label = cover.get("data_confidence_label", "🟡 部分資料缺失")
     _confidence_badge(confidence_label)
     _confidence_note(confidence_label)
@@ -892,20 +887,6 @@ if st.session_state.report_sections:
         st.caption(_escape(sector_preview))
 
     _company_profile_panel(cover)
-    _render_pdf_preview(cover)
-
-    if st.session_state.pdf_path and os.path.exists(st.session_state.pdf_path):
-        with open(st.session_state.pdf_path, "rb") as pdf_file:
-            st.download_button(
-                label="下載機構級分析報告",
-                data=pdf_file,
-                file_name=os.path.basename(st.session_state.pdf_path),
-                mime="application/pdf",
-                type="primary",
-                use_container_width=True,
-            )
-    elif st.session_state.get("pdf_warning"):
-        st.warning(st.session_state.pdf_warning)
 
     _render_workflow_timeline()
 
@@ -922,9 +903,6 @@ if st.session_state.report_sections:
         failed_agents = ", ".join(stability.get("failed_agents", []))
         st.warning(f"受影響模組：{failed_agents}")
 
-    company = sections.get("company_intelligence", {})
-    _section_title("Company intelligence", "公司基本面與業務分析", "重點內容以卡片形式呈現，方便客戶快速閱讀")
-    _company_cards(company.get("rows", [])[:4])
 else:
     _render_empty_state()
     st.divider()

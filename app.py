@@ -877,6 +877,44 @@ def _render_market_snapshot_section(section: dict[str, Any]) -> None:
     st.caption(f"快照可信度：{_escape(conf)} | {_escape(source)} ({demo_tag})")
 
 
+def _render_scenario_section(section: dict[str, Any]) -> None:
+    """Bull / Base / Bear scenario cards."""
+    if not section or not section.get("is_valid"):
+        return
+    _section_title("Scenario Analysis", "情景分析", "基於 Python 計算的估值區間與風險分數，不由 LLM 生成數值。")
+
+    # Summary row
+    with st.container(border=True):
+        cols = st.columns(3)
+        cols[0].metric("現價", _escape(section.get("current_price", "N/A")))
+        cols[1].metric("風險分數", _escape(section.get("risk_score", "N/A")))
+        cols[2].metric("風險等級", _escape(section.get("risk_label", "N/A")))
+
+    # Scenario cards
+    scenarios = section.get("scenarios", [])
+    if scenarios:
+        cols = st.columns(len(scenarios))
+        for col, s in zip(cols, scenarios):
+            with col:
+                with st.container(border=True):
+                    st.markdown(f"**{_escape(s.get('name', ''))} {_escape(s.get('name_zh', ''))}**")
+                    st.caption(_escape(s.get("description", "")))
+                    st.metric("隱含價格", _escape(s.get("implied_price", "N/A")), _escape(s.get("implied_upside", "")))
+                    st.caption(f"關鍵假設：{_escape(s.get('key_assumption', ''))}")
+                    st.caption(f"催化因素：{_escape(s.get('key_catalyst', ''))}")
+                    st.caption(_escape(s.get("probability_note", "")))
+
+    # Triggers
+    triggers = section.get("triggers", [])
+    if triggers:
+        with st.container(border=True):
+            st.markdown("**下行觸發點**")
+            for t in triggers[:5]:
+                st.caption(f"- {_escape(t)}")
+
+    st.caption(_escape(section.get("analysis_note", "")))
+
+
 def _render_news_catalyst_section(section: dict[str, Any]) -> None:
     _section_title("新聞催化", "新聞與事件催化分析", "本節只使用已接入及已驗證新聞來源。")
     status = section.get("status") or "暫未接入即時新聞資料"
@@ -1186,7 +1224,10 @@ if st.session_state.report_sections:
 
     _render_news_catalyst_section(sections.get("news_catalyst_analysis", {}))
 
-    # 6. 分析流程 + 投委會討論（放最底）
+    # 7. 情景分析
+    _render_scenario_section(sections.get("scenario_analysis", {}))
+
+    # 8. 分析流程 + 投委會討論（放最底）
     _render_workflow_timeline()
 
     discussion = sections.get("multi_agent_discussion", {})

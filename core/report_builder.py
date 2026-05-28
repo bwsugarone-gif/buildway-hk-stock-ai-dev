@@ -11,6 +11,7 @@ from typing import Any, Dict, List
 
 from core.config import APP_NAME, APP_VERSION, USE_AI_ANALYSIS
 from core.market_snapshot import build_market_snapshot
+from core.scenario_engine import build_scenario_analysis
 from core.data_confidence import (
     INVALID,
     INVALID_MARKET_DATA_MESSAGE,
@@ -104,7 +105,7 @@ class ReportBuilder:
             "financial_analysis": self._build_financial_analysis(market, history, fin),
             "risk_analysis": self._build_risk_analysis(risk),
             "news_catalyst_analysis": self._build_news_catalyst_analysis(news),
-            "scenario_analysis": self._build_scenario_analysis(risk),
+            "scenario_analysis": build_scenario_analysis(market, fin, risk, self._build_news_catalyst_analysis(news)),
             "portfolio_view": self._build_portfolio_view(portfolio, risk, rating),
             "ic_conclusion": self._build_ic_conclusion(ic, risk, rating, llm_warning, fin),
             "disclaimer": self._build_disclaimer(),

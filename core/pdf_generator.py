@@ -454,9 +454,9 @@ class PDFGenerator:
 
     def _footer(self, canvas, doc):
         canvas.saveState()
-        # Watermark: DEV TRIAL diagonal text
+        # Watermark: DEV TRIAL diagonal text — subtle, does not obstruct reading
         canvas.setFont(self.font_name, 52)
-        canvas.setFillColor(colors.Color(0.88, 0.88, 0.88, alpha=0.18))
+        canvas.setFillColor(colors.Color(0.88, 0.88, 0.88, alpha=0.08))
         canvas.saveState()
         canvas.translate(A4[0] / 2, A4[1] / 2)
         canvas.rotate(35)

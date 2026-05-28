@@ -18,6 +18,7 @@ from core.data_confidence import (
     confidence_label,
     invalid_market_data,
 )
+from core.data_normalizer import normalize_market_data
 from core.safe_math import safe_number
 from data.sample_data import SAMPLE_HK_STOCKS, get_sample_market_data, get_sample_financial_history
 from core.utils import normalize_hk_ticker, format_currency_hkd, format_percentage
@@ -241,6 +242,18 @@ class MarketDataAgent:
                 data["price_change_3m"] = (prices[-1] - prices[0]) / prices[0] if prices[0] else 0
         except Exception:
             pass
+
+        # Apply multi-field fallback normalization to improve coverage
+        # Pass the full yfinance info dict for alias resolution
+        data_with_info = {**data, **info}
+        normalized = normalize_market_data(data_with_info)
+        # Only copy back fields that were improved (non-None values)
+        for field in ("pe_ratio", "pb_ratio", "dividend_yield", "beta",
+                      "52w_high", "52w_low", "gross_margin", "net_margin",
+                      "roe", "current_ratio", "debt_to_equity", "volume",
+                      "market_cap", "revenue_ttm", "ebitda"):
+            if normalized.get(field) is not None:
+                data[field] = normalized[field]
 
         return data
 

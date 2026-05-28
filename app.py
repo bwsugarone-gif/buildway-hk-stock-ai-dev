@@ -670,7 +670,7 @@ def _render_stock_showcase_card(ticker: str, metadata: dict[str, Any], location:
 
 
 def _render_sector_showcase() -> None:
-    _section_title("香港市場板塊", "快速測試", "按板塊瀏覽香港股票案例，點選即可填入分析代號。")
+    _section_title("香港市場板塊", "香港市場板塊", "按板塊瀏覽香港股票案例，點選即可填入分析代號。")
     master_data = _load_hk_master_data()
     tabs = st.tabs(list(SECTOR_SHOWCASE.keys()))
     for tab, (sector_name, tickers) in zip(tabs, SECTOR_SHOWCASE.items()):
@@ -682,46 +682,15 @@ def _render_sector_showcase() -> None:
                     _render_stock_showcase_card(ticker, master_data.get(ticker, {}), sector_name)
 
 
-def _status_to_client_state(raw: Any) -> tuple[str, str]:
-    text = str(raw or "")
-    if any(token in text.lower() for token in ["fallback", "備援"]):
-        return "fallback", "備援"
-    if any(token in text.lower() for token in ["stop", "fail", "stopped", "失敗", "停止"]):
-        return "stopped", "已停止"
-    if any(token in text.lower() for token in ["run", "running", "執行", "分析中"]):
-        return "running", "分析中"
-    if any(token in text.lower() for token in ["complete", "done", "完成", "摰"]):
-        return "completed", "完成"
-    return "waiting", "等待"
-
-
 def _render_workflow_timeline() -> None:
-    _section_title("AI 分析流程", "AI 分析流程", "每個步驟均設有備援機制，單一模組失敗不會中斷整份報告。")
-    status = st.session_state.get("agent_status", {})
-    status_lookup = {
-        "市場資料模組": status.get("Market Data Agent"),
-        "財務分析模組": status.get("Financial Analyst Agent"),
-        "風險控制模組": status.get("Risk Agent"),
-        "新聞分析模組": status.get("News Intelligence Agent"),
-        "投資委員會": status.get("Investment Committee Agent"),
-    }
+    """Static architecture explanation — not a runtime status display."""
+    _section_title("分析引擎架構", "分析引擎架構", "系統由五個分析模組組成，每個模組均設有備援機制。")
     for index, (name, description) in enumerate(WORKFLOW_STEPS):
-        state_key, state_label = _status_to_client_state(status_lookup.get(name))
         with st.container(border=True):
-            cols = st.columns([0.18, 0.58, 0.24])
-            cols[0].metric("步驟", f"{index + 1}")
+            cols = st.columns([0.12, 0.88])
+            cols[0].caption(f"{index + 1}")
             cols[1].markdown(f"**{name}**")
             cols[1].caption(description)
-            if state_key == "completed":
-                cols[2].success(state_label)
-            elif state_key == "running":
-                cols[2].info(state_label)
-            elif state_key == "fallback":
-                cols[2].warning(state_label)
-            elif state_key == "stopped":
-                cols[2].error(state_label)
-            else:
-                cols[2].caption(state_label)
 
 
 def _render_source_transparency() -> None:

@@ -238,13 +238,16 @@ class PDFGenerator:
             leftMargin=1.55 * cm,
             rightMargin=1.55 * cm,
             topMargin=1.55 * cm,
-            bottomMargin=1.7 * cm,
+            bottomMargin=2.1 * cm,  # Extra space for dual-line footer
             title="Buildway Tech HK Stock Report",
             author="Buildway Tech (HK) Limited",
         )
 
         story: List[Any] = []
         story.extend(self._cover(report_sections.get("cover", {})))
+        story.append(PageBreak())
+        # TOC page after cover
+        story.extend(self._toc_page(report_sections))
         story.append(PageBreak())
         snapshot = report_sections.get("market_snapshot", {})
         if snapshot.get("is_valid"):
@@ -383,16 +386,62 @@ class PDFGenerator:
 
     def _footer(self, canvas, doc):
         canvas.saveState()
-        canvas.setFont(self.font_name, 8)
-        canvas.setFillColor(MUTED)
-        canvas.drawString(1.55 * cm, 1.0 * cm, "Buildway Tech (HK) Limited")
-        # Centre: build version for cross-platform consistency verification
-        if self.build_version:
-            canvas.drawCentredString(A4[0] / 2, 1.0 * cm, self.build_version)
-        canvas.drawRightString(A4[0] - 1.55 * cm, 1.0 * cm, f"Page {doc.page}")
+        # Watermark: DEV TRIAL diagonal text
+        canvas.setFont(self.font_name, 52)
+        canvas.setFillColor(colors.Color(0.88, 0.88, 0.88, alpha=0.18))
+        canvas.saveState()
+        canvas.translate(A4[0] / 2, A4[1] / 2)
+        canvas.rotate(35)
+        canvas.drawCentredString(0, 0, "DEV TRIAL")
+        canvas.restoreState()
+
+        # Footer line
         canvas.setStrokeColor(MID_GREY)
         canvas.line(1.55 * cm, 1.25 * cm, A4[0] - 1.55 * cm, 1.25 * cm)
+
+        # Footer text
+        canvas.setFont(self.font_name, 7.5)
+        canvas.setFillColor(MUTED)
+        canvas.drawString(1.55 * cm, 0.85 * cm, "Buildway Tech (HK) Limited | AI Multi-Agent Financial Intelligence System")
+        canvas.drawString(1.55 * cm, 0.55 * cm, "本報告只作教育、研究及客戶試用用途，不構成投資建議。")
+        if self.build_version:
+            canvas.drawCentredString(A4[0] / 2, 0.85 * cm, self.build_version)
+        canvas.drawRightString(A4[0] - 1.55 * cm, 0.85 * cm, f"Page {doc.page}")
         canvas.restoreState()
+
+    def _toc_page(self, report_sections: dict) -> list:
+        """Generate a Table of Contents page."""
+        elements = [Spacer(1, 1.0 * cm)]
+        elements.append(Paragraph("目錄 Table of Contents", self.styles["CoverTitle"]))
+        elements.append(Spacer(1, 0.5 * cm))
+
+        cover = report_sections.get("cover", {})
+        ticker = cover.get("ticker", "N/A")
+        company = cover.get("company_name", "N/A")
+        elements.append(Paragraph(f"{ticker} — {_pdf_text(company)}", self.styles["BodyTC"]))
+        elements.append(Spacer(1, 0.4 * cm))
+
+        toc_items = [
+            ("1", "市場快照 Market Snapshot"),
+            ("2", "公司基本面與業務分析"),
+            ("3", "Executive Summary"),
+            ("4", "Multi-Agent 投資委員會討論"),
+            ("5", "Financial Analysis"),
+            ("6", "Risk Analysis"),
+            ("7", "新聞與事件催化分析"),
+            ("8", "Scenario Analysis"),
+            ("9", "Portfolio & Risk Control View"),
+            ("10", "Investment Committee Final Conclusion"),
+            ("11", "Disclaimer"),
+        ]
+        rows = [[num, title] for num, title in toc_items]
+        elements.append(self._table(rows, [1.5 * cm, 13.9 * cm]))
+        elements.append(Spacer(1, 0.5 * cm))
+        elements.append(Paragraph(
+            "本報告由 Python Multi-Agent 架構生成，所有財務數值由 Python 計算，LLM 只負責文字整理。",
+            self.styles["SmallTC"],
+        ))
+        return elements
 
     def _cover(self, cover: Dict[str, Any]) -> List[Any]:
         elements: List[Any] = [Spacer(1, 0.5 * cm)]

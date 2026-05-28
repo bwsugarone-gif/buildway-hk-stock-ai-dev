@@ -913,6 +913,51 @@ def _render_allocation_section(
         st.caption(_escape(alloc.get("allocation_note", "")))
 
 
+def _render_hkex_section(ticker: str, report_package: dict[str, Any] | None = None) -> None:
+    """HKEX announcements and earnings intelligence section."""
+    try:
+        from core.hkex_parser import build_hkex_intelligence
+        market_data = (report_package or {}).get("market_data", {}) or {}
+        result = build_hkex_intelligence(ticker, market_data=market_data, financial_data=market_data)
+    except Exception as exc:
+        print(f"[APP] HKEX intelligence unavailable: {exc}")
+        return
+
+    _section_title("HKEX Intelligence", "HKEX 公告與業績分析", "本節只使用已接入及已驗證的公告或業績資料。")
+
+    with st.container(border=True):
+        st.caption(_escape(result.get("status_summary", "")))
+        st.info(_escape(result.get("analysis_boundary", "")))
+
+    # Earnings summary
+    earnings = result.get("earnings", {})
+    if earnings.get("has_earnings_data"):
+        st.subheader("業績重點")
+        e_cols = st.columns(3)
+        e_cols[0].metric("收入 TTM", _escape(earnings.get("revenue_ttm", "資料待補充")))
+        e_cols[1].metric("淨利潤 TTM", _escape(earnings.get("net_income_ttm", "資料待補充")))
+        e_cols[2].metric("EBITDA", _escape(earnings.get("ebitda", "資料待補充")))
+        m_cols = st.columns(3)
+        m_cols[0].metric("毛利率", _escape(earnings.get("gross_margin", "資料待補充")))
+        m_cols[1].metric("淨利率", _escape(earnings.get("net_margin", "資料待補充")))
+        m_cols[2].metric("ROE", _escape(earnings.get("roe", "資料待補充")))
+        st.caption(_escape(earnings.get("boundary_note", "")))
+    else:
+        with st.container(border=True):
+            st.caption("業績資料")
+            st.caption(_escape(earnings.get("not_connected_message", "業績資料暫未接入。")))
+
+    # Announcements
+    ann = result.get("announcements", {})
+    with st.container(border=True):
+        st.markdown("**HKEX 公告**")
+        if ann.get("is_connected") and ann.get("announcements"):
+            for item in ann["announcements"][:5]:
+                st.caption(f"- {_escape(item)}")
+        else:
+            st.caption(_escape(ann.get("not_connected_message", "公告資料暫未接入。")))
+
+
 def _render_compare_mode() -> None:
     """Two-stock comparison mode using portfolio_engine."""
     _section_title("Compare Mode", "股票比較分析", "輸入兩隻股票代號，系統會比較估值、風險、板塊及催化因素。")
@@ -1359,10 +1404,13 @@ if st.session_state.report_sections:
         cover.get("final_rating", "中性"),
     )
 
-    # 9. 股票比較分析
+    # 9. HKEX 公告與業績分析
+    _render_hkex_section(str(current_ticker), st.session_state.get("report_package"))
+
+    # 10. 股票比較分析
     _render_compare_mode()
 
-    # 10. 分析流程 + 投委會討論（放最底）
+    # 11. 分析流程 + 投委會討論（放最底）
     _render_workflow_timeline()
 
     discussion = sections.get("multi_agent_discussion", {})

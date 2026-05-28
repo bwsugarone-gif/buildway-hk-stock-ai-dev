@@ -19,6 +19,7 @@ This is **v0.6.6 Landing + Report Summary Cleanup Layer** of the Buildway Tech H
 
 - 🤖 **8-Agent Team**: CEO, Market Data, Financial Analyst, Risk Management, News Intelligence, HK IPO, Portfolio Manager, Investment Committee
 - 📊 **Comprehensive Analysis**: Market data, financial health, risk scoring, valuation range
+- 📰 **News + Catalyst Layer**: Verified-news-only catalyst and risk event framework
 - 📄 **PDF Report Generation**: Professional branded reports with Traditional Chinese
 - 🏢 **HK-Focused**: Designed for Hong Kong Stock Exchange (HKEX) listed companies
 - 🔒 **No API Keys Required**: DEV version uses demo data with clear labeling
@@ -148,6 +149,15 @@ FINANCIAL_API_KEY = "your_key_here"
 NEWS_API_KEY = "your_key_here"
 ```
 
+News intelligence defaults to a safe non-connected mode and never fabricates
+headlines or announcements:
+
+```env
+NEWS_API_PROVIDER=none
+NEWS_API_KEY=your_news_api_key
+NEWS_API_BASE_URL=
+```
+
 ---
 
 ## Agent Architecture
@@ -158,7 +168,7 @@ NEWS_API_KEY = "your_key_here"
 | Market Data Agent | Stock price, volume, market cap | ✅ Demo data |
 | Financial Analyst Agent | DCF, comparables, valuation range | ✅ Demo data |
 | Risk Management Agent | Risk scoring 1-10 across 7 dimensions | ✅ Active |
-| News Intelligence Agent | Sentiment analysis, news factors | ✅ Placeholder |
+| News Intelligence Agent | Verified news, catalyst and risk event analysis | ✅ Safe fallback |
 | HK IPO Agent | IPO analysis module | 🔒 Phase 2.5 |
 | Portfolio Manager Agent | Position sizing suggestions | ✅ Active |
 | Investment Committee Agent | Final verdict and thesis | ✅ Active |

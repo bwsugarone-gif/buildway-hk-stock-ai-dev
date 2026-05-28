@@ -30,9 +30,9 @@ def _get_secret(key: str, default: str = "") -> str:
 
 # ─── App Identity ────────────────────────────────────────────────────────────
 APP_NAME = "Buildway Tech (HK) Limited"
-APP_SUBTITLE = "香港股票智能分析系統 — 繁體中文 SaaS 介面優化層"
-APP_VERSION = "v0.8.0"
-BUILD_STAGE = "Traditional Chinese SaaS Polish Layer"
+APP_SUBTITLE = "香港股票智能分析系統 — 新聞與事件催化情報層"
+APP_VERSION = "v0.9.0"
+BUILD_STAGE = "News + Catalyst Intelligence Layer"
 APP_LANG = "zh-HK"
 
 # ─── Deployment Environment Detection ────────────────────────────────────────
@@ -80,6 +80,8 @@ OPENAI_API_KEY = _get_secret("OPENAI_API_KEY")
 ALPHA_VANTAGE_KEY = _get_secret("ALPHA_VANTAGE_KEY")
 FINNHUB_API_KEY = _get_secret("FINNHUB_API_KEY")
 NEWS_API_KEY = _get_secret("NEWS_API_KEY")
+NEWS_API_PROVIDER = _get_secret("NEWS_API_PROVIDER", "none").lower()
+NEWS_API_BASE_URL = _get_secret("NEWS_API_BASE_URL")
 
 # ─── Feature Flags ────────────────────────────────────────────────────────────
 USE_LIVE_MARKET_DATA = _get_secret("USE_LIVE_MARKET_DATA", "false").lower() == "true"

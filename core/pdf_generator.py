@@ -260,6 +260,8 @@ class PDFGenerator:
         story.append(PageBreak())
         story.extend(self._risk(report_sections.get("risk_analysis", {})))
         story.append(PageBreak())
+        story.extend(self._news_catalyst(report_sections.get("news_catalyst_analysis", {})))
+        story.append(PageBreak())
         story.extend(self._scenario(report_sections.get("scenario_analysis", {})))
         story.append(PageBreak())
         story.extend(self._portfolio(report_sections.get("portfolio_view", {})))
@@ -531,6 +533,33 @@ class PDFGenerator:
                 elements.append(Paragraph(f"- {item['dimension']}: {item['score']}/10, {item['level']}", self.styles["BodyTC"]))
         else:
             elements.append(Paragraph("無可用風險項目。", self.styles["BodyTC"]))
+        return elements
+
+    def _news_catalyst(self, section: Dict[str, Any]) -> List[Any]:
+        elements = [self._title(section.get("title", "新聞與事件催化分析"))]
+        rows = [
+            ["新聞資料狀態", section.get("status", "暫未接入即時新聞資料")],
+            ["新聞可信度", section.get("news_confidence", "未接入")],
+            ["分析邊界", section.get("analysis_boundary", "暫未接入即時新聞資料，本節不生成未經驗證的新聞或事件。")],
+        ]
+        elements.append(self._table(rows, [4.2 * cm, 11.2 * cm]))
+        if not section.get("has_news"):
+            elements.append(Spacer(1, 0.3 * cm))
+            elements.append(self._notice("暫未接入即時新聞資料，本節不生成未經驗證的新聞或事件。"))
+
+        groups = [
+            ("正面催化", section.get("positive_catalysts", [])),
+            ("負面催化", section.get("negative_catalysts", [])),
+            ("監察事項", section.get("risk_events", []) or section.get("monitor_items", [])),
+        ]
+        for title, items in groups:
+            elements.append(Spacer(1, 0.25 * cm))
+            elements.append(Paragraph(title, self.styles["SubTitle"]))
+            if items:
+                for item in items[:6]:
+                    elements.append(Paragraph(f"- {item}", self.styles["BodyTC"]))
+            else:
+                elements.append(Paragraph("暫無已驗證資料。", self.styles["BodyTC"]))
         return elements
 
     def _scenario(self, section: Dict[str, Any]) -> List[Any]:

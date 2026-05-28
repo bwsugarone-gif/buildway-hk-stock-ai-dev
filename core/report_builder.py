@@ -101,6 +101,7 @@ class ReportBuilder:
             ),
             "financial_analysis": self._build_financial_analysis(market, history, fin),
             "risk_analysis": self._build_risk_analysis(risk),
+            "news_catalyst_analysis": self._build_news_catalyst_analysis(news),
             "scenario_analysis": self._build_scenario_analysis(risk),
             "portfolio_view": self._build_portfolio_view(portfolio, risk, rating),
             "ic_conclusion": self._build_ic_conclusion(ic, risk, rating, llm_warning, fin),
@@ -489,6 +490,34 @@ class ReportBuilder:
             "risk_label": _risk_label(_num(risk.get("composite_risk_score"), 5)),
             "risk_table": risk_table,
             "top_risks": risk_table[:5],
+        }
+
+    def _build_news_catalyst_analysis(self, news: Dict[str, Any]) -> Dict[str, Any]:
+        confidence = news.get("news_confidence") or news.get("sentiment_analysis", {}).get("confidence") or "未接入"
+        positive = news.get("positive_catalysts") or news.get("positive_factors") or []
+        negative = news.get("negative_catalysts") or news.get("negative_factors") or []
+        neutral = news.get("neutral_events") or news.get("neutral_signals") or []
+        risk_events = news.get("risk_events") or news.get("monitor_items") or []
+        has_news = bool(news.get("has_news") or positive or negative or neutral or risk_events)
+        if not has_news:
+            confidence = "未接入"
+        boundary = (
+            "新聞催化分析只使用已接入及已驗證的新聞來源，不會生成未經驗證事件。"
+            if has_news
+            else "暫未接入即時新聞資料，新聞催化分析會於後續版本啟用。"
+        )
+        return {
+            "title": "新聞與事件催化分析",
+            "status": news.get("summary") or "暫未接入即時新聞資料",
+            "news_confidence": confidence,
+            "positive_catalysts": positive,
+            "negative_catalysts": negative,
+            "neutral_events": neutral,
+            "risk_events": risk_events,
+            "monitor_items": risk_events,
+            "has_news": has_news,
+            "analysis_boundary": boundary,
+            "no_news_message": "暫未接入即時新聞資料，系統目前不會生成假新聞或未經驗證事件。",
         }
 
     def _build_scenario_analysis(self, risk: Dict[str, Any]) -> Dict[str, Any]:

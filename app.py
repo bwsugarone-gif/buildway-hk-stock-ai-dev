@@ -845,6 +845,36 @@ def _render_financial_sections(sections: dict[str, Any], report_package: dict[st
                     st.caption(f"分數：{_escape(item.get('score', 'N/A'))} | 等級：{_escape(item.get('level', 'N/A'))} | 權重：{_escape(item.get('weight', 'N/A'))}")
 
 
+def _render_news_catalyst_section(section: dict[str, Any]) -> None:
+    _section_title("新聞催化", "新聞與事件催化分析", "本節只使用已接入及已驗證新聞來源。")
+    status = section.get("status") or "暫未接入即時新聞資料"
+    confidence = section.get("news_confidence") or "未接入"
+    with st.container(border=True):
+        cols = st.columns(2)
+        cols[0].metric("新聞資料狀態", _escape(status))
+        cols[1].metric("新聞可信度", _escape(confidence))
+        if not section.get("has_news"):
+            st.info("暫未接入即時新聞資料，系統目前不會生成假新聞或未經驗證事件。")
+        st.caption(_escape(section.get("analysis_boundary", "")))
+
+    cards = [
+        ("正面催化因素", section.get("positive_catalysts", [])),
+        ("負面催化因素", section.get("negative_catalysts", [])),
+        ("中性事件", section.get("neutral_events", [])),
+        ("需要監察事項", section.get("risk_events", []) or section.get("monitor_items", [])),
+    ]
+    columns = st.columns(2)
+    for index, (title, items) in enumerate(cards):
+        with columns[index % 2]:
+            with st.container(border=True):
+                st.markdown(f"**{title}**")
+                if items:
+                    for item in items[:5]:
+                        st.caption(f"- {_escape(item)}")
+                else:
+                    st.caption("暫無已驗證資料。")
+
+
 def _confidence_badge(label: str) -> None:
     text = label or "🟡 部分資料缺失"
     if "高可信度" in text:
@@ -1118,6 +1148,8 @@ if st.session_state.report_sections:
 
     # 5. 價格指標、歷史財務、風險分析
     _render_financial_sections(sections, st.session_state.get("report_package"))
+
+    _render_news_catalyst_section(sections.get("news_catalyst_analysis", {}))
 
     # 6. 分析流程 + 投委會討論（放最底）
     _render_workflow_timeline()

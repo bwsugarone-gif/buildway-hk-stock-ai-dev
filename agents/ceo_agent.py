@@ -18,6 +18,7 @@ from core.data_confidence import (
 )
 from core.safe_math import safe_number
 from core.utils import normalize_hk_ticker, get_timestamp
+from core.news_intelligence import not_connected_result
 from data.sample_data import get_sample_market_data, get_sample_financial_history, get_sample_news_sentiment
 
 from agents.market_data_agent import MarketDataAgent
@@ -573,6 +574,15 @@ class CEOAgent:
 
     def _fallback_news_analysis(self, analysis_context: Dict[str, Any]) -> Dict[str, Any]:
         stock_code = analysis_context["stock_code"]
+        data = not_connected_result(stock_code)
+        data.update({
+            "ticker": stock_code,
+            "status": "未接入",
+            "summary": "未接入即時新聞資料",
+            "warning": "暫未接入即時新聞資料，系統不會生成假新聞或未經驗證事件。",
+            "confidence": 0,
+        })
+        return data
         data = get_sample_news_sentiment(stock_code)
         data.update({
             "ticker": stock_code,

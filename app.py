@@ -224,6 +224,13 @@ def _inject_css() -> None:
     )
 
 
+def _make_session_id() -> str:
+    """Generate a session-scoped ID for data lake tracking."""
+    import random
+    suffix = "".join(str(random.randint(0, 9)) for _ in range(6))
+    return f"{datetime.now().strftime('%Y%m%d%H%M%S')}{suffix}"
+
+
 def _init_state() -> None:
     from core.client_profile import create_guest_profile
     defaults = {
@@ -241,6 +248,8 @@ def _init_state() -> None:
         "is_generating": False,
         "agent_error_log": [],
         "client_profile": create_guest_profile(),
+        "session_id": _make_session_id(),
+        "last_recorded_ticker": "",
         "agent_status": {
             "CEO Agent": "等待",
             "Market Data Agent": "等待",
@@ -1226,6 +1235,50 @@ def _render_data_coverage_note() -> None:
     _company_cards(rows)
 
 
+def _render_data_store_status() -> None:
+    """Data lake status section — shows storage mode, today's counts, and export."""
+    try:
+        from core.intelligence_store import get_data_lake_status
+        from core.local_data_store import get_today_export_bytes
+        status = get_data_lake_status()
+    except Exception as exc:
+        print(f"[APP] Data store status unavailable: {exc}")
+        return
+
+    _section_title("資料儲存狀態", "資料儲存狀態", "本地 Data Lake 儲存每日分析紀錄，不需要 Cloud DB。")
+    with st.container(border=True):
+        cols = st.columns(4)
+        cols[0].metric("儲存模式", _escape(status.get("mode", "本地 Data Lake")))
+        cols[1].metric("今日分析紀錄", status.get("today_runs", 0))
+        cols[2].metric("今日市場快照", status.get("today_snapshots", 0))
+        cols[3].metric("今日用戶事件", status.get("today_events", 0))
+
+        last_ticker = st.session_state.get("last_recorded_ticker", "")
+        if last_ticker:
+            st.caption(f"最後記錄：{_escape(last_ticker)} | 日期：{_escape(status.get('date', ''))}")
+        else:
+            st.caption(f"日期：{_escape(status.get('date', ''))} | 完成分析後自動記錄")
+
+        # Download today's JSONL
+        try:
+            export_bytes = get_today_export_bytes("analysis_runs")
+            if export_bytes:
+                today_str = status.get("date", "today")
+                st.download_button(
+                    label="下載今日分析紀錄 JSONL",
+                    data=export_bytes,
+                    file_name=f"analysis_runs_{today_str}.jsonl",
+                    mime="application/jsonlines",
+                    use_container_width=True,
+                )
+            else:
+                st.caption("今日尚無分析紀錄可下載。")
+        except Exception:
+            pass
+
+        st.caption("Streamlit Cloud 重啟後本地 data_lake 會被清空；正式版需接 Supabase / Neon。")
+
+
 def _render_beta_trial_note() -> None:
     with st.container(border=True):
         st.caption("Beta 試用說明")
@@ -1277,6 +1330,7 @@ main_generate_btn, main_ticker_input, main_risk_preference, main_portfolio_size 
 _render_sector_showcase()
 _render_workspace_layer("main")
 _render_client_profile_section()
+_render_data_store_status()
 _render_data_coverage_note()
 _render_beta_trial_note()
 _render_workflow_timeline()
@@ -1383,6 +1437,29 @@ if analysis_requested:
                 report_sections=report_sections,
             )
             _add_watchlist_ticker(ticker)
+
+            # Record to local data lake (safe — never crashes app)
+            try:
+                from core.intelligence_store import record_analysis_complete, record_user_event
+                _session_id = st.session_state.get("session_id", "")
+                _cover_for_store = report_sections.get("cover", {}) or {}
+                record_analysis_complete(
+                    ticker=ticker,
+                    report_sections=report_sections,
+                    report_package=report_package,
+                    pdf_path=st.session_state.get("pdf_path"),
+                    session_id=_session_id,
+                )
+                record_user_event(
+                    "generate_report", ticker=ticker, session_id=_session_id,
+                    metadata={
+                        "confidence": _cover_for_store.get("data_confidence", ""),
+                        "rating": _cover_for_store.get("final_rating", ""),
+                    },
+                )
+                st.session_state["last_recorded_ticker"] = ticker
+            except Exception as _store_exc:
+                print(f"[APP] Data lake record failed (non-critical): {_store_exc}")
 
             progress.progress(1.0)
             status_text.text("報告生成完成。")

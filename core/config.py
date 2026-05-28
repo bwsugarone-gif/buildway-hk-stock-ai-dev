@@ -31,8 +31,8 @@ def _get_secret(key: str, default: str = "") -> str:
 # ─── App Identity ────────────────────────────────────────────────────────────
 APP_NAME = "Buildway Tech (HK) Limited"
 APP_SUBTITLE = "香港股票智能分析系統 — SaaS 客戶層"
-APP_VERSION = "v2.0.0"
-BUILD_STAGE = "Product Stabilization Sprint"
+APP_VERSION = "v2.1.0"
+BUILD_STAGE = "Local Data Moat Foundation Layer"
 APP_LANG = "zh-HK"
 
 # ─── Deployment Environment Detection ────────────────────────────────────────
@@ -74,6 +74,13 @@ LOGO_PATH = ASSETS_DIR / "logo.png"
 
 # Ensure reports directory exists
 REPORTS_DIR.mkdir(exist_ok=True)
+
+# ─── Local Data Lake ──────────────────────────────────────────────────────────
+# LOCAL_DATA_MODE=true uses folder-based JSONL data lake (no Cloud DB required).
+# Set LOCAL_DATA_MODE=false and DATABASE_URL to upgrade to Supabase/Neon/PostgreSQL.
+LOCAL_DATA_MODE = _get_secret("LOCAL_DATA_MODE", "true").lower() != "false"
+DATA_LAKE_PATH = BASE_DIR / "data_lake"
+DATABASE_URL = _get_secret("DATABASE_URL", "")  # Reserved for future Cloud DB upgrade
 
 # ─── API Keys (never hardcoded) ───────────────────────────────────────────────
 OPENAI_API_KEY = _get_secret("OPENAI_API_KEY")

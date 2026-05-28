@@ -36,3 +36,10 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Data Lake — daily user data (not committed to git)
+# README.md and folder structure are committed; actual JSONL data is not.
+data_lake/daily/
+data_lake/reports/
+data_lake/exports/
+data_lake/backups/

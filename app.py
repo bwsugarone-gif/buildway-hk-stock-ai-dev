@@ -530,6 +530,18 @@ def _render_workspace_layer(location: str) -> None:
         _render_watchlist(location)
 
 
+def _render_client_profile_section() -> None:
+    profile = st.session_state.get("client_profile", {})
+    usage = profile.get("usage", {})
+    with st.container(border=True):
+        st.caption("客戶資料")
+        st.markdown(f"**{_escape(profile.get('display_name', '訪客客戶'))}**")
+        cols = st.columns(3)
+        cols[0].metric("分析報告", usage.get("reports_generated", 0))
+        cols[1].metric("已分析股票", len(usage.get("tickers_analyzed", [])))
+        cols[2].caption(f"最後活動\n\n{_escape(profile.get('last_active', 'N/A'))}")
+
+
 def make_widget_key(prefix: str, ticker: str, location: str) -> str:
     clean_ticker = ticker.replace(".", "_").replace("-", "_").replace(" ", "_")
     clean_location = str(location).replace(".", "_").replace("-", "_").replace(" ", "_").replace("/", "_")
@@ -1162,6 +1174,7 @@ with st.container(border=True):
 
 main_generate_btn, main_ticker_input, main_risk_preference, main_portfolio_size = _render_main_input_panel()
 _render_workspace_layer("main")
+_render_client_profile_section()
 _render_sector_showcase()
 _render_workflow_timeline()
 _render_source_transparency()
@@ -1294,6 +1307,8 @@ if analysis_requested:
             st.session_state.report_package = report_package
             st.session_state.report_sections = report_sections
             st.session_state.pdf_path = None
+            from core.client_profile import update_profile_activity
+            st.session_state.client_profile = update_profile_activity(st.session_state.client_profile, ticker=ticker)
 
             status_text.text("正在生成PDF報告...")
             os.makedirs("reports", exist_ok=True)

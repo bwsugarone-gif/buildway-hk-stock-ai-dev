@@ -877,6 +877,131 @@ def _render_market_snapshot_section(section: dict[str, Any]) -> None:
     st.caption(f"快照可信度：{_escape(conf)} | {_escape(source)} ({demo_tag})")
 
 
+def _render_allocation_section(
+    portfolio_size: int,
+    risk_score_str: str,
+    rating: str,
+) -> None:
+    """Portfolio allocation summary based on risk score."""
+    try:
+        from core.portfolio_engine import build_allocation_summary
+        from core.safe_math import safe_number
+        risk_score = safe_number(risk_score_str.replace("/10", "").strip(), 5.0)
+        alloc = build_allocation_summary(float(portfolio_size or 0), risk_score, rating)
+    except Exception as exc:
+        print(f"[APP] Allocation summary unavailable: {exc}")
+        return
+
+    if alloc.get("portfolio_size") == "未設定":
+        return  # Don't show if no portfolio size set
+
+    _section_title("Portfolio Allocation", "組合倉位參考", "基於風險分數的倉位建議，只作教育及研究用途。")
+    with st.container(border=True):
+        cols = st.columns(3)
+        cols[0].metric("投資組合規模", _escape(alloc.get("portfolio_size", "N/A")))
+        cols[1].metric(
+            "建議倉位",
+            _escape(alloc.get("suggested_position_hkd", "N/A")),
+            f"{alloc.get('suggested_position_pct', 0) * 100:.0f}%",
+        )
+        cols[2].metric(
+            "最大倉位上限",
+            _escape(alloc.get("max_position_hkd", "N/A")),
+            f"{alloc.get('max_position_pct', 0) * 100:.0f}%",
+        )
+        st.caption(_escape(alloc.get("risk_note", "")))
+        st.caption(_escape(alloc.get("allocation_note", "")))
+
+
+def _render_compare_mode() -> None:
+    """Two-stock comparison mode using portfolio_engine."""
+    _section_title("Compare Mode", "股票比較分析", "輸入兩隻股票代號，系統會比較估值、風險、板塊及催化因素。")
+    with st.container(border=True):
+        cols = st.columns([0.45, 0.45, 0.1])
+        ticker_a = cols[0].text_input(
+            "股票 A",
+            placeholder="例如：0700",
+            key="compare_ticker_a",
+        )
+        ticker_b = cols[1].text_input(
+            "股票 B",
+            placeholder="例如：9988",
+            key="compare_ticker_b",
+        )
+        run_compare = cols[2].button("比較", key="run_compare_btn", use_container_width=True)
+
+    if not run_compare:
+        return
+
+    from core.portfolio_engine import compare_stocks
+    from agents.market_data_agent import MarketDataAgent as _MDA
+
+    tickers_to_compare = []
+    for raw in [ticker_a, ticker_b]:
+        raw = raw.strip()
+        if not raw:
+            continue
+        is_valid, _ = validate_hk_ticker(raw)
+        if not is_valid:
+            st.warning(f"無效股票代號：{raw}")
+            continue
+        tickers_to_compare.append(normalize_hk_ticker(raw))
+
+    if len(tickers_to_compare) < 2:
+        st.warning("請輸入兩個有效的香港股票代號。")
+        return
+
+    with st.spinner("正在取得比較資料..."):
+        stock_data_list = []
+        for t in tickers_to_compare:
+            try:
+                market = _MDA().fetch(t)
+                stock_data_list.append({
+                    "ticker": t,
+                    "market_data": market,
+                    "risk_analysis": {},
+                    "financial_analysis": {},
+                    "news_catalyst": {},
+                })
+            except Exception as exc:
+                print(f"[APP] Compare fetch failed for {t}: {exc}")
+                stock_data_list.append({"ticker": t, "market_data": {}, "risk_analysis": {}, "financial_analysis": {}, "news_catalyst": {}})
+
+    result = compare_stocks(stock_data_list)
+
+    # Valuation compare
+    val_rows = result.get("valuation_compare", [])
+    if val_rows:
+        st.subheader("估值比較")
+        fields = ["ticker", "現價", "市值", "P/E", "P/B", "股息率"]
+        table_data = [{f: row.get(f, "N/A") for f in fields} for row in val_rows]
+        st.dataframe(table_data, use_container_width=True, hide_index=True)
+
+    # Risk compare
+    risk_rows = result.get("risk_compare", [])
+    if risk_rows:
+        st.subheader("風險比較")
+        fields = ["ticker", "風險分數", "風險等級", "Beta", "首要風險"]
+        table_data = [{f: row.get(f, "N/A") for f in fields} for row in risk_rows]
+        st.dataframe(table_data, use_container_width=True, hide_index=True)
+
+    # Sector compare
+    sector_rows = result.get("sector_compare", [])
+    if sector_rows:
+        st.subheader("板塊與盈利比較")
+        fields = ["ticker", "行業", "市場分類", "毛利率", "淨利率", "ROE"]
+        table_data = [{f: row.get(f, "N/A") for f in fields} for row in sector_rows]
+        st.dataframe(table_data, use_container_width=True, hide_index=True)
+
+    # Summary
+    summary = result.get("summary", {})
+    with st.container(border=True):
+        st.markdown("**比較摘要**")
+        st.caption(f"估值吸引力較高：{_escape(summary.get('best_value', 'N/A'))}")
+        st.caption(f"風險分數較低：{_escape(summary.get('lowest_risk', 'N/A'))}")
+        st.caption(_escape(result.get("analysis_note", "")))
+
+
 def _render_scenario_section(section: dict[str, Any]) -> None:
     """Bull / Base / Bear scenario cards."""
     if not section or not section.get("is_valid"):
@@ -1227,7 +1352,17 @@ if st.session_state.report_sections:
     # 7. 情景分析
     _render_scenario_section(sections.get("scenario_analysis", {}))
 
-    # 8. 分析流程 + 投委會討論（放最底）
+    # 8. 組合倉位參考（有設定 portfolio size 才顯示）
+    _render_allocation_section(
+        request_portfolio_size,
+        cover.get("risk_score", "5.0/10"),
+        cover.get("final_rating", "中性"),
+    )
+
+    # 9. 股票比較分析
+    _render_compare_mode()
+
+    # 10. 分析流程 + 投委會討論（放最底）
     _render_workflow_timeline()
 
     discussion = sections.get("multi_agent_discussion", {})

@@ -264,11 +264,11 @@ def _section_title(kicker: str, title: str, caption: str = "") -> None:
 
 
 WORKFLOW_STEPS = [
-    ("市場資料 Agent", "取得價格、成交量、市值與公司 metadata。"),
-    ("財務分析 Agent", "計算估值、財務健康度與核心比率。"),
-    ("風險控制 Agent", "評估流動性、槓桿、波動與下行情境。"),
-    ("新聞分析 Agent", "整理市場情緒與事件風險。"),
-    ("投資委員會", "整合多 agent 觀點並輸出最終結論。"),
+    ("市場資料模組", "取得價格、成交量、市值與公司資料。"),
+    ("財務分析模組", "計算估值、財務健康度與核心比率。"),
+    ("風險控制模組", "評估流動性、槓桿、波動與下行情境。"),
+    ("新聞分析模組", "整理市場情緒與事件風險。"),
+    ("投資委員會", "整合多模組觀點並輸出最終結論。"),
 ]
 
 
@@ -549,7 +549,7 @@ def _render_recent_reports(location: str) -> None:
                 ):
                     _request_analysis(
                         str(record.get("ticker", "")),
-                        str(record.get("risk_preference") or "???"),
+                        str(record.get("risk_preference") or "中等"),
                         int(record.get("portfolio_size") or 0),
                     )
         if st.button("清除紀錄", key=f"clear_history_{location}", use_container_width=True):
@@ -696,13 +696,13 @@ def _status_to_client_state(raw: Any) -> tuple[str, str]:
 
 
 def _render_workflow_timeline() -> None:
-    _section_title("AI 分析流程", "AI 分析流程", "每個步驟均設有備援機制，單一 agent 失敗不會中斷整份報告。")
+    _section_title("AI 分析流程", "AI 分析流程", "每個步驟均設有備援機制，單一模組失敗不會中斷整份報告。")
     status = st.session_state.get("agent_status", {})
     status_lookup = {
-        "市場資料 Agent": status.get("Market Data Agent"),
-        "財務分析 Agent": status.get("Financial Analyst Agent"),
-        "風險控制 Agent": status.get("Risk Agent"),
-        "新聞分析 Agent": status.get("News Intelligence Agent"),
+        "市場資料模組": status.get("Market Data Agent"),
+        "財務分析模組": status.get("Financial Analyst Agent"),
+        "風險控制模組": status.get("Risk Agent"),
+        "新聞分析模組": status.get("News Intelligence Agent"),
         "投資委員會": status.get("Investment Committee Agent"),
     }
     for index, (name, description) in enumerate(WORKFLOW_STEPS):
@@ -729,8 +729,8 @@ def _render_source_transparency() -> None:
     rows = [
         ("市場資料", "Yahoo Finance / 市場資料供應商"),
         ("公司資料", "HK stock master database"),
-        ("財務計算", "Python calculation engine"),
-        ("AI Narrative", "DeepSeek V3，只負責文字整理，不參與財務計算"),
+        ("財務計算", "Python 計算引擎"),
+        ("文字整理", "DeepSeek V3，只負責文字整理，不參與財務計算"),
     ]
     _company_cards(rows)
     st.warning("本系統不構成投資建議。所有結果只供研究、教育及客戶展示用途。")
@@ -741,7 +741,7 @@ def _render_trust_layer() -> None:
     cards = [
         ("防止 AI 幻覺", "公司資料只引用市場供應商或本地 master database。"),
         ("無效代號防護", "無有效市場資料時停止進階公司敘述。"),
-        ("Python 財務計算", "估值、比率、風險分數由 Python engine 產生。"),
+        ("Python 財務計算", "估值、比率、風險分數由 Python 計算引擎產生。"),
         ("Multi-Agent 交叉分析", "市場、財務、風險、新聞與投委會互相校驗。"),
         ("PDF 機構級輸出", "客戶可下載一致格式的正式報告。"),
         ("備援容錯架構", "單一資料源或 agent 失敗不會拖垮整個流程。"),
@@ -811,9 +811,19 @@ def _status_cards() -> None:
 
 
 def _agent_discussion_cards(rows: list[dict[str, Any]]) -> None:
+    agent_name_map = {
+        "CEO Agent": "總協調模組",
+        "Market Data Agent": "市場資料模組",
+        "Financial Analyst Agent": "財務分析模組",
+        "Risk Management Agent": "風險控制模組",
+        "Risk Agent": "風險控制模組",
+        "News Intelligence Agent": "新聞分析模組",
+        "Portfolio Manager Agent": "組合配置模組",
+        "Investment Committee Agent": "投資委員會",
+    }
     for item in rows:
         with st.container(border=True):
-            agent_name = _escape(item.get("Agent"))
+            agent_name = _escape(agent_name_map.get(str(item.get("Agent")), item.get("Agent")))
             personality = _escape(item.get("性格定位"))
             confidence = _escape(item.get("信心分數"))
             st.markdown(f"**{agent_name}**")
@@ -960,7 +970,7 @@ def _render_market_snapshot_section(section: dict[str, Any]) -> None:
     """Bloomberg-style market snapshot KPI cards."""
     if not _market_snapshot_has_data(section):
         return
-    _section_title("Market Snapshot", "市場快照", "Bloomberg 風格市場 KPI，數值由 Python 從市場資料供應商提取。")
+    _section_title("市場快照", "市場快照", "市場核心指標由 Python 從市場資料供應商提取。")
     kpis = section.get("kpis", [])
     if not kpis:
         return
@@ -1007,7 +1017,7 @@ def _render_allocation_section(
     if alloc.get("portfolio_size") == "未設定":
         return  # Don't show if no portfolio size set
 
-    _section_title("Portfolio Allocation", "組合倉位參考", "基於風險分數的倉位建議，只作教育及研究用途。")
+    _section_title("組合倉位參考", "組合倉位參考", "基於風險分數的倉位建議，只作教育及研究用途。")
     with st.container(border=True):
         cols = st.columns(3)
         cols[0].metric("投資組合規模", _escape(alloc.get("portfolio_size", "N/A")))
@@ -1038,7 +1048,7 @@ def _render_hkex_section(ticker: str, report_package: dict[str, Any] | None = No
     if not result.get("has_data"):
         return
 
-    _section_title("HKEX Intelligence", "HKEX 公告與業績分析", "本節只使用已接入及已驗證的公告或業績資料。")
+    _section_title("公告與業績分析", "HKEX 公告與業績分析", "本節只使用已接入及已驗證的公告或業績資料。")
 
     with st.container(border=True):
         st.caption(_escape(result.get("status_summary", "")))
@@ -1160,7 +1170,7 @@ def _render_scenario_section(section: dict[str, Any]) -> None:
     """Bull / Base / Bear scenario cards."""
     if not _scenario_has_data(section):
         return
-    _section_title("Scenario Analysis", "情景分析", "基於 Python 計算的估值區間與風險分數，不由 LLM 生成數值。")
+    _section_title("情景分析", "情景分析", "基於 Python 計算的估值區間與風險分數，不由 LLM 生成數值。")
 
     # Summary row
     with st.container(border=True):
@@ -1226,6 +1236,34 @@ def _render_news_catalyst_section(section: dict[str, Any]) -> None:
                     st.caption("暫無已驗證資料。")
 
 
+def _render_landing_panel() -> None:
+    with st.container(border=True):
+        st.title("Buildway AI Financial Intelligence Platform")
+        st.caption("香港股票智能分析試用平台")
+        cols = st.columns(3)
+        cols[0].metric("資料分級", "高 / 部分 / 未完成")
+        cols[1].metric("報告輸出", "PDF")
+        cols[2].metric("分析方式", "Multi-Agent")
+        st.caption("輸入香港股票代號後，系統會按資料可信度自動決定顯示深度，避免空白章節、假數據及未驗證內容。")
+
+
+def _render_data_coverage_note() -> None:
+    _section_title("資料覆蓋說明", "資料覆蓋說明", "不同資料可信度會觸發不同顯示深度。")
+    rows = [
+        ("高可信度", "顯示完整市場快照、財務指標、情景分析、風險及報告下載。"),
+        ("部分資料缺失", "只保留可驗證資料；隱藏不足以支持判斷的財務、新聞或情景章節。"),
+        ("資料驗證未完成", "停止深度分析，不生成公司敘述、財務判斷或未驗證事件。"),
+    ]
+    _company_cards(rows)
+
+
+def _render_beta_trial_note() -> None:
+    with st.container(border=True):
+        st.caption("Beta 試用說明")
+        st.markdown("**本系統為試用版本，不構成投資建議。**")
+        st.caption("市場資料可能延遲、缺失或只作示範用途；所有財務數值只由 Python 計算，文字整理不會生成數值。")
+
+
 def _confidence_badge(label: str) -> None:
     text = label or "🟡 部分資料缺失"
     if "高可信度" in text:
@@ -1265,14 +1303,13 @@ def _mark_agent(message: str) -> None:
 _inject_css()
 _init_state()
 
-with st.container(border=True):
-    st.title("Buildway AI Financial Intelligence Platform")
-    st.caption("60 秒內生成 Multi-Agent 分析、財務風險評估、機構級 PDF 報告")
-
+_render_landing_panel()
 main_generate_btn, main_ticker_input, main_risk_preference, main_portfolio_size = _render_main_input_panel()
+_render_sector_showcase()
 _render_workspace_layer("main")
 _render_client_profile_section()
-_render_sector_showcase()
+_render_data_coverage_note()
+_render_beta_trial_note()
 _render_workflow_timeline()
 _render_source_transparency()
 _render_trust_layer()
@@ -1429,16 +1466,18 @@ if st.session_state.report_sections:
 
     # 2. 下載按鈕（緊接摘要 card 下方）
     if st.session_state.pdf_path and os.path.exists(st.session_state.pdf_path):
-        st.success("報告生成完成")
-        with open(st.session_state.pdf_path, "rb") as pdf_file:
-            st.download_button(
-                label="下載機構級分析報告",
-                data=pdf_file,
-                file_name=os.path.basename(st.session_state.pdf_path),
-                mime="application/pdf",
-                type="primary",
-                use_container_width=True,
-            )
+        with st.container(border=True):
+            st.success("報告生成完成")
+            st.markdown("**下載正式報告**")
+            with open(st.session_state.pdf_path, "rb") as pdf_file:
+                st.download_button(
+                    label="下載機構級分析報告",
+                    data=pdf_file,
+                    file_name=os.path.basename(st.session_state.pdf_path),
+                    mime="application/pdf",
+                    type="primary",
+                    use_container_width=True,
+                )
     elif st.session_state.get("pdf_warning"):
         st.warning(st.session_state.pdf_warning)
 
@@ -1504,7 +1543,7 @@ if st.session_state.report_sections:
     stability = sections.get("system_stability", {})
     if confidence_level in {"HIGH", "MEDIUM"} and stability.get("has_failures"):
         _section_title("系統提示", "系統穩定性提示")
-        st.warning(stability.get("message", "部分 Agent 分析未能完成，系統已自動切換至備援分析流程。"))
+        st.warning(stability.get("message", "部分分析模組未能完成，系統已自動切換至備援分析流程。"))
         failed_agents = ", ".join(stability.get("failed_agents", []))
         st.warning(f"受影響模組：{failed_agents}")
 

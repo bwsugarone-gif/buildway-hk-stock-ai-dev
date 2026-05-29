@@ -1016,14 +1016,12 @@ def _render_allocation_section(
 def _render_hkex_section(ticker: str, report_package: dict[str, Any] | None = None) -> None:
     """HKEX announcements and earnings intelligence section."""
     try:
-        from core.hkex_parser import build_hkex_intelligence
+        from core.hkex_intelligence_engine import build_hkex_intelligence
         market_data = (report_package or {}).get("market_data", {}) or {}
-        result = build_hkex_intelligence(ticker, market_data=market_data, financial_data=market_data)
+        sections = st.session_state.get("report_sections") or {}
+        result = sections.get("hkex_intelligence") or build_hkex_intelligence(ticker, market_data=market_data, financial_data=market_data)
     except Exception as exc:
         print(f"[APP] HKEX intelligence unavailable: {exc}")
-        return
-
-    if not result.get("has_data"):
         return
 
     _section_title("公告與業績分析", "HKEX 公告與業績分析", "本節只使用已接入及已驗證的公告或業績資料。")
@@ -1031,6 +1029,9 @@ def _render_hkex_section(ticker: str, report_package: dict[str, Any] | None = No
     with st.container(border=True):
         st.caption(_escape(result.get("status_summary", "")))
         st.info(_escape(result.get("analysis_boundary", "")))
+        if not result.get("has_data"):
+            st.warning("未取得已驗證 HKEX 公告資料")
+            return
 
     # Earnings summary
     earnings = result.get("earnings", {})

@@ -21,32 +21,32 @@ def _num(value: Any, default: float = 0.0) -> float:
     return safe_number(value, default)
 
 
-def _fmt_price(value: Any) -> str:
+def _fmt_price(value: Any) -> str | None:
     n = _num(value)
-    return f"HK${n:.2f}" if n > 0 else "資料待補充"
+    return f"HK${n:.2f}" if n > 0 else None
 
 
-def _fmt_pct(value: Any, decimals: int = 2) -> str:
+def _fmt_pct(value: Any, decimals: int = 2) -> str | None:
     n = _num(value)
     if n == 0:
-        return "資料待補充"
+        return None
     return format_percentage(n, decimals)
 
 
-def _fmt_hkd(value: Any) -> str:
+def _fmt_hkd(value: Any) -> str | None:
     n = _num(value)
-    return format_currency_hkd(n) if n > 0 else "資料待補充"
+    return format_currency_hkd(n) if n > 0 else None
 
 
-def _fmt_ratio(value: Any, suffix: str = "x") -> str:
+def _fmt_ratio(value: Any, suffix: str = "x") -> str | None:
     n = _num(value)
-    return f"{n:.2f}{suffix}" if n > 0 else "資料待補充"
+    return f"{n:.2f}{suffix}" if n > 0 else None
 
 
-def _fmt_volume(value: Any) -> str:
+def _fmt_volume(value: Any) -> str | None:
     n = _num(value)
     if n <= 0:
-        return "資料待補充"
+        return None
     if n >= 1_000_000_000:
         return f"{n / 1_000_000_000:.2f}B"
     if n >= 1_000_000:
@@ -108,24 +108,24 @@ def build_market_snapshot(market_data: dict[str, Any]) -> dict[str, Any]:
         sign = "+" if day_change_abs >= 0 else ""
         day_change_str = f"{sign}HK${day_change_abs:.2f} ({sign}{day_change_pct * 100:.2f}%)"
     else:
-        day_change_str = "資料待補充"
+        day_change_str = None
 
     dividend_yield = _num(market_data.get("dividend_yield"))
-    dividend_str = f"{dividend_yield * 100:.2f}%" if dividend_yield > 0 else "資料待補充"
+    dividend_str = f"{dividend_yield * 100:.2f}%" if dividend_yield > 0 else None
 
     beta = _num(market_data.get("beta"), 1.0)
-    beta_str = f"{beta:.2f}" if beta != 0 else "資料待補充"
+    beta_str = f"{beta:.2f}" if beta != 0 else None
 
     w52_high = _num(market_data.get("52w_high"))
     w52_low = _num(market_data.get("52w_low"))
     w52_range_str = (
         f"HK${w52_low:.2f} – HK${w52_high:.2f}"
         if w52_high > 0 and w52_low > 0
-        else "資料待補充"
+        else None
     )
 
     # Position within 52-week range (0% = at low, 100% = at high)
-    w52_position: str = "資料待補充"
+    w52_position: str | None = None
     if w52_high > w52_low > 0 and current > 0:
         pos = (current - w52_low) / (w52_high - w52_low) * 100
         w52_position = f"{pos:.1f}%（52週區間位置）"
@@ -176,7 +176,7 @@ def build_market_snapshot(market_data: dict[str, Any]) -> dict[str, Any]:
             "3個月價格變動": (
                 f"{market_data.get('price_change_3m', 0) * 100:+.2f}%"
                 if market_data.get("price_change_3m") is not None
-                else "資料待補充"
+                else None
             ),
         },
     }

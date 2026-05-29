@@ -180,6 +180,59 @@ def append_market_snapshot(
         return False
 
 
+def append_news_intelligence(
+    ticker: str,
+    news: dict[str, Any],
+    session_id: str = "",
+) -> bool:
+    """Record verified news intelligence. Empty/no-news state is recorded explicitly."""
+    try:
+        _ensure_data_lake()
+        filepath = _daily_dir() / "news_intelligence.jsonl"
+        record = {
+            "created_at": datetime.now().isoformat(),
+            "ticker": str(ticker),
+            "has_news": bool(news.get("has_news")),
+            "status": str(news.get("summary") or news.get("status") or ""),
+            "news_confidence": str(news.get("news_confidence") or ""),
+            "news_source": str(news.get("source") or ""),
+            "session_id": str(session_id),
+        }
+        items = news.get("news_items") or news.get("recent_news") or []
+        if items:
+            record["news_count"] = len(items)
+            record["latest_news_date"] = str((items[0] or {}).get("news_date") or (items[0] or {}).get("published_at") or "")
+        return _append_jsonl(filepath, record)
+    except Exception as exc:
+        print(f"[DataStore] append_news_intelligence failed: {exc}")
+        return False
+
+
+def append_hkex_intelligence(
+    ticker: str,
+    hkex: dict[str, Any],
+    session_id: str = "",
+) -> bool:
+    """Record HKEX intelligence status without fabricating announcement content."""
+    try:
+        _ensure_data_lake()
+        filepath = _daily_dir() / "hkex_intelligence.jsonl"
+        announcements = hkex.get("announcements") or {}
+        record = {
+            "created_at": datetime.now().isoformat(),
+            "ticker": str(ticker),
+            "has_data": bool(hkex.get("has_data")),
+            "status": str(hkex.get("status_summary") or hkex.get("status") or ""),
+            "is_connected": bool(announcements.get("is_connected")),
+            "announcement_count": len(announcements.get("announcements") or []),
+            "session_id": str(session_id),
+        }
+        return _append_jsonl(filepath, record)
+    except Exception as exc:
+        print(f"[DataStore] append_hkex_intelligence failed: {exc}")
+        return False
+
+
 def append_user_event(
     event_type: str,
     ticker: str = "",
@@ -284,6 +337,8 @@ def get_today_stats() -> dict[str, Any]:
             "date": _today_str(),
             "analysis_runs": _count_jsonl_lines(daily / "analysis_runs.jsonl"),
             "market_snapshots": _count_jsonl_lines(daily / "market_snapshots.jsonl"),
+            "news_intelligence": _count_jsonl_lines(daily / "news_intelligence.jsonl"),
+            "hkex_intelligence": _count_jsonl_lines(daily / "hkex_intelligence.jsonl"),
             "user_events": _count_jsonl_lines(daily / "user_events.jsonl"),
             "report_metadata": _count_jsonl_lines(daily / "report_metadata.jsonl"),
             "manual_notes": _count_jsonl_lines(daily / "manual_notes.jsonl"),
@@ -295,6 +350,8 @@ def get_today_stats() -> dict[str, Any]:
             "date": _today_str(),
             "analysis_runs": 0,
             "market_snapshots": 0,
+            "news_intelligence": 0,
+            "hkex_intelligence": 0,
             "user_events": 0,
             "report_metadata": 0,
             "manual_notes": 0,

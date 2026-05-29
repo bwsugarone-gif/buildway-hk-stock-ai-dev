@@ -47,12 +47,26 @@ def _risk_label(score: float) -> str:
     return "極高風險"
 
 
-def _fmt_pct(value: Any, decimals: int = 1) -> str:
-    return format_percentage(_num(value), decimals)
+def _fmt_pct(value: Any, decimals: int = 1) -> str | None:
+    n = _num(value)
+    return format_percentage(n, decimals) if n != 0 else None
 
 
-def _fmt_hkd(value: Any) -> str:
-    return format_currency_hkd(_num(value))
+def _fmt_hkd(value: Any) -> str | None:
+    n = _num(value)
+    return format_currency_hkd(n) if n > 0 else None
+
+
+def _fmt_ratio(value: Any, decimals: int = 2) -> str | None:
+    n = _num(value)
+    return f"{n:.{decimals}f}x" if n > 0 else None
+
+
+def _valid_text(value: Any) -> bool:
+    text = str(value if value is not None else "").strip()
+    if not text or text in {"N/A", "None", "0", "0.0", "0.00", "資料待補充"}:
+        return False
+    return not any(token in text for token in ("HK$0.00", "0.0%", "0.00x", "0.0x"))
 
 
 class ReportBuilder:
@@ -83,7 +97,7 @@ class ReportBuilder:
                 executive_summary, market, fin, risk, rating
             )
 
-        return {
+        sections = {
             "metadata": {
                 "brand": APP_NAME,
                 "version": APP_VERSION,
@@ -105,11 +119,13 @@ class ReportBuilder:
             "financial_analysis": self._build_financial_analysis(market, history, fin),
             "risk_analysis": self._build_risk_analysis(risk),
             "news_catalyst_analysis": self._build_news_catalyst_analysis(news),
+            "hkex_intelligence": self._build_hkex_intelligence(market),
             "scenario_analysis": build_scenario_analysis(market, fin, risk, self._build_news_catalyst_analysis(news)),
             "portfolio_view": self._build_portfolio_view(portfolio, risk, rating),
             "ic_conclusion": self._build_ic_conclusion(ic, risk, rating, llm_warning, fin),
             "disclaimer": self._build_disclaimer(),
         }
+        return self._strip_placeholder_values(sections)
 
     def _maybe_deepseek_summary(
         self,
@@ -449,8 +465,8 @@ class ReportBuilder:
                 ("毛利率", _fmt_pct(market.get("gross_margin"))),
                 ("淨利率", _fmt_pct(market.get("net_margin"))),
                 ("ROE", _fmt_pct(market.get("roe"))),
-                ("EV/EBITDA", f"{_num(metrics.get('ev_ebitda')):.1f}x"),
-                ("P/B", f"{_num(market.get('pb_ratio')):.2f}x"),
+                ("EV/EBITDA", _fmt_ratio(metrics.get("ev_ebitda"), 1)),
+                ("P/B", _fmt_ratio(market.get("pb_ratio"), 2)),
             ],
             "history": self._history_rows(history),
         }
@@ -522,6 +538,18 @@ class ReportBuilder:
             "analysis_boundary": boundary,
             "no_news_message": "暫未接入即時新聞資料，系統目前不會生成假新聞或未經驗證事件。",
         }
+
+    def _build_hkex_intelligence(self, market: Dict[str, Any]) -> Dict[str, Any]:
+        try:
+            from core.hkex_intelligence_engine import build_hkex_intelligence
+            return build_hkex_intelligence(str(market.get("ticker") or ""))
+        except Exception:
+            return {
+                "ticker": market.get("ticker", ""),
+                "has_data": False,
+                "status_summary": "未取得已驗證 HKEX 公告資料",
+                "analysis_boundary": "未取得已驗證 HKEX 公告資料",
+            }
 
     def _build_scenario_analysis(self, risk: Dict[str, Any]) -> Dict[str, Any]:
         scenarios = risk.get("scenarios", {})
@@ -632,6 +660,32 @@ class ReportBuilder:
                 "投資者在作出任何投資決定前，應自行核實資料並諮詢持牌專業顧問。"
             ),
         }
+
+    def _strip_placeholder_values(self, value: Any) -> Any:
+        if isinstance(value, dict):
+            cleaned: Dict[str, Any] = {}
+            for key, item in value.items():
+                cleaned_item = self._strip_placeholder_values(item)
+                if cleaned_item is not None:
+                    cleaned[key] = cleaned_item
+            return cleaned
+        if isinstance(value, list):
+            return [
+                cleaned_item
+                for item in value
+                if (cleaned_item := self._strip_placeholder_values(item)) is not None
+            ]
+        if isinstance(value, tuple):
+            cleaned_tuple = tuple(self._strip_placeholder_values(item) for item in value)
+            if len(cleaned_tuple) >= 2 and cleaned_tuple[1] is None:
+                return None
+            return cleaned_tuple
+        if isinstance(value, str):
+            text = value.strip()
+            if not _valid_text(text):
+                return None
+            return text
+        return value
 
     def _top_risk_name(self, risk: Dict[str, Any]) -> str:
         scores = risk.get("dimension_scores", {})

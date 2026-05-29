@@ -15,7 +15,7 @@ from core.pdf_generator import PDFGenerator
 from core.report_builder import ReportBuilder
 
 
-TICKERS = ["0700", "9988", "0688", "0941", "3416", "12345"]
+TICKERS = ["0700", "9988", "0005", "0941", "0688", "3416", "12345"]
 BAD_TOKENS = ["HK$0.00", "0.0%", "0.00x", "0.0x", "資料待補充", "暫無資料"]
 
 

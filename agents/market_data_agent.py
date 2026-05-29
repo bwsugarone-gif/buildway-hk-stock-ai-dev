@@ -19,6 +19,7 @@ from core.data_confidence import (
     invalid_market_data,
 )
 from core.data_normalizer import normalize_market_data
+from core.data_coverage_engine import DataCoverageEngine
 from core.safe_math import safe_number
 from data.sample_data import SAMPLE_HK_STOCKS, get_sample_market_data, get_sample_financial_history
 from core.utils import normalize_hk_ticker, format_currency_hkd, format_percentage
@@ -40,6 +41,7 @@ class MarketDataAgent:
     def __init__(self):
         self._yfinance_available = self._check_yfinance()
         self._master_data = self._load_master_data()
+        self._coverage_engine = DataCoverageEngine()
 
     def _check_yfinance(self) -> bool:
         """Check if yfinance is available."""
@@ -116,6 +118,14 @@ class MarketDataAgent:
         if self._yfinance_available:
             try:
                 result = self._fetch_live(normalized, company_name)
+                sample_candidate = get_sample_market_data(normalized)
+                sample_has_market_data = safe_number(sample_candidate.get("current_price"), 0.0) > 0 or safe_number(sample_candidate.get("market_cap"), 0.0) > 0
+                if sample_has_market_data and not (
+                    safe_number(result.get("current_price"), 0.0) > 0
+                    or safe_number(result.get("market_cap"), 0.0) > 0
+                ):
+                    result = sample_candidate
+                    result["fallback_reason"] = "live provider returned no usable price or market cap"
                 result["ticker"] = normalized
                 result = self._apply_company_metadata(result, metadata, company_name)
                 result["company_name"] = company_name or result.get("company_name") or metadata.get("name_zh", "")
@@ -123,11 +133,9 @@ class MarketDataAgent:
             except Exception as e:
                 if normalized not in SAMPLE_HK_STOCKS and not metadata:
                     return invalid_market_data(normalized, str(e))
-                result = (
-                    get_sample_market_data(normalized)
-                    if normalized in SAMPLE_HK_STOCKS
-                    else self._metadata_only_market_data(normalized, company_name, str(e))
-                )
+                sample_candidate = get_sample_market_data(normalized)
+                sample_has_market_data = safe_number(sample_candidate.get("current_price"), 0.0) > 0 or safe_number(sample_candidate.get("market_cap"), 0.0) > 0
+                result = sample_candidate if sample_has_market_data else self._metadata_only_market_data(normalized, company_name, str(e))
                 result["fallback_reason"] = str(e)
                 result["ticker"] = normalized
                 result = self._apply_company_metadata(result, metadata, company_name)
@@ -136,11 +144,9 @@ class MarketDataAgent:
 
         if normalized not in SAMPLE_HK_STOCKS and not metadata:
             return invalid_market_data(normalized, "yfinance unavailable and ticker is outside validated sample universe.")
-        result = (
-            get_sample_market_data(normalized)
-            if normalized in SAMPLE_HK_STOCKS
-            else self._metadata_only_market_data(normalized, company_name, "yfinance unavailable")
-        )
+        sample_candidate = get_sample_market_data(normalized)
+        sample_has_market_data = safe_number(sample_candidate.get("current_price"), 0.0) > 0 or safe_number(sample_candidate.get("market_cap"), 0.0) > 0
+        result = sample_candidate if sample_has_market_data else self._metadata_only_market_data(normalized, company_name, "yfinance unavailable")
         result["ticker"] = normalized
         result = self._apply_company_metadata(result, metadata, company_name)
         result["company_name"] = company_name or result.get("company_name") or metadata.get("name_zh", "")
@@ -169,17 +175,19 @@ class MarketDataAgent:
             return data
 
         sanitized = self._sanitize_numeric_fields(data)
+        sanitized = self._coverage_engine.enhance(sanitized)
         confidence = assess_market_data_confidence(sanitized)
-        sanitized["data_confidence"] = confidence
-        sanitized["data_confidence_label"] = confidence_label(confidence)
+        coverage = sanitized.get("coverage_score") or confidence
+        sanitized["data_confidence"] = coverage
+        sanitized["data_confidence_label"] = confidence_label(coverage)
 
-        if confidence == INVALID:
+        if coverage == INVALID:
             return invalid_market_data(
                 sanitized.get("ticker", "N/A"),
                 "Missing company name, current price, market cap, and ticker metadata.",
             )
 
-        if confidence in {LOW, MEDIUM}:
+        if coverage in {LOW, MEDIUM}:
             sanitized["data_warning"] = PARTIAL_DATA_WARNING
 
         return sanitized

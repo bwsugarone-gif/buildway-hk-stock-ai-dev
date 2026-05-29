@@ -45,7 +45,9 @@ def record_analysis_complete(
     try:
         from core.local_data_store import (
             append_analysis_run,
+            append_hkex_intelligence,
             append_market_snapshot,
+            append_news_intelligence,
             append_report_metadata,
         )
         from core.config import APP_VERSION
@@ -74,6 +76,18 @@ def record_analysis_complete(
             snapshot=snapshot,
             session_id=session_id,
         )
+
+    results["news_intelligence"] = append_news_intelligence(
+        ticker=ticker,
+        news=(report_sections or {}).get("news_catalyst_analysis", {}) or {},
+        session_id=session_id,
+    )
+
+    results["hkex_intelligence"] = append_hkex_intelligence(
+        ticker=ticker,
+        hkex=(report_sections or {}).get("hkex_intelligence", {}) or {},
+        session_id=session_id,
+    )
 
     # 3. Report metadata
     results["report_metadata"] = append_report_metadata(
@@ -125,6 +139,8 @@ def get_data_lake_status() -> dict[str, Any]:
             "mode": "本地 Data Lake" if LOCAL_DATA_MODE else "Cloud DB",
             "today_runs": stats.get("analysis_runs", 0),
             "today_snapshots": stats.get("market_snapshots", 0),
+            "today_news": stats.get("news_intelligence", 0),
+            "today_hkex": stats.get("hkex_intelligence", 0),
             "today_events": stats.get("user_events", 0),
             "data_lake_path": stats.get("data_lake_path", str(DATA_LAKE_PATH)),
             "date": stats.get("date", ""),

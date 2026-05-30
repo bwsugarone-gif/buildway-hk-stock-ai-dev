@@ -15,8 +15,8 @@ from core.data_confidence import HIGH, INVALID, LOW
 from core.report_builder import ReportBuilder
 
 
-VALID = ["700", "9988", "0005"]
-PARTIAL = ["3416", "0688"]
+VALID = ["700", "9988", "0005", "0688"]
+PARTIAL = ["3416"]
 INVALID_TICKERS = ["12345", "99999", "ABCDE", "3896", "2638"]
 
 

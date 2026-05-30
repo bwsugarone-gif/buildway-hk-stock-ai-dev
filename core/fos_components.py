@@ -1,7 +1,7 @@
 """
 core/fos_components.py
-FOS V3 — Investor Decision Cockpit Components
-No decorative panels. Decision-making information only.
+FOS V3.5 — Investor Decision Cockpit Components
+v3.5.0: Peer Comparison, Source Transparency, Bull vs Bear Debate, Risk Dashboard
 """
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
@@ -509,5 +509,333 @@ def render_investment_conclusion(report_data: Dict[str, Any]) -> None:
         f'</div>'
         f'{"<p style=color:#1f2933;>" + summary + "</p>" if summary else ""}'
         f'</div>',
+        unsafe_allow_html=True,
+    )
+
+
+# ─── 10. Peer Comparison Table (v3.5) ─────────────────────────────────────────
+
+def render_peer_comparison(report_data: Dict[str, Any]) -> None:
+    """Peer comparison table: PE, PB, dividend yield, market cap, risk score."""
+    cl = report_data.get("competitive_landscape", {}) or {}
+    peers = cl.get("peers", []) or []
+    subject = cl.get("subject", {}) or {}
+
+    st.markdown("## 🏆 同行比較")
+
+    if not peers and not subject:
+        st.info("同行比較資料待補充")
+        return
+
+    # Build rows: subject first, then peers
+    all_rows = []
+    if subject:
+        all_rows.append({**subject, "_is_subject": True})
+    for p in peers:
+        if isinstance(p, dict):
+            all_rows.append({**p, "_is_subject": False})
+
+    if not all_rows:
+        st.info("同行比較資料待補充")
+        return
+
+    # Header
+    header_html = (
+        '<table style="width:100%;border-collapse:collapse;font-size:0.88rem;">'
+        '<thead><tr style="background:#1a73e8;color:#fff;">'
+        '<th style="padding:8px 12px;text-align:left;">股票</th>'
+        '<th style="padding:8px 12px;text-align:left;">公司</th>'
+        '<th style="padding:8px 12px;text-align:right;">P/E</th>'
+        '<th style="padding:8px 12px;text-align:right;">P/B</th>'
+        '<th style="padding:8px 12px;text-align:right;">股息率</th>'
+        '<th style="padding:8px 12px;text-align:right;">市值(億)</th>'
+        '<th style="padding:8px 12px;text-align:right;">風險分數</th>'
+        '</tr></thead><tbody>'
+    )
+    rows_html = ""
+    for row in all_rows:
+        is_sub = row.get("_is_subject", False)
+        bg = "#e8f0fe" if is_sub else "#fff"
+        fw = "700" if is_sub else "400"
+        ticker = row.get("ticker", "—")
+        name = row.get("name", row.get("company_name", "—"))
+        pe = row.get("pe_ratio", row.get("pe", "—"))
+        pb = row.get("pb_ratio", row.get("pb", "—"))
+        div = row.get("dividend_yield", row.get("div_yield", "—"))
+        mktcap = row.get("market_cap_bn", row.get("market_cap", "—"))
+        risk = row.get("risk_score", "—")
+
+        def _fmt_val(v):
+            if v in (None, "", "—", "N/A"):
+                return "—"
+            try:
+                return f"{float(v):.2f}"
+            except (TypeError, ValueError):
+                return str(v)
+
+        rows_html += (
+            f'<tr style="background:{bg};font-weight:{fw};border-bottom:1px solid #e8eaed;">'
+            f'<td style="padding:8px 12px;">{ticker}</td>'
+            f'<td style="padding:8px 12px;">{name}</td>'
+            f'<td style="padding:8px 12px;text-align:right;">{_fmt_val(pe)}</td>'
+            f'<td style="padding:8px 12px;text-align:right;">{_fmt_val(pb)}</td>'
+            f'<td style="padding:8px 12px;text-align:right;">{_fmt_val(div)}%</td>'
+            f'<td style="padding:8px 12px;text-align:right;">{_fmt_val(mktcap)}</td>'
+            f'<td style="padding:8px 12px;text-align:right;">{_fmt_val(risk)}</td>'
+            f'</tr>'
+        )
+    st.markdown(header_html + rows_html + "</tbody></table>", unsafe_allow_html=True)
+
+    # Strengths / Weaknesses
+    strengths = cl.get("strengths", []) or []
+    weaknesses = cl.get("weaknesses", []) or []
+    if strengths or weaknesses:
+        st.markdown("")
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("**✅ 相對優勢**")
+            for s in strengths[:4]:
+                st.markdown(f"- {s}")
+        with c2:
+            st.markdown("**⚠️ 相對弱勢**")
+            for w in weaknesses[:4]:
+                st.markdown(f"- {w}")
+
+
+# ─── 11. Source Transparency (v3.5) ───────────────────────────────────────────
+
+def render_source_transparency(report_data: Dict[str, Any]) -> None:
+    """Data confidence evidence: level, coverage %, verified sources."""
+    st_data = report_data.get("source_transparency", {}) or {}
+    cover = report_data.get("cover", {}) or {}
+
+    level = st_data.get("confidence_level") or cover.get("data_confidence", "LOW")
+    coverage = st_data.get("coverage_pct", 0)
+    sources = st_data.get("verified_sources", []) or []
+    reason = st_data.get("confidence_reason", "")
+
+    LEVEL_COLOR = {"HIGH": "#1e8e3e", "MEDIUM": "#f29900", "LOW": "#d93025"}
+    color = LEVEL_COLOR.get(str(level).upper(), "#5f6368")
+
+    try:
+        cov_pct = float(coverage)
+    except (TypeError, ValueError):
+        cov_pct = 0.0
+
+    st.markdown("## 🔍 資料可信度來源")
+
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        st.markdown(
+            f'<div style="text-align:center;padding:20px;border:2px solid {color};'
+            f'border-radius:12px;background:{color}18;">'
+            f'<div style="font-size:1.6rem;font-weight:800;color:{color};">{level}</div>'
+            f'<div style="font-size:2.4rem;font-weight:900;color:{color};">{cov_pct:.0f}%</div>'
+            f'<div style="font-size:0.8rem;color:#5f6368;">資料覆蓋率</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+    with col2:
+        if reason:
+            st.markdown(f"**為何 {level}？**")
+            st.markdown(reason)
+        if sources:
+            st.markdown("**已驗證來源**")
+            for src in sources:
+                icon = src.get("icon", "✓") if isinstance(src, dict) else "✓"
+                name = src.get("name", str(src)) if isinstance(src, dict) else str(src)
+                verified = src.get("verified", True) if isinstance(src, dict) else True
+                check_color = "#1e8e3e" if verified else "#d93025"
+                st.markdown(
+                    f'<span style="color:{check_color};font-weight:600;">{icon} {name}</span>',
+                    unsafe_allow_html=True,
+                )
+
+
+# ─── 12. Risk Dashboard (v3.5) ────────────────────────────────────────────────
+
+def render_risk_dashboard(report_data: Dict[str, Any]) -> None:
+    """Risk dashboard with gauge-style display for 7 risk categories."""
+    rv2 = report_data.get("risk_assessment_v2", {}) or {}
+    items = rv2.get("risk_items", []) or []
+    composite = rv2.get("composite_score", "—")
+    risk_label = rv2.get("risk_label", "—")
+
+    st.markdown("## 🎯 風險儀表板")
+
+    if not items:
+        st.info("風險儀表板資料待分析")
+        return
+
+    # Composite score header
+    LEVEL_COLOR = {
+        "低風險": "#1e8e3e", "中等風險": "#f29900",
+        "高風險": "#d93025", "極高風險": "#7b1fa2",
+    }
+    comp_color = LEVEL_COLOR.get(risk_label, "#5f6368")
+    st.markdown(
+        f'<div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">'
+        f'<div style="font-size:2rem;font-weight:800;color:{comp_color};">{composite}</div>'
+        f'<div>{_badge(risk_label, comp_color)}</div>'
+        f'<div style="color:#5f6368;font-size:0.85rem;">加權綜合風險分數</div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    # Individual risk items
+    cols = st.columns(2)
+    for i, item in enumerate(items):
+        score_raw = item.get("score_raw", 5.0)
+        score_str = item.get("score", "—")
+        name = item.get("risk_name", "—")
+        level = item.get("level", "—")
+        reason = item.get("reason", "—")
+        signal = item.get("monitoring_signal", "—")
+        weight = item.get("weight", "—")
+
+        bar_pct = (score_raw / 10.0) * 100
+        item_color = LEVEL_COLOR.get(level, "#5f6368")
+
+        with cols[i % 2]:
+            st.markdown(
+                f'<div style="border:1px solid #e8eaed;border-radius:8px;'
+                f'padding:12px 14px;margin-bottom:10px;background:#fafafa;">'
+                f'<div style="display:flex;justify-content:space-between;align-items:center;">'
+                f'<strong style="font-size:0.9rem;">{name}</strong>'
+                f'<span style="font-size:0.78rem;color:#5f6368;">權重 {weight}</span>'
+                f'</div>'
+                f'<div style="display:flex;align-items:center;gap:8px;margin:6px 0;">'
+                f'<div style="font-size:1.4rem;font-weight:700;color:{item_color};">{score_str}</div>'
+                f'{_badge(level, item_color)}'
+                f'</div>'
+                f'<div style="background:#e8eaed;border-radius:4px;height:6px;margin:4px 0;">'
+                f'<div style="background:{item_color};width:{bar_pct:.0f}%;height:6px;border-radius:4px;"></div>'
+                f'</div>'
+                f'<div style="color:#5f6368;font-size:0.8rem;margin-top:6px;">{reason}</div>'
+                f'<div style="color:#0097a7;font-size:0.78rem;margin-top:4px;">📋 {signal}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+
+# ─── 13. Bull vs Bear Debate (v3.5) ───────────────────────────────────────────
+
+def render_bull_bear_debate(report_data: Dict[str, Any]) -> None:
+    """Bull vs Bear investment committee debate with central verdict."""
+    ao = report_data.get("agent_opinions_v2", {}) or {}
+    bull_agents = ao.get("bull_agents", []) or []
+    bear_agents = ao.get("bear_agents", []) or []
+    verdict = ao.get("verdict", {}) or {}
+
+    st.markdown("## 🏛️ AI 投資委員會 — Bull vs Bear 辯論")
+
+    # Bull / Bear side-by-side
+    col_bull, col_mid, col_bear = st.columns([5, 1, 5])
+
+    with col_bull:
+        st.markdown(
+            '<div style="background:linear-gradient(135deg,#e8f5e9,#f1f8e9);'
+            'border-radius:12px;padding:16px;border:1px solid #a5d6a7;">'
+            '<div style="font-size:1.2rem;font-weight:800;color:#1e8e3e;margin-bottom:12px;">'
+            '🐂 牛市觀點</div>',
+            unsafe_allow_html=True,
+        )
+        if bull_agents:
+            for agent in bull_agents:
+                name = agent.get("name", "Agent")
+                view = agent.get("view", "—")
+                reasons = agent.get("reasons", []) or []
+                st.markdown(f"**{name}**")
+                st.markdown(f"*{view}*")
+                for r in reasons[:3]:
+                    st.markdown(f"✅ {r}")
+                st.markdown("")
+        else:
+            st.markdown("*牛市論據待補充*")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with col_mid:
+        st.markdown(
+            '<div style="display:flex;align-items:center;justify-content:center;'
+            'height:100%;font-size:1.5rem;">⚖️</div>',
+            unsafe_allow_html=True,
+        )
+
+    with col_bear:
+        st.markdown(
+            '<div style="background:linear-gradient(135deg,#fce4ec,#fff3e0);'
+            'border-radius:12px;padding:16px;border:1px solid #ef9a9a;">'
+            '<div style="font-size:1.2rem;font-weight:800;color:#d93025;margin-bottom:12px;">'
+            '🐻 熊市觀點</div>',
+            unsafe_allow_html=True,
+        )
+        if bear_agents:
+            for agent in bear_agents:
+                name = agent.get("name", "Agent")
+                view = agent.get("view", "—")
+                reasons = agent.get("reasons", []) or []
+                st.markdown(f"**{name}**")
+                st.markdown(f"*{view}*")
+                for r in reasons[:3]:
+                    st.markdown(f"⚠️ {r}")
+                st.markdown("")
+        else:
+            st.markdown("*熊市論據待補充*")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Central verdict
+    st.markdown("---")
+    st.markdown("### ⚖️ 投資委員會裁決")
+
+    bull_score = verdict.get("bull_score", ao.get("bull_score", "—"))
+    bear_score = verdict.get("bear_score", ao.get("bear_score", "—"))
+    confidence = verdict.get("confidence", ao.get("confidence", "—"))
+    summary = verdict.get("summary", ao.get("committee_summary", ""))
+    recommendation = verdict.get("recommendation", ao.get("final_recommendation", "—"))
+
+    m1, m2, m3, m4 = st.columns(4)
+    with m1:
+        st.metric("🐂 Bull Score", bull_score)
+    with m2:
+        st.metric("🐻 Bear Score", bear_score)
+    with m3:
+        st.metric("信心度", confidence)
+    with m4:
+        st.metric("最終建議", recommendation)
+
+    if summary:
+        st.markdown(
+            f'<div style="background:#f8f9fa;border-left:4px solid #1a73e8;'
+            f'padding:12px 16px;border-radius:4px;margin-top:8px;">'
+            f'<strong>委員會摘要：</strong> {summary}'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+
+# ─── 14. Page Background Sentiment Layer (v3.5) ───────────────────────────────
+
+def render_market_sentiment_background(bull_score: float, bear_score: float) -> None:
+    """
+    Inject subtle left (bull/green) and right (bear/red) background gradient strips
+    as page-level sentiment indicators. Call once at top of report page.
+    """
+    bull_opacity = min(0.12, max(0.03, bull_score / 100 * 0.15))
+    bear_opacity = min(0.12, max(0.03, bear_score / 100 * 0.15))
+
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background: linear-gradient(
+                to right,
+                rgba(30,142,62,{bull_opacity:.3f}) 0%,
+                rgba(255,255,255,0) 8%,
+                rgba(255,255,255,0) 92%,
+                rgba(217,48,37,{bear_opacity:.3f}) 100%
+            ) !important;
+        }}
+        </style>
+        """,
         unsafe_allow_html=True,
     )

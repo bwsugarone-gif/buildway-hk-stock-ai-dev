@@ -689,16 +689,24 @@ class PDFGenerator:
         return elements
 
     def _risk(self, section: Dict[str, Any]) -> List[Any]:
-        elements = [self._title("Risk Analysis")]
-        elements.append(Paragraph(f"Weighted risk score: <b>{section.get('composite_score')}</b> - {section.get('risk_label')}", self.styles["BodyTC"]))
-        rows = [["風險項目", "分數", "風險評級", "權重", "Heatmap"]]
+        elements = [self._title("風險分析")]
+        elements.append(Paragraph(f"加權風險評分：<b>{section.get('composite_score')}</b> - {section.get('risk_label')}", self.styles["BodyTC"]))
+        # Deduplicate risk_table rows by dimension before rendering
+        seen_dims = set()
+        deduped_rows = []
         for item in section.get("risk_table", []):
+            dim = item.get("dimension", "")
+            if dim and dim not in seen_dims:
+                seen_dims.add(dim)
+                deduped_rows.append(item)
+        rows = [["風險項目", "分數", "風險評級", "權重", "風險熱度"]]
+        for item in deduped_rows:
             rows.append([item["dimension"], item["score"], item["level"], item["weight"], item["heat"]])
         if len(rows) > 1:
             elements.append(self._risk_table(rows))
         else:
             elements.append(self._notice("資料驗證未完成，風險維度評分已停止。"))
-        elements.extend([Spacer(1, 0.3 * cm), Paragraph("Top 5 risks", self.styles["SubTitle"])])
+        elements.extend([Spacer(1, 0.3 * cm), Paragraph("主要風險", self.styles["SubTitle"])])
         top_risks = section.get("top_risks", [])[:5]
         if top_risks:
             for item in top_risks:

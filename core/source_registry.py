@@ -30,9 +30,43 @@ def build_source_registry(report_package: dict) -> dict:
     """
     meta = report_package.get("report_metadata", {})
     market = report_package.get("market_data", {})
-    company = report_package.get("company_metadata", {})
-    financials = report_package.get("financial_data", {})
-    news = report_package.get("news_data", {})
+    # Support both key names: company_metadata (legacy) and market_data sub-fields
+    company = (
+        report_package.get("company_metadata")
+        or report_package.get("company_data")
+        or {}
+    )
+    # If company_metadata is empty, fall back to market_data fields
+    if not company.get("name_zh") and not company.get("name_en"):
+        company = {
+            "name_zh": market.get("company_name_zh") or market.get("company_name", ""),
+            "name_en": market.get("company_name_en") or market.get("company_name", ""),
+            "sector": market.get("sector", ""),
+            "business_profile": market.get("business_summary", ""),
+            "market_category": market.get("market_category", ""),
+        }
+    # Support both key names: financial_data (legacy) and financial_analysis (v4)
+    fin_raw = (
+        report_package.get("financial_data")
+        or report_package.get("financial_analysis")
+        or {}
+    )
+    # Flatten financial_analysis sub-dicts into a single lookup dict
+    financials = dict(fin_raw)
+    for sub_key in ("metrics", "comps", "health_score"):
+        sub = fin_raw.get(sub_key, {})
+        if isinstance(sub, dict):
+            financials.update(sub)
+    # Also check financial_history for revenue
+    fin_history = report_package.get("financial_history", {})
+    if not financials.get("revenue") and fin_history.get("revenue"):
+        financials["revenue"] = fin_history["revenue"][0] if isinstance(fin_history["revenue"], list) else fin_history["revenue"]
+    # Support both key names: news_data (legacy) and news_analysis (v4)
+    news = (
+        report_package.get("news_data")
+        or report_package.get("news_analysis")
+        or {}
+    )
     now = datetime.now().strftime("%Y-%m-%d")
 
     # ── Market Data (Yahoo Finance / yfinance) ────────────────────────────────

@@ -172,10 +172,20 @@ def _extract_financial_score(financial_data: dict) -> tuple:
     return score, summary
 
 
-def _extract_news_score(agent_opinions: dict) -> tuple:
-    """Extract news/sentiment score from agent opinions."""
+def _extract_news_score(agent_opinions) -> tuple:
+    """Extract news/sentiment score from agent opinions.
+    Accepts either a list of opinion dicts or a dict with an 'agents' key.
+    """
+    # Normalise to a flat list
+    if isinstance(agent_opinions, dict):
+        agents_list = agent_opinions.get("agents", [])
+    elif isinstance(agent_opinions, list):
+        agents_list = agent_opinions
+    else:
+        agents_list = []
+
     news_agent = next(
-        (a for a in agent_opinions.get("agents", []) if "新聞" in a.get("agent_name", "")),
+        (a for a in agents_list if "新聞" in str(a.get("Agent", a.get("agent_name", "")))),
         None
     )
     if not news_agent:

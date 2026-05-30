@@ -29,6 +29,31 @@ from agents.hk_ipo_agent import HKIPOAgent
 from agents.portfolio_manager_agent import PortfolioManagerAgent
 from agents.investment_committee_agent import InvestmentCommitteeAgent
 
+# v4.0 engines — wiring fix
+try:
+    from core.source_registry import build_source_registry, compute_coverage_pct, compute_confidence_level
+    _HAS_SOURCE_REGISTRY = True
+except ImportError:
+    _HAS_SOURCE_REGISTRY = False
+
+try:
+    from core.market_snapshot_engine import build_market_snapshot
+    _HAS_MARKET_SNAPSHOT_ENGINE = True
+except ImportError:
+    _HAS_MARKET_SNAPSHOT_ENGINE = False
+
+try:
+    from core.competitive_landscape_engine import build_competitive_landscape
+    _HAS_COMPETITIVE_LANDSCAPE = True
+except ImportError:
+    _HAS_COMPETITIVE_LANDSCAPE = False
+
+try:
+    from core.investment_conclusion_engine import build_investment_conclusion
+    _HAS_INVESTMENT_CONCLUSION = True
+except ImportError:
+    _HAS_INVESTMENT_CONCLUSION = False
+
 
 logger = logging.getLogger(__name__)
 
@@ -280,6 +305,9 @@ class CEOAgent:
             risk_preference=risk_preference,
         )
 
+        # ── v4.0 engine injection ─────────────────────────────────────────────
+        report_package = self._inject_v4_engines(report_package)
+
         return report_package
 
     def _assemble_report_package(
@@ -357,6 +385,58 @@ class CEOAgent:
             # ── IPO Module Status ─────────────────────────────────────────────
             "ipo_module": self.ipo_agent.get_status(),
         }
+
+    def _inject_v4_engines(self, report_package: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        v4.0 wiring fix: inject source_registry, market_snapshot, competitive_landscape,
+        and investment_conclusion into the report_package after assembly.
+        Safe — never raises; falls back to empty dict on any error.
+        """
+        ticker = report_package.get("report_metadata", {}).get("ticker", "")
+
+        # ── source_registry ───────────────────────────────────────────────────
+        if _HAS_SOURCE_REGISTRY:
+            try:
+                registry = build_source_registry(report_package)
+                report_package["source_registry"] = registry
+                report_package["data_coverage_pct"] = compute_coverage_pct(registry)
+                report_package["confidence_level"] = compute_confidence_level(registry)
+            except Exception as exc:
+                logger.warning("[CEO] source_registry injection failed: %s", exc)
+                report_package.setdefault("source_registry", {})
+
+        # ── market_snapshot_engine ────────────────────────────────────────────
+        if _HAS_MARKET_SNAPSHOT_ENGINE:
+            try:
+                snap = build_market_snapshot(report_package.get("market_data", {}))
+                report_package["market_snapshot_v4"] = snap
+            except Exception as exc:
+                logger.warning("[CEO] market_snapshot_engine injection failed: %s", exc)
+
+        # ── competitive_landscape ─────────────────────────────────────────────
+        if _HAS_COMPETITIVE_LANDSCAPE and ticker:
+            try:
+                landscape = build_competitive_landscape(ticker, report_package)
+                report_package["competitive_landscape"] = landscape
+            except Exception as exc:
+                logger.warning("[CEO] competitive_landscape injection failed: %s", exc)
+
+        # ── investment_conclusion ─────────────────────────────────────────────
+        if _HAS_INVESTMENT_CONCLUSION:
+            try:
+                conclusion = build_investment_conclusion(
+                    market_snapshot=report_package.get("market_snapshot_v4") or report_package.get("market_data", {}),
+                    financial_data=report_package.get("financial_analysis", {}),
+                    risk_assessment=report_package.get("risk_analysis", {}),
+                    agent_opinions=report_package.get("agent_opinions", []),
+                    competitive_landscape=report_package.get("competitive_landscape", {}),
+                    source_registry=report_package.get("source_registry", {}),
+                )
+                report_package["investment_conclusion"] = conclusion
+            except Exception as exc:
+                logger.warning("[CEO] investment_conclusion injection failed: %s", exc)
+
+        return report_package
 
     def _failed_agents(self) -> List[str]:
         return [agent for agent, status in self.agent_status.items() if status == "失敗"]

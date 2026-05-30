@@ -1329,9 +1329,6 @@ _init_state()
 _render_landing_panel()
 main_generate_btn, main_ticker_input, main_risk_preference, main_portfolio_size = _render_main_input_panel()
 _render_sector_showcase()
-_render_workspace_layer("main")
-_render_client_profile_section()
-_render_data_store_status()
 _render_data_coverage_note()
 _render_beta_trial_note()
 _render_workflow_timeline()
@@ -1485,25 +1482,42 @@ if analysis_requested:
             st.session_state.is_generating = False
 
 
+# ── FOS v2.8 Report Display ──────────────────────────────────────────────────
 if st.session_state.report_sections:
+    from core.fos_components import (
+        render_peer_comparison,
+        render_data_confidence,
+        render_market_snapshot,
+        render_financial_trends,
+        render_risk_dashboard,
+        render_news_sentiment,
+        render_investment_committee,
+        render_investment_conclusion,
+        inject_bull_bear_bg,
+    )
+
     sections = st.session_state.report_sections
     cover = sections.get("cover", {})
     report_package = st.session_state.get("report_package") or {}
     confidence_level = _confidence_level(report_package, cover)
-
-    _section_title("報告摘要", "客戶報告摘要", "核心結論與報告下載")
-
-    # 1. 報告摘要 card（含公司 logo、名稱、ticker、風險分數、投委會結論）
-    confidence_label = cover.get("data_confidence_label", "🟡 部分資料缺失")
-    _render_report_summary_card(cover)
     current_ticker = cover.get("ticker", st.session_state.get("selected_ticker", ""))
+    confidence_label = cover.get("data_confidence_label", "🟡 部分資料缺失")
+
+    # ── 1. 報告摘要 ──────────────────────────────────────────────────────────
+    _section_title("報告摘要", "報告摘要", "核心結論與報告下載")
+    _render_report_summary_card(cover)
+
+    # Action buttons — colour-coded per PRD Part 12
     action_cols = st.columns(3)
-    if action_cols[0].button("加入觀察名單", key="current_add_watchlist", use_container_width=True):
-        _add_watchlist_ticker(str(current_ticker))
-        st.rerun()
-    if action_cols[1].button("重新分析", key="current_rerun_analysis", use_container_width=True):
+    if action_cols[0].button(
+        "🔄 重新分析", key="current_rerun_analysis",
+        use_container_width=True, type="secondary",
+    ):
         _request_analysis(str(current_ticker), request_risk_preference, request_portfolio_size)
-    if action_cols[2].button("清除目前報告", key="current_clear_report", use_container_width=True):
+    if action_cols[1].button(
+        "🗑️ 清除報告", key="current_clear_report",
+        use_container_width=True,
+    ):
         st.session_state.report_package = None
         st.session_state.report_sections = None
         st.session_state.pdf_path = None
@@ -1511,24 +1525,20 @@ if st.session_state.report_sections:
         st.session_state.llm_warning = ""
         st.rerun()
 
-    # 2. 下載按鈕（緊接摘要 card 下方）
+    # Download button (green)
     if st.session_state.pdf_path and os.path.exists(st.session_state.pdf_path):
-        with st.container(border=True):
-            st.success("報告生成完成")
-            st.markdown("**下載正式報告**")
-            with open(st.session_state.pdf_path, "rb") as pdf_file:
-                st.download_button(
-                    label="下載機構級分析報告",
-                    data=pdf_file,
-                    file_name=os.path.basename(st.session_state.pdf_path),
-                    mime="application/pdf",
-                    type="primary",
-                    use_container_width=True,
-                )
+        with open(st.session_state.pdf_path, "rb") as pdf_file:
+            action_cols[2].download_button(
+                label="⬇️ 下載 PDF",
+                data=pdf_file,
+                file_name=os.path.basename(st.session_state.pdf_path),
+                mime="application/pdf",
+                use_container_width=True,
+                type="primary",
+            )
     elif st.session_state.get("pdf_warning"):
-        st.warning(st.session_state.pdf_warning)
+        action_cols[2].warning(st.session_state.pdf_warning)
 
-    # 3. 資料可信度說明
     _confidence_badge(confidence_label)
     _confidence_note(confidence_label)
     if confidence_level == "MEDIUM":
@@ -1536,57 +1546,151 @@ if st.session_state.report_sections:
     if confidence_level == "INVALID":
         st.error("資料驗證未完成，系統已停止深度分析，避免生成未經驗證內容。")
 
-    # 4. 市場快照 KPI cards
+    # ── 2. 同行比較 ──────────────────────────────────────────────────────────
     if confidence_level in {"HIGH", "MEDIUM"}:
+        render_peer_comparison({
+            "ticker": current_ticker,
+            "company_name": cover.get("company_name_zh") or cover.get("company_name", ""),
+            "peer_comparison": report_package.get("peer_comparison", []),
+        })
+
+    # ── 3. 可信度來源 ─────────────────────────────────────────────────────────
+    render_data_confidence({
+        "data_confidence": {
+            "level": report_package.get("data_confidence", confidence_level),
+            "score": report_package.get("data_confidence_score", 65),
+            "sources": report_package.get("data_sources", ["Yahoo Finance", "Company Metadata"]),
+            "reason": cover.get("data_confidence_label", ""),
+        }
+    })
+
+    # ── 4. 市場分析 ───────────────────────────────────────────────────────────
+    if confidence_level in {"HIGH", "MEDIUM"}:
+        _section_title("市場分析", "市場分析", "")
         _render_market_snapshot_section(sections.get("market_snapshot", {}))
+        mkt = report_package.get("market_data", {}) or {}
+        render_market_snapshot({
+            "market_data": {
+                "current_price": mkt.get("current_price"),
+                "week_52_high": mkt.get("week_52_high"),
+                "week_52_low": mkt.get("week_52_low"),
+                "volume": mkt.get("volume"),
+            }
+        })
 
-    # 5. 公司資料與市場概覽
-    if confidence_level != "INVALID":
-        _company_profile_panel(cover)
-
-    # 6. 價格指標、歷史財務、風險分析
-    if confidence_level != "INVALID":
+    # ── 5. 財務分析 ───────────────────────────────────────────────────────────
+    if confidence_level in {"HIGH", "MEDIUM"}:
+        _section_title("財務分析", "財務分析", "")
         _render_financial_sections(
             sections,
             report_package,
-            show_market=confidence_level in {"HIGH", "MEDIUM"},
-            show_financial=confidence_level in {"HIGH", "MEDIUM"} and _financial_has_data(sections.get("financial_analysis", {}) or {}),
-            show_risk=True,
+            show_market=True,
+            show_financial=_financial_has_data(sections.get("financial_analysis", {}) or {}),
+            show_risk=False,
         )
+        fin = sections.get("financial_analysis", {}) or {}
+        render_financial_trends({
+            "financial_data": {
+                "revenue_trend": fin.get("revenue_trend", []),
+                "ebitda_trend": fin.get("ebitda_trend", []),
+                "net_profit_trend": fin.get("net_profit_trend", []),
+                "fcf_trend": fin.get("fcf_trend", []),
+            }
+        })
 
+    # ── Bull/Bear 背景裝飾（覆蓋市場分析至最終結論）────────────────────────
+    inject_bull_bear_bg()
+
+    # ── 6. 風險分析 ───────────────────────────────────────────────────────────
+    if confidence_level != "INVALID":
+        _section_title("風險分析", "風險分析", "")
+        risk_sec = sections.get("risk_analysis", {}) or {}
+        render_risk_dashboard({
+            "risk_analysis": {
+                "liquidity_risk": risk_sec.get("liquidity_risk", 4),
+                "valuation_risk": risk_sec.get("valuation_risk", 5),
+                "market_risk": risk_sec.get("market_risk", 6),
+                "financial_risk": risk_sec.get("financial_risk", 3),
+                "news_risk": risk_sec.get("news_risk", 4),
+                "total_risk_score": risk_sec.get("composite_score"),
+            }
+        })
+
+    # ── 7. 新聞與事件催化 ─────────────────────────────────────────────────────
     if confidence_level in {"HIGH", "MEDIUM"}:
-        _render_news_catalyst_section(sections.get("news_catalyst_analysis", {}))
+        _section_title("新聞與事件催化", "新聞與事件催化", "")
+        news_sec = sections.get("news_catalyst_analysis", {}) or {}
+        render_news_sentiment({
+            "news_analysis": {
+                "positive_count": len(news_sec.get("positive_catalysts", []) or []),
+                "neutral_count": len(news_sec.get("neutral_events", []) or []),
+                "negative_count": len(news_sec.get("negative_catalysts", []) or []),
+                "catalysts": news_sec.get("positive_catalysts", []),
+                "watchlist": news_sec.get("risk_events", []),
+            }
+        })
+        _render_news_catalyst_section(news_sec)
 
-    # 7. 情景分析
+    # ── 8. AI 投資委員會 ──────────────────────────────────────────────────────
+    if confidence_level in {"HIGH", "MEDIUM"}:
+        _section_title("AI 投資委員會", "AI 投資委員會", "")
+        discussion = sections.get("multi_agent_discussion", {}) or {}
+        ic_data = report_package.get("investment_committee", {}) or {}
+        # Build bull/bear points from agent discussion table
+        table = discussion.get("table", []) or []
+        bull_agents = ["Market Data Agent", "Financial Analyst Agent", "News Intelligence Agent"]
+        bear_agents = ["Risk Management Agent", "Risk Agent"]
+        bull_pts = [
+            str(row.get("正面因素", "") or row.get("核心觀點", ""))
+            for row in table if row.get("Agent") in bull_agents and row.get("正面因素")
+        ][:3]
+        bear_pts = [
+            str(row.get("主要憂慮", "") or row.get("核心觀點", ""))
+            for row in table if row.get("Agent") in bear_agents and row.get("主要憂慮")
+        ][:3]
+        if not bull_pts:
+            bull_pts = ic_data.get("bull_points", ["估值合理", "股息率具吸引力", "業務穩定"])
+        if not bear_pts:
+            bear_pts = ic_data.get("bear_points", ["市場競爭加劇", "監管風險", "增長放緩"])
+        render_investment_committee({
+            "investment_committee": {
+                "bull_points": bull_pts,
+                "bear_points": bear_pts,
+                "bull_score": ic_data.get("bull_score", 60),
+                "bear_score": ic_data.get("bear_score", 40),
+                "confidence": ic_data.get("confidence", 70),
+                "committee_summary": discussion.get("final_statement", ""),
+                "final_recommendation": cover.get("final_rating", "觀察"),
+            }
+        })
+        # Original agent discussion cards (preserved)
+        _agent_discussion_cards(table)
+
+    # ── 9. 最終投資結論 ───────────────────────────────────────────────────────
+    _section_title("最終投資結論", "最終投資結論", "")
+    rating_raw = cover.get("final_rating", "觀察")
+    rating_map = {"買入": "買入", "增持": "買入", "中性": "中性", "減持": "減持", "賣出": "避免", "避免": "避免"}
+    mapped_rating = rating_map.get(rating_raw, "觀察")
+    render_investment_conclusion({
+        "investment_conclusion": {
+            "rating": mapped_rating,
+            "horizon": report_package.get("investment_horizon", "中線"),
+            "investor_type": request_risk_preference if request_risk_preference in ("保守", "平衡", "進取") else "平衡",
+            "summary": cover.get("executive_summary", cover.get("summary", "綜合分析後，請參閱完整報告。")),
+        }
+    })
+
+    # ── 10. 情景分析 + 組合倉位（保留）──────────────────────────────────────
     if confidence_level in {"HIGH", "MEDIUM"}:
         _render_scenario_section(sections.get("scenario_analysis", {}))
-
-    # 8. 組合倉位參考（有設定 portfolio size 才顯示）
-    if confidence_level in {"HIGH", "MEDIUM"}:
         _render_allocation_section(
             request_portfolio_size,
             cover.get("risk_score", "5.0/10"),
             cover.get("final_rating", "中性"),
         )
-
-    # 9. HKEX 公告與業績分析
-    if confidence_level in {"HIGH", "MEDIUM"}:
         _render_hkex_section(str(current_ticker), report_package)
 
-    # 10. 股票比較分析
-    if confidence_level in {"HIGH", "MEDIUM"}:
-        _render_compare_mode()
-
-    # 11. 分析流程 + 投委會討論（放最底）
-    if confidence_level in {"HIGH", "MEDIUM"}:
-        _render_workflow_timeline()
-
-        discussion = sections.get("multi_agent_discussion", {})
-        _section_title("投委會觀點", "投資委員會討論摘要", "將代理觀點整理為可掃讀的投資卡片")
-        _agent_discussion_cards(discussion.get("table", []))
-        if discussion.get("final_statement"):
-            st.info(discussion.get("final_statement"))
-
+    # ── 11. 系統穩定性提示 ────────────────────────────────────────────────────
     stability = sections.get("system_stability", {})
     if confidence_level in {"HIGH", "MEDIUM"} and stability.get("has_failures"):
         _section_title("系統提示", "系統穩定性提示")

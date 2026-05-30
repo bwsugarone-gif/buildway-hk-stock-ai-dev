@@ -244,6 +244,7 @@ def compute_coverage_pct(registry: dict) -> float:
 def compute_confidence_level(registry: dict) -> str:
     """
     Compute overall confidence level from registry.
+    INVALID: no source verified at all (bad ticker / no data)
     HIGH: market + metadata + financials all verified
     MEDIUM: market + metadata verified, financials partial
     LOW: only metadata or less
@@ -254,6 +255,10 @@ def compute_confidence_level(registry: dict) -> str:
     news = registry.get("news", {}).get("verified", False)
 
     verified_count = sum([mkt, meta, fin, news])
+
+    # INVALID guard: if nothing at all is verified, the ticker is bad
+    if verified_count == 0:
+        return "INVALID"
 
     if verified_count >= 3 and mkt and meta:
         return "HIGH"

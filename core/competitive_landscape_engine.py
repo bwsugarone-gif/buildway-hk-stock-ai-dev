@@ -181,7 +181,13 @@ def _build_peer_record(ticker: str, master: Dict[str, Any], report_data: Dict[st
 
     record: Dict[str, Any] = {
         "ticker": ticker,
-        "company_name": stock_info.get("name") or stock_info.get("company_name") or f"股票 {ticker}",
+        "company_name": (
+            stock_info.get("name_zh")
+            or stock_info.get("name_en")
+            or stock_info.get("name")
+            or stock_info.get("company_name")
+            or f"{ticker}.HK"
+        ),
         "source": "公司基本資料",
         "metrics": {},
         "data_quality": "partial",
@@ -216,7 +222,7 @@ def _build_subject_record(ticker: str, report_data: Dict[str, Any]) -> Dict:
     company_name = (
         flat.get("company_name")
         or flat.get("name")
-        or f"股票 {ticker}"
+        or f"{ticker}.HK"
     )
 
     record: Dict[str, Any] = {

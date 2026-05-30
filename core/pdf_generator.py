@@ -747,7 +747,7 @@ class PDFGenerator:
         rows = [["情景", "核心假設", "隱含價格 / 影響", "下行觸發或催化"]]
         rows.extend(section.get("rows", []))
         elements.append(self._table(rows, [2.8 * cm, 5.0 * cm, 3.5 * cm, 4.1 * cm], header=True))
-        elements.extend([Spacer(1, 0.35 * cm), Paragraph("Downside trigger points", self.styles["SubTitle"])])
+        elements.extend([Spacer(1, 0.35 * cm), Paragraph("下行觸發因素", self.styles["SubTitle"])])
         for trigger in section.get("triggers", []):
             elements.append(Paragraph(f"- {trigger}", self.styles["BodyTC"]))
         return elements

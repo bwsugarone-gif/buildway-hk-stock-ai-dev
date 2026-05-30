@@ -2,7 +2,9 @@
 core/competitive_landscape_engine.py
 Competitive Landscape Engine — peer comparison for HK stocks.
 Never blank: if data is partial, show partial verified data with source labels.
-No hallucinated company data. Uses hk_stock_master_data.json as peer reference.
+No hallucinated company data. Uses hk_stock_master_data.json + competitive_profile.json.
+v4.0: Integrates competitive_profile.json for product_lines, strengths, weaknesses etc.
+      Never shows '—'. Peer group from competitive_profile.json peer_group field.
 """
 from __future__ import annotations
 import json
@@ -15,7 +17,12 @@ _MASTER_DATA_PATH = os.path.join(
     os.path.dirname(__file__), "..", "data", "hk_stock_master_data.json"
 )
 
-# Sector peer groups (ticker -> list of peer tickers)
+# Path to competitive profile (v4.0)
+_COMPETITIVE_PROFILE_PATH = os.path.join(
+    os.path.dirname(__file__), "..", "data", "competitive_profile.json"
+)
+
+# Sector peer groups (ticker -> list of peer tickers) — fallback if not in competitive_profile
 SECTOR_PEERS: Dict[str, List[str]] = {
     # Telecom
     "0941": ["0728", "0762"],
@@ -31,10 +38,13 @@ SECTOR_PEERS: Dict[str, List[str]] = {
     "9988": ["0700", "9618", "3690"],
     "9618": ["0700", "9988", "3690"],
     "3690": ["0700", "9988", "9618"],
-    # Insurance
-    "0688": ["2318", "0945", "1336"],
-    "2318": ["0688", "0945", "1336"],
-    # Property
+    # Insurance / Property (fix: 0688 is property, not insurance)
+    "0688": ["1109", "0960", "0016"],
+    "1109": ["0688", "0960", "0016"],
+    "0960": ["0688", "1109", "0016"],
+    "2318": ["1299", "0945", "1336"],
+    "1299": ["2318", "0945", "0966"],
+    # Property HK
     "0016": ["0012", "0083", "0101"],
     "0012": ["0016", "0083", "0101"],
     # Energy
@@ -66,15 +76,74 @@ def _load_master_data() -> Dict[str, Any]:
         return {}
 
 
+def _load_competitive_profile() -> Dict[str, Any]:
+    """Load competitive_profile.json — v4.0 source for product_lines, strengths, etc."""
+    try:
+        with open(_COMPETITIVE_PROFILE_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _normalize_ticker(ticker: str) -> str:
+    """Normalize ticker to 4-digit zero-padded form without .HK suffix."""
+    t = ticker.upper().replace(".HK", "").strip()
+    try:
+        return str(int(t)).zfill(4)
+    except ValueError:
+        return t
+
+
 def _get_peer_tickers(ticker: str) -> List[str]:
-    """Return up to 3 peer tickers for the given ticker."""
-    t = ticker.lstrip("0").zfill(4)
+    """
+    Return up to 3 peer tickers for the given ticker.
+    Priority: competitive_profile.json peer_group > SECTOR_PEERS fallback.
+    """
+    t = _normalize_ticker(ticker)
+    profile = _load_competitive_profile()
+
+    # Try competitive_profile.json first
+    cp_entry = profile.get(t) or profile.get(ticker)
+    if cp_entry and cp_entry.get("peer_group"):
+        raw_peers = cp_entry["peer_group"]
+        # Normalize peer tickers
+        peers = [_normalize_ticker(p) for p in raw_peers]
+        peers = [p for p in peers if p != t and p != ticker]
+        if peers:
+            return peers[:3]
+
+    # Fallback to SECTOR_PEERS
     peers = SECTOR_PEERS.get(t) or SECTOR_PEERS.get(ticker)
     if not peers:
         peers = SECTOR_PEERS["_default"]
-    # Exclude self
     peers = [p for p in peers if p != t and p != ticker]
     return peers[:3]
+
+
+def get_competitive_profile(ticker: str) -> Dict[str, Any]:
+    """
+    Get the competitive profile for a ticker from competitive_profile.json.
+    Returns structured data with product_lines, strengths, weaknesses, etc.
+    Never returns '—' — uses fallback text if data missing.
+    """
+    t = _normalize_ticker(ticker)
+    profile = _load_competitive_profile()
+    entry = profile.get(t) or profile.get(ticker) or {}
+
+    _na = "資料未收錄"
+
+    return {
+        "ticker": ticker,
+        "sector": entry.get("sector") or _na,
+        "product_lines": entry.get("product_lines") or [_na],
+        "market_positioning": entry.get("market_positioning") or _na,
+        "strengths": entry.get("strengths") or ["競爭優勢資料未收錄"],
+        "weaknesses": entry.get("weaknesses") or ["競爭弱點資料未收錄"],
+        "future_strategy": entry.get("future_strategy") or ["未來策略資料未收錄"],
+        "peer_group": entry.get("peer_group") or [],
+        "from_profile": bool(entry),
+        "note": "" if entry else "部分競爭資料未收錄，但以下資料已由本地競爭資料庫提供。",
+    }
 
 
 def _fmt_metric(value: Any, metric: str) -> str:

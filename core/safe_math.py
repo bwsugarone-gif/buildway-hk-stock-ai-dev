@@ -58,3 +58,7 @@ def safe_multiply(a: Any, b: Any, default: float = 0.0) -> float:
 def safe_percentage(value: Any, default: float = 0.0) -> float:
     """Return value as a decimal percentage-friendly number."""
     return safe_number(value, default)
+
+
+# Aliases for backward compatibility with v4.0 modules
+safe_float = safe_number

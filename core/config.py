@@ -31,8 +31,8 @@ def _get_secret(key: str, default: str = "") -> str:
 # ─── App Identity ────────────────────────────────────────────────────────────
 APP_NAME = "Buildway Tech (HK) Limited"
 APP_SUBTITLE = "香港股票研究與投資決策平台"
-APP_VERSION = "v3.5.0"
-BUILD_STAGE = "FOS Client Experience Layer — Institutional Research"
+APP_VERSION = "v4.0.1"
+BUILD_STAGE = "Research Platform Wiring Fix Layer"
 APP_LANG = "zh-HK"
 
 # ─── Deployment Environment Detection ────────────────────────────────────────

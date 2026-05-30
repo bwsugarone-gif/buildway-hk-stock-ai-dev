@@ -15,6 +15,45 @@ streamlit run app.py
 
 目標 Python 版本為 `3.11`。部署環境請使用 `runtime.txt` 內的 `python-3.11`，不要改用 Python 3.14。
 
+## Python 版本鎖定 (Runtime Lock)
+
+**此專案固定使用 Python 3.11（建議 3.11.9）。**
+
+- 不得升級至 Python 3.12 / 3.13 / 3.14，除非獲得專案負責人明確批准。
+- `runtime.txt` 必須保持 `python-3.11`。
+- `.venv` 必須使用 Python 3.11 建立。
+
+### 執行前確認
+
+```bash
+# 確認 Python 版本
+python scripts/check_runtime.py
+
+# Windows 多版本環境，明確指定 3.11
+py -3.11 scripts/check_runtime.py
+```
+
+### QA 執行方式（Windows）
+
+```bash
+py -3.11 scripts/check_runtime.py
+py -3.11 -m compileall app.py core agents
+py -3.11 quick_regression_test.py
+py -3.11 test_v40_regression.py
+py -3.11 test_v401_wiring.py
+```
+
+### 如果 `python` 指向 Python 3.14
+
+停止所有 QA，不要安裝任何套件到 3.14 環境。
+使用 `py -3.11` 明確指定版本，或重建 `.venv`：
+
+```bash
+py -3.11 -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
 ## Streamlit 部署
 
 1. 將程式碼推送到 GitHub。

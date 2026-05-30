@@ -1,432 +1,663 @@
 """
 core/fos_components.py
-FOS Client Experience Layer - UI Components v2.8.0
 Buildway Tech (HK) Limited
+FOS Client Experience Layer v2.8.1 — Bloomberg Lite UI Components
+
+All components are pure Streamlit — no external image dependencies.
+Plotly is used for charts with graceful fallback to st.bar_chart / st.progress.
+Bull/Bear background uses CSS injection (desktop only, hidden on mobile).
 """
+
 from __future__ import annotations
-import html as _html
-from typing import Any, Dict, List
+
+import html
+from typing import Any
 
 import streamlit as st
-import plotly.graph_objects as go
+
+# ── Plotly availability check ─────────────────────────────────────────────────
+try:
+    import plotly.graph_objects as go
+    import plotly.express as px
+    _PLOTLY_OK = True
+except ImportError:
+    _PLOTLY_OK = False
 
 
-def _e(v: Any) -> str:
-    return _html.escape(str(v if v not in (None, "") else "N/A"))
+def _esc(v: Any) -> str:
+    return html.escape(str(v if v not in (None, "", "None", "N/A") else "N/A"))
 
 
-# ── Peer Comparison ──────────────────────────────────────────────────────────
-def render_peer_comparison(report: Dict[str, Any]) -> None:
-    peers: List[Dict] = report.get("peer_comparison", [])
-    target = report.get("ticker", "")
-    company = report.get("company_name", target)
-
-    st.markdown(
-        "<div style='background:#fff;border-radius:12px;padding:1.2rem 1.5rem;"
-        "border:1px solid #dfe6ef;margin-bottom:1rem'>"
-        "<h3 style='color:#071b33;margin:0 0 1rem'>📊 同行比較</h3>",
-        unsafe_allow_html=True,
-    )
-
-    if not peers:
-        peers = [
-            {"ticker": target, "company": company, "pe": 12.5, "pb": 1.2,
-             "div_yield": 4.5, "mkt_cap": "HK$5,000億", "risk_score": 5, "highlight": True},
-            {"ticker": "0941.HK", "company": "中國移動", "pe": 11.2, "pb": 1.1,
-             "div_yield": 5.2, "mkt_cap": "HK$15,000億", "risk_score": 4, "highlight": False},
-            {"ticker": "0728.HK", "company": "中國電信", "pe": 9.8, "pb": 0.9,
-             "div_yield": 4.8, "mkt_cap": "HK$3,500億", "risk_score": 5, "highlight": False},
-        ]
-
-    cols = st.columns(len(peers))
-    for i, p in enumerate(peers):
-        bg = "#f0f7ff" if p.get("highlight") else "#f8fafc"
-        border = "2px solid #1a56db" if p.get("highlight") else "1px solid #dfe6ef"
-        risk = p.get("risk_score", 5)
-        rc = "#15a36d" if risk <= 3 else ("#d9a441" if risk <= 6 else "#d64545")
-        cols[i].markdown(
-            f"<div style='background:{bg};border:{border};border-radius:10px;"
-            f"padding:1rem;text-align:center'>"
-            f"<div style='font-size:0.75rem;color:#667085'>{_e(p.get('ticker', ''))}</div>"
-            f"<div style='font-weight:700;color:#071b33;margin:0.3rem 0'>{_e(p.get('company', ''))}</div>"
-            f"<div style='display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;"
-            f"margin-top:0.6rem;font-size:0.8rem'>"
-            f"<div style='background:#fff;border-radius:6px;padding:0.3rem'>"
-            f"<div style='color:#667085'>PE</div>"
-            f"<div style='font-weight:600'>{_e(p.get('pe', 'N/A'))}</div></div>"
-            f"<div style='background:#fff;border-radius:6px;padding:0.3rem'>"
-            f"<div style='color:#667085'>PB</div>"
-            f"<div style='font-weight:600'>{_e(p.get('pb', 'N/A'))}</div></div>"
-            f"<div style='background:#fff;border-radius:6px;padding:0.3rem'>"
-            f"<div style='color:#667085'>股息率</div>"
-            f"<div style='font-weight:600'>{_e(p.get('div_yield', 'N/A'))}%</div></div>"
-            f"<div style='background:#fff;border-radius:6px;padding:0.3rem'>"
-            f"<div style='color:#667085'>市值</div>"
-            f"<div style='font-weight:600;font-size:0.7rem'>{_e(p.get('mkt_cap', 'N/A'))}</div></div>"
-            f"</div>"
-            f"<div style='margin-top:0.6rem;border-radius:6px;padding:0.3rem;"
-            f"color:{rc};font-weight:700;background:{rc}22'>風險 {risk}/10</div>"
-            f"</div>",
-            unsafe_allow_html=True,
-        )
-    st.markdown("</div>", unsafe_allow_html=True)
+def _safe_float(v: Any, default: float = 0.0) -> float:
+    try:
+        return float(str(v).replace(",", "").replace("%", "").strip())
+    except (TypeError, ValueError):
+        return default
 
 
-# ── Data Confidence ──────────────────────────────────────────────────────────
-def render_data_confidence(report: Dict[str, Any]) -> None:
-    conf = report.get("data_confidence", {})
-    level = conf.get("level", "MEDIUM")
-    score = conf.get("score", 65)
-    sources = conf.get("sources", ["Yahoo Finance", "Company Metadata", "Financial Statement"])
-    color = {"HIGH": "#15a36d", "MEDIUM": "#d9a441", "LOW": "#d64545"}.get(level, "#667085")
-    reason = conf.get("reason", f"資料覆蓋率 {score}%，來源包括財務報表及市場數據")
-
-    st.markdown(
-        f"<div style='background:#fff;border-radius:12px;padding:1.2rem 1.5rem;"
-        f"border:1px solid #dfe6ef;margin-bottom:1rem'>"
-        f"<h3 style='color:#071b33;margin:0 0 1rem'>🔍 資料可信度來源</h3>"
-        f"<div style='display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap'>"
-        f"<div style='text-align:center'>"
-        f"<div style='font-size:2.5rem;font-weight:800;color:{color}'>{level}</div>"
-        f"<div style='font-size:0.8rem;color:#667085'>可信度等級</div></div>"
-        f"<div style='flex:1;min-width:200px'>"
-        f"<div style='background:#f0f4f8;border-radius:8px;height:12px;margin-bottom:0.5rem'>"
-        f"<div style='background:{color};height:12px;border-radius:8px;width:{score}%'></div></div>"
-        f"<div style='font-size:0.85rem;color:#667085'>資料覆蓋率 "
-        f"<strong style=\"color:{color}\">{score}%</strong></div>"
-        f"<div style='font-size:0.8rem;color:#667085;margin-top:0.3rem'>{_e(reason)}</div>"
-        f"</div><div style='display:flex;flex-direction:column;gap:0.3rem'>",
-        unsafe_allow_html=True,
-    )
-    all_sources = ["Yahoo Finance", "Company Metadata", "Financial Statement", "News Source", "HKEX Filing"]
-    for s in all_sources:
-        ok = s in sources
-        icon = "✓" if ok else "✗"
-        c = "#15a36d" if ok else "#ccc"
-        st.markdown(f"<div style='color:{c};font-size:0.85rem'>{icon} {s}</div>", unsafe_allow_html=True)
-    st.markdown("</div></div></div>", unsafe_allow_html=True)
-
-
-# ── Market Snapshot Chart ────────────────────────────────────────────────────
-def render_market_snapshot(report: Dict[str, Any]) -> None:
-    mkt = report.get("market_data", {})
-    price = float(mkt.get("current_price", 50) or 50)
-    high52 = float(mkt.get("week_52_high", price * 1.3) or price * 1.3)
-    low52 = float(mkt.get("week_52_low", price * 0.7) or price * 0.7)
-    pct = ((price - low52) / (high52 - low52) * 100) if high52 != low52 else 50
-    bull_zone = high52 * 0.85
-    bear_zone = low52 * 1.15
-
-    fig = go.Figure()
-    fig.add_shape(type="rect", x0=0, y0=low52, x1=1, y1=bear_zone,
-                  fillcolor="rgba(214,69,69,0.08)", line_width=0)
-    fig.add_shape(type="rect", x0=0, y0=bull_zone, x1=1, y1=high52,
-                  fillcolor="rgba(21,163,109,0.08)", line_width=0)
-    fig.add_trace(go.Scatter(
-        x=[0.5], y=[price], mode="markers+text",
-        marker=dict(size=18, color="#1a56db", symbol="diamond"),
-        text=[f"HK${price:.2f}"], textposition="top center", name="現價",
-    ))
-    fig.add_hline(y=high52, line_dash="dot", line_color="#15a36d",
-                  annotation_text=f"52週高 HK${high52:.2f}", annotation_position="right")
-    fig.add_hline(y=low52, line_dash="dot", line_color="#d64545",
-                  annotation_text=f"52週低 HK${low52:.2f}", annotation_position="right")
-    fig.update_layout(
-        height=280, margin=dict(l=10, r=120, t=30, b=10),
-        showlegend=False, plot_bgcolor="#f8fafc", paper_bgcolor="#fff",
-        xaxis=dict(visible=False), yaxis=dict(title="價格 (HK$)"),
-    )
-
-    st.markdown(
-        "<div style='background:#fff;border-radius:12px;padding:1.2rem 1.5rem;"
-        "border:1px solid #dfe6ef;margin-bottom:1rem'>"
-        "<h3 style='color:#071b33;margin:0 0 0.5rem'>📈 市場快照</h3>",
-        unsafe_allow_html=True,
-    )
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("現價", f"HK${price:.2f}")
-    c2.metric("52週高", f"HK${high52:.2f}")
-    c3.metric("52週低", f"HK${low52:.2f}")
-    c4.metric("52週位置", f"{pct:.0f}%")
-    st.plotly_chart(fig, use_container_width=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-
-
-# ── Financial Trend Charts ───────────────────────────────────────────────────
-def render_financial_trends(report: Dict[str, Any]) -> None:
-    fin = report.get("financial_data", {})
-    years = ["2022", "2023", "2024"]
-    rev = fin.get("revenue_trend", [800, 950, 1100])
-    ebitda = fin.get("ebitda_trend", [200, 240, 280])
-    net = fin.get("net_profit_trend", [120, 145, 170])
-    fcf = fin.get("fcf_trend", [90, 110, 130])
-
-    st.markdown(
-        "<div style='background:#fff;border-radius:12px;padding:1.2rem 1.5rem;"
-        "border:1px solid #dfe6ef;margin-bottom:1rem'>"
-        "<h3 style='color:#071b33;margin:0 0 1rem'>💰 財務趨勢（三年）</h3>",
-        unsafe_allow_html=True,
-    )
-    c1, c2 = st.columns(2)
-    for col, data, title, color in [
-        (c1, rev, "收入趨勢 (億)", "#1a56db"),
-        (c1, ebitda, "EBITDA趨勢 (億)", "#15a36d"),
-        (c2, net, "淨利潤趨勢 (億)", "#d9a441"),
-        (c2, fcf, "自由現金流 (億)", "#7c3aed"),
-    ]:
-        fig = go.Figure(go.Bar(
-            x=years, y=data, marker_color=color,
-            text=[f"{v}億" for v in data], textposition="outside",
-        ))
-        fig.update_layout(
-            title=title, height=200,
-            margin=dict(l=5, r=5, t=30, b=5),
-            plot_bgcolor="#f8fafc", paper_bgcolor="#fff", showlegend=False,
-        )
-        col.plotly_chart(fig, use_container_width=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-
-
-# ── Risk Dashboard ───────────────────────────────────────────────────────────
-def render_risk_dashboard(report: Dict[str, Any]) -> None:
-    risk = report.get("risk_analysis", {})
-    scores = {
-        "流動性風險": risk.get("liquidity_risk", 4),
-        "估值風險": risk.get("valuation_risk", 5),
-        "市場風險": risk.get("market_risk", 6),
-        "財務風險": risk.get("financial_risk", 3),
-        "新聞風險": risk.get("news_risk", 4),
-    }
-    total = risk.get("total_risk_score", sum(scores.values()) // len(scores))
-    tc = "#15a36d" if total <= 3 else ("#d9a441" if total <= 6 else "#d64545")
-
-    st.markdown(
-        f"<div style='background:#fff;border-radius:12px;padding:1.2rem 1.5rem;"
-        f"border:1px solid #dfe6ef;margin-bottom:1rem'>"
-        f"<h3 style='color:#071b33;margin:0 0 1rem'>⚠️ 風險儀表板</h3>"
-        f"<div style='text-align:center;margin-bottom:1rem'>"
-        f"<span style='font-size:3rem;font-weight:800;color:{tc}'>{total}</span>"
-        f"<span style='font-size:1rem;color:#667085'>/10 總風險分數</span></div>",
-        unsafe_allow_html=True,
-    )
-    for name, score in scores.items():
-        c = "#15a36d" if score <= 3 else ("#d9a441" if score <= 6 else "#d64545")
-        pct = score * 10
-        st.markdown(
-            f"<div style='margin-bottom:0.5rem'>"
-            f"<div style='display:flex;justify-content:space-between;font-size:0.85rem'>"
-            f"<span>{name}</span><span style='color:{c};font-weight:700'>{score}/10</span></div>"
-            f"<div style='background:#f0f4f8;border-radius:4px;height:8px'>"
-            f"<div style='background:{c};height:8px;border-radius:4px;width:{pct}%'></div>"
-            f"</div></div>",
-            unsafe_allow_html=True,
-        )
-    st.markdown("</div>", unsafe_allow_html=True)
-
-
-# ── News Sentiment Dashboard ─────────────────────────────────────────────────
-def render_news_sentiment(report: Dict[str, Any]) -> None:
-    news = report.get("news_analysis", {})
-    pos = news.get("positive_count", 3)
-    neu = news.get("neutral_count", 5)
-    neg = news.get("negative_count", 2)
-    catalysts = news.get("catalysts", [])
-    watchlist = news.get("watchlist", [])
-
-    st.markdown(
-        "<div style='background:#fff;border-radius:12px;padding:1.2rem 1.5rem;"
-        "border:1px solid #dfe6ef;margin-bottom:1rem'>"
-        "<h3 style='color:#071b33;margin:0 0 1rem'>📰 新聞情緒分析</h3>",
-        unsafe_allow_html=True,
-    )
-    c1, c2, c3 = st.columns(3)
-    c1.markdown(
-        f"<div style='text-align:center;background:#f0fdf4;border-radius:8px;padding:0.8rem'>"
-        f"<div style='font-size:1.8rem;font-weight:800;color:#15a36d'>{pos}</div>"
-        f"<div style='color:#667085;font-size:0.8rem'>正面新聞</div></div>",
-        unsafe_allow_html=True,
-    )
-    c2.markdown(
-        f"<div style='text-align:center;background:#f8fafc;border-radius:8px;padding:0.8rem'>"
-        f"<div style='font-size:1.8rem;font-weight:800;color:#667085'>{neu}</div>"
-        f"<div style='color:#667085;font-size:0.8rem'>中性新聞</div></div>",
-        unsafe_allow_html=True,
-    )
-    c3.markdown(
-        f"<div style='text-align:center;background:#fff5f5;border-radius:8px;padding:0.8rem'>"
-        f"<div style='font-size:1.8rem;font-weight:800;color:#d64545'>{neg}</div>"
-        f"<div style='color:#667085;font-size:0.8rem'>負面新聞</div></div>",
-        unsafe_allow_html=True,
-    )
-    if catalysts:
-        st.markdown("**催化事件：**")
-        for cat in catalysts[:3]:
-            st.markdown(f"- 🚀 {_e(cat)}")
-    if watchlist:
-        st.markdown("**監察事項：**")
-        for w in watchlist[:3]:
-            st.markdown(f"- 👁 {_e(w)}")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-
-# ── Bull vs Bear Committee ───────────────────────────────────────────────────
-def render_investment_committee(report: Dict[str, Any]) -> None:
-    ic = report.get("investment_committee", {})
-    bull_pts = ic.get("bull_points", ["估值合理，PE低於行業平均", "股息率具吸引力", "業務穩定增長"])
-    bear_pts = ic.get("bear_points", ["市場競爭加劇", "監管風險上升", "增長放緩跡象"])
-    bull_score = ic.get("bull_score", 65)
-    bear_score = ic.get("bear_score", 35)
-    confidence = ic.get("confidence", 72)
-    summary = ic.get(
-        "committee_summary",
-        "投資委員會綜合各分析師觀點後，認為該股票具備中長線投資價值，但需留意短期波動風險。",
-    )
-    verdict = ic.get("final_recommendation", "正面")
-    vc = {
-        "買入": "#15a36d", "正面": "#15a36d", "觀察": "#d9a441",
-        "中性": "#667085", "減持": "#d64545", "避免": "#d64545",
-    }.get(verdict, "#667085")
-
-    st.markdown(
-        "<div style='background:linear-gradient(135deg,#071b33 0%,#0d2a4c 100%);"
-        "border-radius:16px;padding:1.5rem;margin-bottom:1rem;color:#fff'>"
-        "<h3 style='color:#d9a441;margin:0 0 1.2rem;text-align:center'>"
-        "🏛️ AI 投資委員會 — Bull vs Bear 辯論</h3>",
-        unsafe_allow_html=True,
-    )
-    col_bull, col_mid, col_bear = st.columns([2, 1, 2])
-
-    with col_bull:
-        st.markdown(
-            "<div style='background:rgba(21,163,109,0.15);"
-            "border:1px solid rgba(21,163,109,0.4);"
-            "border-radius:10px;padding:1rem'>"
-            "<div style='color:#4ade80;font-size:1.1rem;font-weight:700;"
-            "margin-bottom:0.8rem'>🐂 牛市觀點</div>"
-            "<div style='color:#86efac;font-size:0.75rem;margin-bottom:0.5rem'>"
-            "市場分析 · 財務分析 · 新聞分析</div>",
-            unsafe_allow_html=True,
-        )
-        for pt in bull_pts:
-            st.markdown(
-                f"<div style='color:#d1fae5;font-size:0.85rem;margin:0.3rem 0'>✅ {_e(pt)}</div>",
-                unsafe_allow_html=True,
-            )
-        st.markdown(
-            f"<div style='margin-top:0.8rem;text-align:center;font-size:1.5rem;"
-            f"font-weight:800;color:#4ade80'>Bull {bull_score}</div></div>",
-            unsafe_allow_html=True,
-        )
-
-    with col_mid:
-        st.markdown(
-            f"<div style='text-align:center;padding:1rem 0'>"
-            f"<div style='color:#d9a441;font-size:0.8rem;margin-bottom:0.5rem'>委員會裁決</div>"
-            f"<div style='font-size:1.8rem;font-weight:800;color:{vc}'>{verdict}</div>"
-            f"<div style='color:#94a3b8;font-size:0.75rem;margin-top:0.5rem'>信心度</div>"
-            f"<div style='font-size:1.2rem;font-weight:700;color:#fff'>{confidence}%</div>"
-            f"</div>",
-            unsafe_allow_html=True,
-        )
-
-    with col_bear:
-        st.markdown(
-            "<div style='background:rgba(214,69,69,0.15);"
-            "border:1px solid rgba(214,69,69,0.4);"
-            "border-radius:10px;padding:1rem'>"
-            "<div style='color:#f87171;font-size:1.1rem;font-weight:700;"
-            "margin-bottom:0.8rem'>🐻 熊市觀點</div>"
-            "<div style='color:#fca5a5;font-size:0.75rem;margin-bottom:0.5rem'>"
-            "風險分析 · 估值分析 · 事件分析</div>",
-            unsafe_allow_html=True,
-        )
-        for pt in bear_pts:
-            st.markdown(
-                f"<div style='color:#fee2e2;font-size:0.85rem;margin:0.3rem 0'>⚠️ {_e(pt)}</div>",
-                unsafe_allow_html=True,
-            )
-        st.markdown(
-            f"<div style='margin-top:0.8rem;text-align:center;font-size:1.5rem;"
-            f"font-weight:800;color:#f87171'>Bear {bear_score}</div></div>",
-            unsafe_allow_html=True,
-        )
-
-    st.markdown(
-        f"<div style='background:rgba(217,164,65,0.1);"
-        f"border:1px solid rgba(217,164,65,0.3);"
-        f"border-radius:10px;padding:1rem;margin-top:1rem'>"
-        f"<div style='color:#d9a441;font-weight:700;margin-bottom:0.5rem'>📋 委員會總結</div>"
-        f"<div style='color:#e2e8f0;font-size:0.9rem'>{_e(summary)}</div>"
-        f"</div></div>",
-        unsafe_allow_html=True,
-    )
-
-
-# ── Investment Conclusion Card ───────────────────────────────────────────────
-def render_investment_conclusion(report: Dict[str, Any]) -> None:
-    conc = report.get("investment_conclusion", {})
-    rating = conc.get("rating", "觀察")
-    horizon = conc.get("horizon", "中線")
-    investor_type = conc.get("investor_type", "平衡")
-    summary = conc.get("summary", "綜合分析後，建議投資者保持觀察，待更多數據確認後再作決定。")
-
-    rating_cfg = {
-        "買入": {"color": "#15a36d", "bg": "#f0fdf4", "icon": "🟢"},
-        "觀察": {"color": "#d9a441", "bg": "#fffbeb", "icon": "🟡"},
-        "中性": {"color": "#667085", "bg": "#f8fafc", "icon": "⚪"},
-        "減持": {"color": "#d64545", "bg": "#fff5f5", "icon": "🔴"},
-        "避免": {"color": "#d64545", "bg": "#fff5f5", "icon": "🔴"},
-    }
-    cfg = rating_cfg.get(rating, rating_cfg["觀察"])
-    color = cfg["color"]
-    bg = cfg["bg"]
-    icon = cfg["icon"]
-
-    st.markdown(
-        f"<div style='background:{bg};border:2px solid {color};"
-        f"border-radius:16px;padding:1.5rem;margin-bottom:1rem'>"
-        f"<h3 style='color:#071b33;margin:0 0 1rem;text-align:center'>🎯 最終投資結論</h3>"
-        f"<div style='display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;margin-bottom:1rem'>"
-        f"<div style='text-align:center'>"
-        f"<div style='font-size:0.8rem;color:#667085'>評級</div>"
-        f"<div style='font-size:2.5rem;font-weight:800;color:{color}'>{icon} {rating}</div>"
-        f"</div>"
-        f"<div style='text-align:center'>"
-        f"<div style='font-size:0.8rem;color:#667085'>投資週期</div>"
-        f"<div style='font-size:1.5rem;font-weight:700;color:#071b33'>{horizon}</div>"
-        f"</div>"
-        f"<div style='text-align:center'>"
-        f"<div style='font-size:0.8rem;color:#667085'>適合投資者</div>"
-        f"<div style='font-size:1.5rem;font-weight:700;color:#071b33'>{investor_type}</div>"
-        f"</div></div>"
-        f"<div style='background:#fff;border-radius:8px;padding:1rem;"
-        f"font-size:0.9rem;color:#172033'>{_e(summary)}</div></div>",
-        unsafe_allow_html=True,
-    )
-
-
-# ── Bull/Bear Background Decoration ─────────────────────────────────────────
-_BULL_BEAR_CSS = """<style>
-.bull-side-label {
-    position:fixed;left:0;top:50%;transform:translateY(-50%);
-    writing-mode:vertical-rl;text-orientation:mixed;
-    background:linear-gradient(180deg,rgba(21,163,109,0.15),rgba(21,163,109,0.05));
-    color:rgba(21,163,109,0.6);font-size:0.75rem;font-weight:700;
-    padding:1rem 0.4rem;border-radius:0 8px 8px 0;letter-spacing:0.1em;
-    z-index:0;pointer-events:none;
-}
-.bear-side-label {
-    position:fixed;right:0;top:50%;transform:translateY(-50%);
-    writing-mode:vertical-rl;text-orientation:mixed;
-    background:linear-gradient(180deg,rgba(214,69,69,0.15),rgba(214,69,69,0.05));
-    color:rgba(214,69,69,0.6);font-size:0.75rem;font-weight:700;
-    padding:1rem 0.4rem;border-radius:8px 0 0 8px;letter-spacing:0.1em;
-    z-index:0;pointer-events:none;
-}
-</style>
-<div class="bull-side-label">🐂 BULL MARKET</div>
-<div class="bear-side-label">🐻 BEAR MARKET</div>"""
-
+# ─────────────────────────────────────────────────────────────────────────────
+# PART 2 — Bull / Bear Background CSS
+# Desktop: fixed left/right panels with gradient + emoji
+# Mobile (@media max-width 719px): hidden
+# pointer-events: none so it never blocks clicks
+# ─────────────────────────────────────────────────────────────────────────────
 
 def inject_bull_bear_bg() -> None:
-    st.markdown(_BULL_BEAR_CSS, unsafe_allow_html=True)
+    """Inject fixed left/right Bull/Bear decorative panels via CSS only."""
+    st.markdown(
+        """
+        <style>
+        /* ── Bull/Bear side panels ── */
+        .bw-bull-panel,
+        .bw-bear-panel {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 52px;
+            z-index: 0;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 0 12px 12px 0;
+            padding: 24px 6px;
+            opacity: 0.82;
+        }
+
+        .bw-bull-panel {
+            left: 0;
+            background: linear-gradient(
+                180deg,
+                rgba(21, 163, 109, 0.18) 0%,
+                rgba(21, 163, 109, 0.08) 100%
+            );
+            border-right: 2px solid rgba(21, 163, 109, 0.35);
+        }
+
+        .bw-bear-panel {
+            right: 0;
+            background: linear-gradient(
+                180deg,
+                rgba(214, 69, 69, 0.18) 0%,
+                rgba(214, 69, 69, 0.08) 100%
+            );
+            border-left: 2px solid rgba(214, 69, 69, 0.35);
+            border-radius: 12px 0 0 12px;
+        }
+
+        .bw-bull-panel .bw-side-emoji,
+        .bw-bear-panel .bw-side-emoji {
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        .bw-bull-panel .bw-side-label,
+        .bw-bear-panel .bw-side-label {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .bw-bull-panel .bw-side-label {
+            color: rgba(21, 163, 109, 0.75);
+        }
+
+        .bw-bear-panel .bw-side-label {
+            color: rgba(214, 69, 69, 0.75);
+        }
+
+        /* Hide on mobile */
+        @media (max-width: 719px) {
+            .bw-bull-panel,
+            .bw-bear-panel {
+                display: none !important;
+            }
+        }
+        </style>
+
+        <div class="bw-bull-panel" aria-hidden="true">
+            <span class="bw-side-emoji">🐂</span>
+            <span class="bw-side-label">Bull Market</span>
+        </div>
+        <div class="bw-bear-panel" aria-hidden="true">
+            <span class="bw-side-emoji">🐻</span>
+            <span class="bw-side-label">Bear Market</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PART 3 — Peer Comparison
+# ─────────────────────────────────────────────────────────────────────────────
+
+def render_peer_comparison(data: dict[str, Any]) -> None:
+    """Peer comparison table — PE / PB / dividend / market cap / risk score."""
+    ticker = str(data.get("ticker", "")).upper()
+    company = str(data.get("company_name", "") or ticker)
+    peers: list[dict[str, Any]] = data.get("peer_comparison", []) or []
+
+    with st.container(border=True):
+        st.caption("同行比較 · Peer Comparison")
+        st.markdown("**同業估值比較**")
+
+        if not peers:
+            # Build a placeholder row for the subject stock
+            st.info("同行比較資料暫未取得，系統已記錄請求。")
+            st.caption(f"分析股票：{_esc(ticker)} {_esc(company)}")
+            return
+
+        # Build table rows
+        rows = []
+        for p in peers:
+            rows.append({
+                "股票": _esc(p.get("ticker", "")),
+                "公司": _esc(p.get("company", "")),
+                "PE": _esc(p.get("pe", "N/A")),
+                "PB": _esc(p.get("pb", "N/A")),
+                "股息率": _esc(p.get("dividend_yield", "N/A")),
+                "市值": _esc(p.get("market_cap", "N/A")),
+                "風險分數": _esc(p.get("risk_score", "N/A")),
+            })
+
+        st.dataframe(rows, use_container_width=True, hide_index=True)
+
+        # Advantage / disadvantage summary
+        adv = data.get("advantage", "")
+        dis = data.get("disadvantage", "")
+        if adv or dis:
+            cols = st.columns(2)
+            if adv:
+                with cols[0]:
+                    with st.container(border=True):
+                        st.markdown("**✅ 相對優勢**")
+                        st.caption(_esc(adv))
+            if dis:
+                with cols[1]:
+                    with st.container(border=True):
+                        st.markdown("**⚠️ 相對弱勢**")
+                        st.caption(_esc(dis))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PART 4 — Data Confidence Evidence
+# ─────────────────────────────────────────────────────────────────────────────
+
+_SOURCE_ICONS = {
+    "Yahoo Finance": "✓",
+    "Company Metadata": "✓",
+    "Financial Statement": "✓",
+    "News Source": "✓",
+    "HKEX Filing": "✓",
+}
+
+_CONFIDENCE_REASONS = {
+    "HIGH": "已取得公司名稱、現價、市值及股票元數據，財務指標完整。",
+    "MEDIUM": "部分市場或財務資料未能取得，系統以保守假設處理缺失資料。",
+    "LOW": "主要資料來源缺失，分析深度受限，結論僅供參考。",
+    "INVALID": "股票代號驗證未完成，系統已停止深度分析，避免生成未驗證內容。",
+}
+
+
+def render_data_confidence(data: dict[str, Any]) -> None:
+    """Data confidence evidence panel with coverage % and source checklist."""
+    dc = data.get("data_confidence", {}) or {}
+    level = str(dc.get("level", "MEDIUM")).upper()
+    score = _safe_float(dc.get("score", 65), 65.0)
+    sources: list[str] = dc.get("sources", []) or ["Yahoo Finance", "Company Metadata"]
+    reason = str(dc.get("reason", "") or _CONFIDENCE_REASONS.get(level, ""))
+
+    # Normalise level
+    if "HIGH" in level:
+        level_clean = "HIGH"
+        badge_color = "🟢"
+    elif "INVALID" in level or "驗證未完成" in level:
+        level_clean = "INVALID"
+        badge_color = "🔴"
+    elif "LOW" in level:
+        level_clean = "LOW"
+        badge_color = "🔴"
+    else:
+        level_clean = "MEDIUM"
+        badge_color = "🟡"
+
+    with st.container(border=True):
+        st.caption("資料可信度 · Data Confidence Evidence")
+        top = st.columns([0.55, 0.45])
+
+        with top[0]:
+            st.markdown(f"**{badge_color} 資料可信度：{level_clean}**")
+            st.caption(_esc(reason) if reason else _CONFIDENCE_REASONS.get(level_clean, ""))
+            # Coverage bar
+            cov_pct = min(max(int(score), 0), 100)
+            st.caption(f"資料覆蓋率：{cov_pct}%")
+            st.progress(cov_pct / 100)
+
+        with top[1]:
+            st.markdown("**已接入資料來源**")
+            all_sources = ["Yahoo Finance", "Company Metadata", "Financial Statement", "News Source", "HKEX Filing"]
+            for src in all_sources:
+                icon = "✅" if src in sources else "⬜"
+                st.caption(f"{icon} {src}")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PART 5 — Market Snapshot Chart (52-week range + price position)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def render_market_snapshot(data: dict[str, Any]) -> None:
+    """52-week high/low range bar with current price marker."""
+    mkt = data.get("market_data", {}) or {}
+    current = _safe_float(mkt.get("current_price"))
+    high_52 = _safe_float(mkt.get("week_52_high"))
+    low_52 = _safe_float(mkt.get("week_52_low"))
+    volume = mkt.get("volume")
+
+    if not (current > 0 and high_52 > 0 and low_52 > 0 and high_52 > low_52):
+        return
+
+    with st.container(border=True):
+        st.caption("52週價格區間 · 52-Week Range")
+
+        # Position percentage
+        pos_pct = (current - low_52) / (high_52 - low_52) if (high_52 - low_52) > 0 else 0.5
+        pos_pct = min(max(pos_pct, 0.0), 1.0)
+
+        # Zone label
+        if pos_pct >= 0.75:
+            zone = "🐂 Bull Zone（接近52週高）"
+        elif pos_pct <= 0.25:
+            zone = "🐻 Bear Zone（接近52週低）"
+        else:
+            zone = "⚖️ 中性區間"
+
+        cols = st.columns(3)
+        cols[0].metric("52週低", f"HK${low_52:.2f}")
+        cols[1].metric("現價", f"HK${current:.2f}", zone)
+        cols[2].metric("52週高", f"HK${high_52:.2f}")
+
+        st.caption(f"現價位置：{pos_pct * 100:.1f}%（由52週低計算）")
+        st.progress(pos_pct)
+
+        if _PLOTLY_OK:
+            fig = go.Figure()
+            # Range bar
+            fig.add_trace(go.Bar(
+                x=[high_52 - low_52],
+                y=["52週區間"],
+                base=[low_52],
+                orientation="h",
+                marker_color="rgba(100,160,220,0.25)",
+                showlegend=False,
+                hovertemplate=f"低: HK${low_52:.2f} | 高: HK${high_52:.2f}<extra></extra>",
+            ))
+            # Current price marker
+            fig.add_trace(go.Scatter(
+                x=[current],
+                y=["52週區間"],
+                mode="markers+text",
+                marker=dict(size=14, color="#d9a441", symbol="diamond"),
+                text=[f"HK${current:.2f}"],
+                textposition="top center",
+                showlegend=False,
+                hovertemplate=f"現價: HK${current:.2f}<extra></extra>",
+            ))
+            fig.update_layout(
+                height=120,
+                margin=dict(l=0, r=0, t=8, b=8),
+                xaxis=dict(showgrid=False, zeroline=False),
+                yaxis=dict(showgrid=False),
+                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="rgba(0,0,0,0)",
+            )
+            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+        if volume:
+            st.caption(f"成交量：{_esc(volume)}")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PART 6 — Financial Trends (3-year bar charts)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _trend_chart(label: str, trend: list[Any]) -> None:
+    """Render a single trend chart — plotly bar or st.bar_chart fallback."""
+    if not trend:
+        return
+
+    # Parse trend items: each item is dict with "year"/"label" and "value"
+    years = []
+    values = []
+    for item in trend:
+        if isinstance(item, dict):
+            yr = str(item.get("year") or item.get("label") or "")
+            val = _safe_float(item.get("value") or item.get("amount") or 0)
+        elif isinstance(item, (list, tuple)) and len(item) >= 2:
+            yr = str(item[0])
+            val = _safe_float(item[1])
+        else:
+            continue
+        if yr:
+            years.append(yr)
+            values.append(val)
+
+    if not years:
+        return
+
+    with st.container(border=True):
+        st.caption(label)
+        if _PLOTLY_OK:
+            colors = ["#15a36d" if v >= 0 else "#d64545" for v in values]
+            fig = go.Figure(go.Bar(
+                x=years,
+                y=values,
+                marker_color=colors,
+                hovertemplate="%{x}: %{y:,.0f}<extra></extra>",
+            ))
+            fig.update_layout(
+                height=200,
+                margin=dict(l=0, r=0, t=8, b=8),
+                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="rgba(0,0,0,0)",
+                xaxis=dict(showgrid=False),
+                yaxis=dict(showgrid=True, gridcolor="rgba(0,0,0,0.06)"),
+            )
+            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+        else:
+            import pandas as pd
+            df = pd.DataFrame({"年度": years, label: values}).set_index("年度")
+            st.bar_chart(df)
+
+
+def render_financial_trends(data: dict[str, Any]) -> None:
+    """Revenue / EBITDA / Net Profit / FCF 3-year trend charts."""
+    fin = data.get("financial_data", {}) or {}
+    revenue = fin.get("revenue_trend", []) or []
+    ebitda = fin.get("ebitda_trend", []) or []
+    net_profit = fin.get("net_profit_trend", []) or []
+    fcf = fin.get("fcf_trend", []) or []
+
+    has_any = any([revenue, ebitda, net_profit, fcf])
+    if not has_any:
+        return
+
+    with st.container(border=True):
+        st.caption("財務趨勢 · Financial Trends（三年）")
+        cols = st.columns(2)
+        with cols[0]:
+            _trend_chart("收入趨勢 Revenue", revenue)
+            _trend_chart("淨利潤趨勢 Net Profit", net_profit)
+        with cols[1]:
+            _trend_chart("EBITDA 趨勢", ebitda)
+            _trend_chart("自由現金流 FCF", fcf)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PART 7 — Risk Dashboard
+# ─────────────────────────────────────────────────────────────────────────────
+
+_RISK_DIMS = [
+    ("liquidity_risk", "流動性風險"),
+    ("valuation_risk", "估值風險"),
+    ("market_risk", "市場風險"),
+    ("financial_risk", "財務風險"),
+    ("news_risk", "新聞風險"),
+]
+
+
+def _risk_color(score: float) -> str:
+    if score <= 3:
+        return "🟢"
+    if score <= 6:
+        return "🟡"
+    return "🔴"
+
+
+def render_risk_dashboard(data: dict[str, Any]) -> None:
+    """5-dimension risk dashboard with progress bars and total score."""
+    risk = data.get("risk_analysis", {}) or {}
+
+    with st.container(border=True):
+        st.caption("風險儀表板 · Risk Dashboard")
+
+        total_raw = risk.get("total_risk_score") or risk.get("composite_score")
+        total = _safe_float(total_raw, 0.0)
+
+        # Total score big display
+        if total > 0:
+            color = _risk_color(total)
+            level = "低風險" if total <= 3 else ("中等風險" if total <= 6 else ("高風險" if total <= 8 else "極高風險"))
+            top_cols = st.columns([0.3, 0.7])
+            top_cols[0].metric("總風險分數", f"{total:.1f}/10", level)
+            top_cols[1].markdown(f"**{color} {level}**")
+            st.progress(min(total / 10, 1.0))
+            st.divider()
+
+        # 5 dimensions
+        dim_cols = st.columns(2)
+        for i, (key, label) in enumerate(_RISK_DIMS):
+            val = _safe_float(risk.get(key), 0.0)
+            if val <= 0:
+                continue
+            with dim_cols[i % 2]:
+                with st.container(border=True):
+                    icon = _risk_color(val)
+                    st.caption(f"{icon} {label}")
+                    st.markdown(f"**{val:.1f} / 10**")
+                    st.progress(min(val / 10, 1.0))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PART 8 — News Sentiment Dashboard
+# ─────────────────────────────────────────────────────────────────────────────
+
+def render_news_sentiment(data: dict[str, Any]) -> None:
+    """News sentiment counts + catalyst / watchlist items."""
+    news = data.get("news_analysis", {}) or {}
+    pos = int(news.get("positive_count", 0) or 0)
+    neu = int(news.get("neutral_count", 0) or 0)
+    neg = int(news.get("negative_count", 0) or 0)
+    catalysts: list[str] = news.get("catalysts", []) or []
+    watchlist: list[str] = news.get("watchlist", []) or []
+    confidence = str(news.get("confidence", "") or "")
+
+    with st.container(border=True):
+        st.caption("新聞情緒分析 · News Sentiment Dashboard")
+
+        count_cols = st.columns(3)
+        count_cols[0].metric("🟢 正面新聞", pos)
+        count_cols[1].metric("⚪ 中性新聞", neu)
+        count_cols[2].metric("🔴 負面新聞", neg)
+
+        if confidence:
+            st.caption(f"新聞可信度：{_esc(confidence)}")
+
+        total_news = pos + neu + neg
+        if total_news > 0 and _PLOTLY_OK:
+            fig = go.Figure(go.Bar(
+                x=["正面", "中性", "負面"],
+                y=[pos, neu, neg],
+                marker_color=["#15a36d", "#8899aa", "#d64545"],
+                hovertemplate="%{x}: %{y}<extra></extra>",
+            ))
+            fig.update_layout(
+                height=160,
+                margin=dict(l=0, r=0, t=8, b=8),
+                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="rgba(0,0,0,0)",
+                showlegend=False,
+                xaxis=dict(showgrid=False),
+                yaxis=dict(showgrid=False),
+            )
+            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+        if catalysts:
+            with st.container(border=True):
+                st.markdown("**🚀 催化事件**")
+                for item in catalysts[:5]:
+                    st.caption(f"• {_esc(item)}")
+
+        if watchlist:
+            with st.container(border=True):
+                st.markdown("**👁️ 監察事項**")
+                for item in watchlist[:5]:
+                    st.caption(f"• {_esc(item)}")
+
+        if total_news == 0 and not catalysts and not watchlist:
+            st.info("暫未接入即時新聞資料，系統不會生成未驗證事件。")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PART 9 — AI Investment Committee (Bull vs Bear Debate)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def render_investment_committee(data: dict[str, Any]) -> None:
+    """Bull vs Bear debate layout with committee verdict in centre."""
+    ic = data.get("investment_committee", {}) or {}
+    bull_pts: list[str] = ic.get("bull_points", []) or []
+    bear_pts: list[str] = ic.get("bear_points", []) or []
+    bull_score = _safe_float(ic.get("bull_score", 60), 60.0)
+    bear_score = _safe_float(ic.get("bear_score", 40), 40.0)
+    confidence = _safe_float(ic.get("confidence", 70), 70.0)
+    summary = str(ic.get("committee_summary", "") or "")
+    recommendation = str(ic.get("final_recommendation", "觀察") or "觀察")
+
+    with st.container(border=True):
+        st.caption("AI 投資委員會 · Investment Committee")
+        st.markdown("### 🐂 牛熊辯論 🐻")
+
+        left, centre, right = st.columns([0.38, 0.24, 0.38])
+
+        # Bull side
+        with left:
+            with st.container(border=True):
+                st.markdown("#### 🐂 牛市觀點")
+                st.caption("市場分析 · 財務分析 · 新聞分析")
+                if bull_pts:
+                    for pt in bull_pts[:4]:
+                        st.markdown(f"✅ {_esc(pt)}")
+                else:
+                    st.caption("暫無牛市論點。")
+                st.metric("Bull Score", f"{bull_score:.0f}")
+
+        # Centre verdict
+        with centre:
+            with st.container(border=True):
+                st.markdown("#### ⚖️ 裁決")
+                st.metric("信心指數", f"{confidence:.0f}%")
+                st.metric("最終評級", _esc(recommendation))
+                if summary:
+                    st.caption(_esc(summary[:200]))
+
+        # Bear side
+        with right:
+            with st.container(border=True):
+                st.markdown("#### 🐻 熊市觀點")
+                st.caption("風險分析 · 估值分析 · 事件分析")
+                if bear_pts:
+                    for pt in bear_pts[:4]:
+                        st.markdown(f"⚠️ {_esc(pt)}")
+                else:
+                    st.caption("暫無熊市論點。")
+                st.metric("Bear Score", f"{bear_score:.0f}")
+
+        # Score bar
+        if _PLOTLY_OK and (bull_score + bear_score) > 0:
+            total = bull_score + bear_score
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                name="Bull",
+                x=[bull_score / total * 100],
+                y=["評分"],
+                orientation="h",
+                marker_color="#15a36d",
+                hovertemplate=f"Bull: {bull_score:.0f}<extra></extra>",
+            ))
+            fig.add_trace(go.Bar(
+                name="Bear",
+                x=[bear_score / total * 100],
+                y=["評分"],
+                orientation="h",
+                marker_color="#d64545",
+                hovertemplate=f"Bear: {bear_score:.0f}<extra></extra>",
+            ))
+            fig.update_layout(
+                barmode="stack",
+                height=80,
+                margin=dict(l=0, r=0, t=4, b=4),
+                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="rgba(0,0,0,0)",
+                showlegend=True,
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                xaxis=dict(showgrid=False, range=[0, 100], ticksuffix="%"),
+                yaxis=dict(showgrid=False),
+            )
+            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PART 10 — Investment Conclusion Card
+# ─────────────────────────────────────────────────────────────────────────────
+
+_RATING_COLORS = {
+    "買入": "#15a36d",
+    "觀察": "#d9a441",
+    "中性": "#667085",
+    "減持": "#e07b39",
+    "避免": "#d64545",
+}
+
+_RATING_EMOJI = {
+    "買入": "🟢",
+    "觀察": "🟡",
+    "中性": "⚪",
+    "減持": "🟠",
+    "避免": "🔴",
+}
+
+
+def render_investment_conclusion(data: dict[str, Any]) -> None:
+    """Final investment conclusion card."""
+    ic = data.get("investment_conclusion", {}) or {}
+    rating = str(ic.get("rating", "觀察") or "觀察")
+    horizon = str(ic.get("horizon", "中線") or "中線")
+    investor_type = str(ic.get("investor_type", "平衡") or "平衡")
+    summary = str(ic.get("summary", "") or "")
+
+    emoji = _RATING_EMOJI.get(rating, "⚪")
+
+    with st.container(border=True):
+        st.caption("最終投資結論 · Investment Conclusion")
+
+        top = st.columns([0.4, 0.6])
+        with top[0]:
+            st.markdown(f"## {emoji} {_esc(rating)}")
+            st.caption("投資委員會最終評級")
+
+        with top[1]:
+            detail_cols = st.columns(2)
+            detail_cols[0].metric("投資週期", _esc(horizon))
+            detail_cols[1].metric("適合投資者", _esc(investor_type))
+
+        if summary:
+            with st.container(border=True):
+                st.markdown("**結論摘要**")
+                st.caption(_esc(summary))
+
+        # Rating scale visual
+        all_ratings = ["買入", "觀察", "中性", "減持", "避免"]
+        rating_cols = st.columns(len(all_ratings))
+        for col, r in zip(rating_cols, all_ratings):
+            is_active = r == rating
+            bg = _RATING_COLORS.get(r, "#667085")
+            style = f"background:{bg};color:#fff;border-radius:6px;padding:4px 2px;text-align:center;font-weight:{'900' if is_active else '400'};opacity:{'1' if is_active else '0.35'};"
+            col.markdown(
+                f'<div style="{style}">{_RATING_EMOJI.get(r,"")} {r}</div>',
+                unsafe_allow_html=True,
+            )

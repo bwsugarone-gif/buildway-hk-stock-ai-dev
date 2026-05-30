@@ -12,3 +12,6 @@ pandas>=2.2.0,<3.0.0
 numpy>=1.26.0,<3.0.0
 requests>=2.31.0,<3.0.0
 Pillow>=10.0.0,<13.0.0
+
+# Charting — plotly used by fos_components; app falls back to st.bar_chart if unavailable
+plotly>=5.24.0

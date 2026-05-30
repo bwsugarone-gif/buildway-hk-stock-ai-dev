@@ -125,8 +125,8 @@ def _inject_css() -> None:
                 -webkit-text-fill-color: #0f172a !important;
             }
 
-            .stButton > button,
-            .stDownloadButton > button {
+            /* ── Default button (gold) ── */
+            .stButton > button {
                 background: linear-gradient(135deg, var(--bw-gold) 0%, var(--bw-gold-2) 100%) !important;
                 border: 0 !important;
                 border-radius: 8px !important;
@@ -136,10 +136,47 @@ def _inject_css() -> None:
                 box-shadow: 0 12px 24px rgba(217, 164, 65, 0.25);
             }
 
-            .stButton > button:hover,
-            .stDownloadButton > button:hover {
-                filter: brightness(0.98);
+            .stButton > button:hover {
+                filter: brightness(0.96);
                 transform: translateY(-1px);
+            }
+
+            /* ── Download PDF button — green ── */
+            .stDownloadButton > button {
+                background: linear-gradient(135deg, #15a36d 0%, #1ec97f 100%) !important;
+                border: 0 !important;
+                border-radius: 8px !important;
+                color: #ffffff !important;
+                font-weight: 800 !important;
+                min-height: 3rem;
+                box-shadow: 0 12px 24px rgba(21, 163, 109, 0.28);
+            }
+
+            .stDownloadButton > button:hover {
+                filter: brightness(0.96);
+                transform: translateY(-1px);
+            }
+
+            /* ── Rerun / secondary button — orange ── */
+            button[kind="secondary"] {
+                background: linear-gradient(135deg, #e07b39 0%, #f0954a 100%) !important;
+                border: 0 !important;
+                border-radius: 8px !important;
+                color: #ffffff !important;
+                font-weight: 700 !important;
+                min-height: 3rem;
+            }
+
+            /* ── Analyse / primary form submit — blue ── */
+            div[data-testid="stFormSubmitButton"] button[kind="primaryFormSubmit"],
+            div[data-testid="stFormSubmitButton"] button {
+                background: linear-gradient(135deg, #1a56db 0%, #2d6ef5 100%) !important;
+                border: 0 !important;
+                border-radius: 8px !important;
+                color: #ffffff !important;
+                font-weight: 800 !important;
+                min-height: 3rem;
+                box-shadow: 0 12px 24px rgba(26, 86, 219, 0.28);
             }
 
             div[data-testid="stMetric"] {

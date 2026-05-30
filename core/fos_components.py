@@ -288,8 +288,8 @@ def render_multi_agent_committee(report_data: Dict[str, Any]) -> None:
         if not agent:
             agent = ic.get(key, {}) or {}
 
-        opinion    = agent.get("opinion", agent.get("view", agent.get("stance", "分析中")))
-        reasoning  = agent.get("reasoning", agent.get("rationale", agent.get("analysis", "—")))
+        opinion    = agent.get("opinion", agent.get("view", agent.get("stance", "觀點待整合")))
+        reasoning  = agent.get("reasoning", agent.get("rationale", agent.get("analysis", "論據待整合")))
         confidence = agent.get("confidence", agent.get("confidence_score", 0))
         try:
             conf_val = float(confidence or 0)

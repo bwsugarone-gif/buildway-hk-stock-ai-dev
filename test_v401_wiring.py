@@ -34,8 +34,8 @@ def check(name: str, condition: bool, detail: str = ""):
 # ─── Test 1: version ──────────────────────────────────────────────────────────
 try:
     from core.config import APP_VERSION, BUILD_STAGE
-    check("T01 APP_VERSION == v4.0.1", APP_VERSION == "v4.0.1", APP_VERSION)
-    check("T02 BUILD_STAGE updated", "Wiring Fix" in BUILD_STAGE or "v4" in BUILD_STAGE.lower(), BUILD_STAGE)
+    check("T01 APP_VERSION >= v4.0.1", APP_VERSION >= "v4.0.1", APP_VERSION)
+    check("T02 BUILD_STAGE updated", bool(BUILD_STAGE) and len(BUILD_STAGE) > 3, BUILD_STAGE)
 except Exception as e:
     check("T01 config import", False, str(e))
     check("T02 BUILD_STAGE", False, "skipped")

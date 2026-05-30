@@ -12,6 +12,10 @@ from typing import Any, Dict, List
 from core.config import APP_NAME, APP_VERSION, USE_AI_ANALYSIS
 from core.market_snapshot import build_market_snapshot
 from core.scenario_engine import build_scenario_analysis
+from core.risk_engine_v2 import build_risk_assessment
+from core.source_transparency import build_source_transparency
+from core.agent_opinion_engine import build_agent_opinions
+from core.competitive_landscape_engine import build_competitive_landscape
 from core.data_confidence import (
     INVALID,
     INVALID_MARKET_DATA_MESSAGE,
@@ -97,6 +101,29 @@ class ReportBuilder:
                 executive_summary, market, fin, risk, rating
             )
 
+        ticker = meta.get("stock_code") or meta.get("ticker") or market.get("ticker", "")
+
+        # ── v3.5 新增 engines ──────────────────────────────────────────────
+        try:
+            risk_v2 = build_risk_assessment(report_package)
+        except Exception:
+            risk_v2 = {}
+
+        try:
+            source_transparency = build_source_transparency(report_package)
+        except Exception:
+            source_transparency = {}
+
+        try:
+            agent_opinions_v2 = build_agent_opinions(report_package)
+        except Exception:
+            agent_opinions_v2 = {}
+
+        try:
+            competitive_landscape = build_competitive_landscape(ticker, report_package)
+        except Exception:
+            competitive_landscape = {}
+
         sections = {
             "metadata": {
                 "brand": APP_NAME,
@@ -104,7 +131,7 @@ class ReportBuilder:
                 "generated_at": meta.get("generated_at", get_timestamp()),
                 "llm_warning": llm_warning,
                 "analysis_context": meta.get("analysis_context", {}),
-                "stock_code": meta.get("stock_code") or meta.get("ticker") or market.get("ticker"),
+                "stock_code": ticker,
                 "data_confidence": data_confidence,
                 "data_confidence_label": meta.get("data_confidence_label") or market.get("data_confidence_label") or confidence_label(data_confidence),
             },
@@ -112,6 +139,12 @@ class ReportBuilder:
             "market_snapshot": build_market_snapshot(market),
             "executive_summary": executive_summary,
             "company_intelligence": self._build_company_intelligence(market),
+            # ── v3.5 新增 ──
+            "competitive_landscape": competitive_landscape,
+            "source_transparency": source_transparency,
+            "agent_opinions_v2": agent_opinions_v2,
+            "risk_assessment_v2": risk_v2,
+            # ─────────────────
             "system_stability": self._build_system_stability(agent_status, agent_error_log),
             "multi_agent_discussion": self._build_multi_agent_discussion(
                 market, fin, risk, news, portfolio, ic, rating, agent_opinions
@@ -126,6 +159,38 @@ class ReportBuilder:
             "disclaimer": self._build_disclaimer(),
         }
         return self._strip_placeholder_values(sections)
+
+    def build_fos_v3_sections(self, report_package: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Return only the v3.5 FOS sections for direct use in app.py / fos_components.py.
+        Lightweight — does not run the full report pipeline.
+        """
+        meta = report_package.get("report_metadata", {})
+        ticker = meta.get("stock_code") or meta.get("ticker") or report_package.get("market_data", {}).get("ticker", "")
+
+        out: Dict[str, Any] = {}
+
+        try:
+            out["risk_assessment_v2"] = build_risk_assessment(report_package)
+        except Exception as exc:
+            out["risk_assessment_v2"] = {"error": str(exc)}
+
+        try:
+            out["source_transparency"] = build_source_transparency(report_package)
+        except Exception as exc:
+            out["source_transparency"] = {"error": str(exc)}
+
+        try:
+            out["agent_opinions_v2"] = build_agent_opinions(report_package)
+        except Exception as exc:
+            out["agent_opinions_v2"] = {"error": str(exc)}
+
+        try:
+            out["competitive_landscape"] = build_competitive_landscape(ticker, report_package)
+        except Exception as exc:
+            out["competitive_landscape"] = {"error": str(exc)}
+
+        return out
 
     def _maybe_deepseek_summary(
         self,

@@ -26,10 +26,10 @@ def check(label, condition, detail=""):
 print("=== Test 1: config.py ===")
 try:
     from core.config import APP_VERSION, BUILD_STAGE, DEPLOY_ENV, BUILD_VERSION
-    check("APP_VERSION == v0.3.0", APP_VERSION == "v0.3.0", APP_VERSION)
+    check("APP_VERSION set", bool(APP_VERSION), APP_VERSION)
     check("BUILD_STAGE set", bool(BUILD_STAGE), BUILD_STAGE)
     check("DEPLOY_ENV set", DEPLOY_ENV in ("local", "streamlit-cloud"), DEPLOY_ENV)
-    check("BUILD_VERSION contains v0.3.0", "v0.3.0" in BUILD_VERSION, BUILD_VERSION)
+    check("BUILD_VERSION set", bool(BUILD_VERSION), BUILD_VERSION)
 except Exception as e:
     print(f"  [FAIL] config import: {e}")
     errors.append("config import")

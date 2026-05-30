@@ -1365,12 +1365,8 @@ _init_state()
 
 _render_landing_panel()
 main_generate_btn, main_ticker_input, main_risk_preference, main_portfolio_size = _render_main_input_panel()
-_render_sector_showcase()
 _render_data_coverage_note()
 _render_beta_trial_note()
-_render_workflow_timeline()
-_render_source_transparency()
-_render_trust_layer()
 
 
 generate_btn = False
@@ -1519,18 +1515,18 @@ if analysis_requested:
             st.session_state.is_generating = False
 
 
-# ── FOS v2.8 Report Display ──────────────────────────────────────────────────
+# ── FOS V3 Report Display ─────────────────────────────────────────────────────
 if st.session_state.report_sections:
     from core.fos_components import (
-        render_peer_comparison,
-        render_data_confidence,
+        render_company_sidebar,
+        render_competitive_landscape,
+        render_confidence_breakdown,
         render_market_snapshot,
         render_financial_trends,
-        render_risk_dashboard,
+        render_risk_event_cards,
         render_news_sentiment,
-        render_investment_committee,
+        render_multi_agent_committee,
         render_investment_conclusion,
-        inject_bull_bear_bg,
     )
 
     sections = st.session_state.report_sections
@@ -1539,6 +1535,13 @@ if st.session_state.report_sections:
     confidence_level = _confidence_level(report_package, cover)
     current_ticker = cover.get("ticker", st.session_state.get("selected_ticker", ""))
     confidence_label = cover.get("data_confidence_label", "🟡 部分資料缺失")
+
+    # ── Sidebar: 公司資料面板 ─────────────────────────────────────────────────
+    render_company_sidebar({
+        "cover": cover,
+        "company_metadata": report_package.get("company_metadata", {}),
+        "market_data": report_package.get("market_data", {}),
+    })
 
     # ── 1. 報告摘要 ──────────────────────────────────────────────────────────
     _section_title("報告摘要", "報告摘要", "核心結論與報告下載")
@@ -1583,21 +1586,26 @@ if st.session_state.report_sections:
     if confidence_level == "INVALID":
         st.error("資料驗證未完成，系統已停止深度分析，避免生成未經驗證內容。")
 
-    # ── 2. 同行比較 ──────────────────────────────────────────────────────────
+    # ── 2. 競爭格局分析 ──────────────────────────────────────────────────────
     if confidence_level in {"HIGH", "MEDIUM"}:
-        render_peer_comparison({
-            "ticker": current_ticker,
-            "company_name": cover.get("company_name_zh") or cover.get("company_name", ""),
-            "peer_comparison": report_package.get("peer_comparison", []),
+        render_competitive_landscape({
+            "cover": cover,
+            "peer_comparison": report_package.get("peer_comparison", {}),
+            "competitive_analysis": report_package.get("competitive_analysis", {}),
         })
 
-    # ── 3. 可信度來源 ─────────────────────────────────────────────────────────
-    render_data_confidence({
+    # ── 3. 資料可信度評分 ─────────────────────────────────────────────────────
+    render_confidence_breakdown({
+        "cover": cover,
         "data_confidence": {
             "level": report_package.get("data_confidence", confidence_level),
-            "score": report_package.get("data_confidence_score", 65),
+            "overall_score": report_package.get("data_confidence_score", 65),
+            "financial_coverage": report_package.get("financial_coverage_score", 0),
+            "news_verification": report_package.get("news_verification_score", 0),
+            "hkex_verification": report_package.get("hkex_verification_score", 0),
+            "agent_consensus": report_package.get("agent_consensus_score", 0),
+            "data_freshness": report_package.get("data_freshness_score", 0),
             "sources": report_package.get("data_sources", ["Yahoo Finance", "Company Metadata"]),
-            "reason": cover.get("data_confidence_label", ""),
         }
     })
 
@@ -1635,22 +1643,12 @@ if st.session_state.report_sections:
             }
         })
 
-    # ── Bull/Bear 背景裝飾（覆蓋市場分析至最終結論）────────────────────────
-    inject_bull_bear_bg()
-
     # ── 6. 風險分析 ───────────────────────────────────────────────────────────
     if confidence_level != "INVALID":
         _section_title("風險分析", "風險分析", "")
         risk_sec = sections.get("risk_analysis", {}) or {}
-        render_risk_dashboard({
-            "risk_analysis": {
-                "liquidity_risk": risk_sec.get("liquidity_risk", 4),
-                "valuation_risk": risk_sec.get("valuation_risk", 5),
-                "market_risk": risk_sec.get("market_risk", 6),
-                "financial_risk": risk_sec.get("financial_risk", 3),
-                "news_risk": risk_sec.get("news_risk", 4),
-                "total_risk_score": risk_sec.get("composite_score"),
-            }
+        render_risk_event_cards({
+            "risk_analysis": risk_sec,
         })
 
     # ── 7. 新聞與事件催化 ─────────────────────────────────────────────────────
@@ -1689,15 +1687,14 @@ if st.session_state.report_sections:
             bull_pts = ic_data.get("bull_points", ["估值合理", "股息率具吸引力", "業務穩定"])
         if not bear_pts:
             bear_pts = ic_data.get("bear_points", ["市場競爭加劇", "監管風險", "增長放緩"])
-        render_investment_committee({
+        render_multi_agent_committee({
             "investment_committee": {
-                "bull_points": bull_pts,
-                "bear_points": bear_pts,
                 "bull_score": ic_data.get("bull_score", 60),
                 "bear_score": ic_data.get("bear_score", 40),
                 "confidence": ic_data.get("confidence", 70),
                 "committee_summary": discussion.get("final_statement", ""),
                 "final_recommendation": cover.get("final_rating", "觀察"),
+                "agents": ic_data.get("agents", {}),
             }
         })
         # Original agent discussion cards (preserved)

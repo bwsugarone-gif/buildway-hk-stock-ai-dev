@@ -8,6 +8,20 @@ Tests the three core failures identified in browser QA:
   4. report_builder → source_registry key present in output
 """
 import sys
+import types
+
+# ── Stub streamlit so fos_components can be imported without a running server ──
+_st_stub = types.ModuleType("streamlit")
+for _attr in (
+    "markdown", "write", "error", "warning", "info", "success",
+    "expander", "columns", "metric", "caption", "subheader", "header",
+    "divider", "container", "empty", "spinner", "stop",
+    "session_state", "cache_data", "cache_resource",
+):
+    setattr(_st_stub, _attr, lambda *a, **kw: None)
+_st_stub.session_state = {}
+sys.modules.setdefault("streamlit", _st_stub)
+
 sys.path.insert(0, ".")
 
 PASS = 0

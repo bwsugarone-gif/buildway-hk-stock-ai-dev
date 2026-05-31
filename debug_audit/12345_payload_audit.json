@@ -1,0 +1,128 @@
+{
+  "ticker": "12345",
+  "audit_version": "v4.0.3",
+  "error": null,
+  "A_top_level_keys": [
+    "report_metadata",
+    "market_data",
+    "financial_history",
+    "financial_analysis",
+    "risk_analysis",
+    "news_analysis",
+    "portfolio_analysis",
+    "ic_result",
+    "agent_opinions",
+    "agent_status",
+    "agent_error_log",
+    "summary",
+    "ipo_module"
+  ],
+  "B_source_registry": {
+    "exists": false,
+    "keys": [],
+    "coverage_pct": null,
+    "confidence_level": null,
+    "verified_sources": [],
+    "missing_sources": [],
+    "hkex_verified": false,
+    "raw_sample": {}
+  },
+  "C_market_snapshot": {
+    "market_snapshot_exists": false,
+    "market_snapshot_v4_exists": false,
+    "current_price": 0,
+    "week52_keys_found": {},
+    "week52_keys_missing": [
+      "fifty_two_week_high",
+      "fifty_two_week_low",
+      "fifty_two_week_position",
+      "week_52_high",
+      "week_52_low",
+      "fiftyTwoWeekHigh",
+      "fiftyTwoWeekLow"
+    ],
+    "snap_v4_keys": []
+  },
+  "D_competitive_landscape": {
+    "competitive_landscape_exists": false,
+    "competitive_landscape_v4_exists": false,
+    "peer_comparison_exists": false,
+    "cl_keys": [],
+    "peer_count": 0,
+    "peer_rows": [],
+    "subject_ticker": null
+  },
+  "E_agent_opinions": {
+    "agent_opinions_count": 2,
+    "agent_opinions_v2_count": 0,
+    "investment_committee_exists": false,
+    "ic_result_verdict": "無法評估",
+    "zero_confidence_agents": [
+      "Market Data Agent",
+      "Investment Committee Agent"
+    ],
+    "agent_names": [
+      "Market Data Agent",
+      "Investment Committee Agent"
+    ],
+    "old_agent_status_keys": [
+      "CEO Agent",
+      "Market Data Agent",
+      "Financial Analyst Agent",
+      "Risk Agent",
+      "News Intelligence Agent",
+      "Portfolio Manager Agent",
+      "Investment Committee Agent"
+    ]
+  },
+  "F_investment_conclusion": {
+    "investment_conclusion_exists": false,
+    "investment_conclusion_v4_exists": false,
+    "rating": null,
+    "target_price": null,
+    "suitable_investor": null,
+    "investment_horizon": null,
+    "decision_basis_count": 0,
+    "final_summary_exists": false,
+    "ic_keys": []
+  },
+  "G_risk": {
+    "risk_analysis_exists": true,
+    "risk_assessment_v2_exists": false,
+    "composite_risk_score": 10.0,
+    "risk_label": "無法評估",
+    "dimension_scores_keys": [],
+    "risk_table_rows": 0,
+    "duplicated_categories": [],
+    "risk_v2_keys": []
+  },
+  "H_news": {
+    "news_analysis_exists": true,
+    "news_localized_exists": false,
+    "news_catalyst_exists": false,
+    "news_items_count": 0,
+    "raw_titles_sample": [],
+    "localized_titles_sample": [],
+    "sentiment_label": "無法評估",
+    "news_status": "stopped"
+  },
+  "Z_key_audit": {
+    "canonical_keys_present": [
+      "agent_opinions"
+    ],
+    "canonical_keys_missing": [
+      "risk_assessment_v2",
+      "investment_conclusion",
+      "source_registry",
+      "peer_comparison",
+      "competitive_landscape",
+      "hkex_status",
+      "news_localized",
+      "market_snapshot"
+    ],
+    "legacy_keys_present": [
+      "agent_status",
+      "risk_analysis"
+    ]
+  }
+}

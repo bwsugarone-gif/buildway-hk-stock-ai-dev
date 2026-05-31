@@ -1,0 +1,246 @@
+{
+  "ticker": "0688",
+  "audit_version": "v4.0.3",
+  "error": null,
+  "A_top_level_keys": [
+    "report_metadata",
+    "market_data",
+    "financial_history",
+    "financial_analysis",
+    "risk_analysis",
+    "news_analysis",
+    "portfolio_analysis",
+    "ic_result",
+    "agent_opinions",
+    "agent_status",
+    "agent_error_log",
+    "summary",
+    "ipo_module",
+    "source_registry",
+    "data_coverage_pct",
+    "confidence_level",
+    "market_snapshot_v4",
+    "competitive_landscape",
+    "investment_conclusion"
+  ],
+  "B_source_registry": {
+    "exists": true,
+    "keys": [
+      "market_data",
+      "company_metadata",
+      "financial_statement",
+      "news",
+      "hkex"
+    ],
+    "coverage_pct": 68.0,
+    "confidence_level": "HIGH",
+    "verified_sources": [
+      "market_data",
+      "company_metadata",
+      "financial_statement",
+      "news"
+    ],
+    "missing_sources": [
+      "hkex"
+    ],
+    "hkex_verified": false,
+    "raw_sample": {
+      "market_data": "{dict keys=['enabled', 'verified', 'source', 'last_updated', 'verified_fields', 'missing_fields', 'note']}",
+      "company_metadata": "{dict keys=['enabled', 'verified', 'source', 'last_updated', 'verified_fields', 'missing_fields', 'note']}",
+      "financial_statement": "{dict keys=['enabled', 'verified', 'source', 'last_updated', 'verified_fields', 'missing_fields', 'note']}",
+      "news": "{dict keys=['enabled', 'verified', 'source', 'last_updated', 'verified_fields', 'missing_fields', 'note']}",
+      "hkex": "{dict keys=['enabled', 'verified', 'source', 'status', 'last_updated', 'verified_fields', 'missing_fields', 'note']}"
+    }
+  },
+  "C_market_snapshot": {
+    "market_snapshot_exists": false,
+    "market_snapshot_v4_exists": true,
+    "current_price": 11.2,
+    "week52_keys_found": {
+      "fifty_two_week_high": {
+        "market_data": null,
+        "market_snapshot_v4": "未取得",
+        "market_snapshot": null
+      },
+      "fifty_two_week_low": {
+        "market_data": null,
+        "market_snapshot_v4": "未取得",
+        "market_snapshot": null
+      },
+      "fifty_two_week_position": {
+        "market_data": null,
+        "market_snapshot_v4": "未取得",
+        "market_snapshot": null
+      }
+    },
+    "week52_keys_missing": [
+      "week_52_high",
+      "week_52_low",
+      "fiftyTwoWeekHigh",
+      "fiftyTwoWeekLow"
+    ],
+    "snap_v4_keys": [
+      "_raw",
+      "current_price",
+      "day_high",
+      "day_low",
+      "volume",
+      "market_cap",
+      "pe",
+      "pb",
+      "dividend_yield",
+      "beta",
+      "fifty_two_week_high",
+      "fifty_two_week_low",
+      "fifty_two_week_position",
+      "source",
+      "confidence",
+      "ticker",
+      "company_name"
+    ]
+  },
+  "D_competitive_landscape": {
+    "competitive_landscape_exists": true,
+    "competitive_landscape_v4_exists": false,
+    "peer_comparison_exists": false,
+    "cl_keys": [
+      "subject",
+      "peers",
+      "peer_tickers",
+      "comparison_table",
+      "advantages",
+      "disadvantages",
+      "data_note",
+      "peer_count"
+    ],
+    "peer_count": 3,
+    "peer_rows": [
+      {
+        "ticker": "1109",
+        "name": "1109.HK",
+        "pe": null,
+        "pb": null
+      },
+      {
+        "ticker": "0960",
+        "name": "0960.HK",
+        "pe": null,
+        "pb": null
+      },
+      {
+        "ticker": "0016",
+        "name": "0016.HK",
+        "pe": null,
+        "pb": null
+      }
+    ],
+    "subject_ticker": "0688.HK"
+  },
+  "E_agent_opinions": {
+    "agent_opinions_count": 7,
+    "agent_opinions_v2_count": 0,
+    "investment_committee_exists": false,
+    "ic_result_verdict": "觀察名單",
+    "zero_confidence_agents": [],
+    "agent_names": [
+      "CEO Agent",
+      "Market Data Agent",
+      "Financial Analyst Agent",
+      "Risk Management Agent",
+      "News Intelligence Agent",
+      "Portfolio Manager Agent",
+      "Investment Committee Agent"
+    ],
+    "old_agent_status_keys": [
+      "CEO Agent",
+      "Market Data Agent",
+      "Financial Analyst Agent",
+      "Risk Agent",
+      "News Intelligence Agent",
+      "Portfolio Manager Agent",
+      "Investment Committee Agent"
+    ]
+  },
+  "F_investment_conclusion": {
+    "investment_conclusion_exists": true,
+    "investment_conclusion_v4_exists": false,
+    "rating": "中性",
+    "target_price": "目標價未能可靠估算（現價數據不足）",
+    "suitable_investor": "平衡型",
+    "investment_horizon": "中線",
+    "decision_basis_count": 5,
+    "final_summary_exists": true,
+    "ic_keys": [
+      "rating",
+      "composite_score",
+      "investment_horizon",
+      "suitable_investor",
+      "target_price",
+      "potential_upside",
+      "confidence",
+      "decision_basis",
+      "final_summary",
+      "valuation_score",
+      "risk_score",
+      "financial_score",
+      "news_score",
+      "market_score"
+    ]
+  },
+  "G_risk": {
+    "risk_analysis_exists": true,
+    "risk_assessment_v2_exists": false,
+    "composite_risk_score": 5.4,
+    "risk_label": "中等風險 🟡",
+    "dimension_scores_keys": [
+      "流動性風險",
+      "債務風險",
+      "現金流風險",
+      "市場風險",
+      "政策風險",
+      "香港行業風險",
+      "下行情景風險"
+    ],
+    "risk_table_rows": 0,
+    "duplicated_categories": [],
+    "risk_v2_keys": []
+  },
+  "H_news": {
+    "news_analysis_exists": true,
+    "news_localized_exists": false,
+    "news_catalyst_exists": false,
+    "news_items_count": 8,
+    "raw_titles_sample": [
+      "Wall Street Dares to Ask If China’s Property Turnaround Is Close",
+      "iGreen Think Tank Releases Independent ESG Research, Highlighting China Overseas Land & Investment Ltd.'s Verified Low-Carbon and Governance Performance",
+      "China Overseas Land & Investment (SEHK:688): Assessing Valuation After Recent Share Price Rebound"
+    ],
+    "localized_titles_sample": [
+      null,
+      null,
+      null
+    ],
+    "sentiment_label": "neutral",
+    "news_status": "取得 8 則已驗證新聞"
+  },
+  "Z_key_audit": {
+    "canonical_keys_present": [
+      "investment_conclusion",
+      "source_registry",
+      "agent_opinions",
+      "competitive_landscape"
+    ],
+    "canonical_keys_missing": [
+      "risk_assessment_v2",
+      "peer_comparison",
+      "hkex_status",
+      "news_localized",
+      "market_snapshot"
+    ],
+    "legacy_keys_present": [
+      "market_snapshot_v4",
+      "agent_status",
+      "risk_analysis"
+    ]
+  }
+}

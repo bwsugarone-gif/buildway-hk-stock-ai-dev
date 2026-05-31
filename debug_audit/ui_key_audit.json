@@ -1,0 +1,644 @@
+{
+  "app.py::_render_recent_reports": {
+    "reads": [
+      "recent_reports",
+      "ticker",
+      "company",
+      "rating",
+      "risk_score",
+      "generated_at",
+      "id",
+      "risk_preference",
+      "portfolio_size"
+    ],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_watchlist": {
+    "reads": [
+      "watchlist"
+    ],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_workspace_layer": {
+    "reads": [],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_client_profile_section": {
+    "reads": [
+      "client_profile",
+      "usage",
+      "display_name",
+      "reports_generated",
+      "tickers_analyzed",
+      "last_active"
+    ],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_stock_showcase_card": {
+    "reads": [
+      "name_zh",
+      "name_en",
+      "sector_zh",
+      "sector",
+      "short_positioning_zh",
+      "current_price",
+      "market_cap",
+      "data_confidence_label",
+      "data_confidence"
+    ],
+    "canonical": [],
+    "legacy": [
+      "data_confidence"
+    ]
+  },
+  "app.py::_render_sector_showcase": {
+    "reads": [],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_workflow_timeline": {
+    "reads": [],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_source_transparency": {
+    "reads": [],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_trust_layer": {
+    "reads": [],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_main_input_panel": {
+    "reads": [
+      "selected_ticker",
+      "is_generating"
+    ],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_empty_state": {
+    "reads": [
+      "Agent",
+      "性格定位",
+      "信心分數",
+      "核心觀點",
+      "正面因素",
+      "主要憂慮",
+      "對評級影響",
+      "company_name_zh",
+      "company_name",
+      "company_name_en",
+      "sector",
+      "business",
+      "market_type",
+      "ticker",
+      "logo_url"
+    ],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_company_logo": {
+    "reads": [],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_report_summary_card": {
+    "reads": [
+      "company_name_zh",
+      "company_name",
+      "company_name_en",
+      "ticker",
+      "sector",
+      "data_confidence_label",
+      "final_rating",
+      "risk_score",
+      "risk_label"
+    ],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_financial_sections": {
+    "reads": [
+      "financial_analysis",
+      "metrics",
+      "history",
+      "risk_assessment_v2",
+      "risk_analysis",
+      "market_data",
+      "current_price",
+      "market_cap",
+      "volume",
+      "pe_ratio",
+      "pb_ratio",
+      "currency",
+      "composite_score",
+      "risk_label",
+      "top_risks",
+      "dimension",
+      "score",
+      "level",
+      "weight"
+    ],
+    "canonical": [
+      "risk_assessment_v2"
+    ],
+    "legacy": [
+      "risk_analysis"
+    ]
+  },
+  "app.py::_render_market_snapshot_section": {
+    "reads": [
+      "kpis",
+      "label",
+      "value",
+      "delta",
+      "snapshot_confidence",
+      "data_source",
+      "is_demo"
+    ],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_allocation_section": {
+    "reads": [
+      "portfolio_size",
+      "suggested_position_hkd",
+      "suggested_position_pct",
+      "max_position_hkd",
+      "max_position_pct",
+      "risk_note",
+      "allocation_note"
+    ],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_hkex_section": {
+    "reads": [
+      "market_data",
+      "report_sections",
+      "hkex_intelligence",
+      "status_summary",
+      "analysis_boundary",
+      "has_data",
+      "earnings",
+      "has_earnings_data",
+      "revenue_ttm",
+      "net_income_ttm",
+      "ebitda",
+      "gross_margin",
+      "net_margin",
+      "roe",
+      "boundary_note",
+      "announcements",
+      "is_connected"
+    ],
+    "canonical": [],
+    "legacy": [
+      "report_sections"
+    ]
+  },
+  "app.py::_render_compare_mode": {
+    "reads": [
+      "valuation_compare",
+      "risk_compare",
+      "sector_compare",
+      "summary",
+      "best_value",
+      "lowest_risk",
+      "analysis_note"
+    ],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_scenario_section": {
+    "reads": [
+      "current_price",
+      "risk_score",
+      "risk_label",
+      "scenarios",
+      "name",
+      "name_zh",
+      "description",
+      "implied_price",
+      "implied_upside",
+      "key_assumption",
+      "key_catalyst",
+      "probability_note",
+      "triggers",
+      "analysis_note"
+    ],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_news_catalyst_section": {
+    "reads": [
+      "status",
+      "news_confidence",
+      "has_news",
+      "analysis_boundary",
+      "positive_catalysts",
+      "negative_catalysts",
+      "neutral_events",
+      "risk_events",
+      "monitor_items"
+    ],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_landing_panel": {
+    "reads": [],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_data_coverage_note": {
+    "reads": [],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_data_store_status": {
+    "reads": [
+      "mode",
+      "today_runs",
+      "today_snapshots",
+      "today_events",
+      "last_recorded_ticker",
+      "date"
+    ],
+    "canonical": [],
+    "legacy": []
+  },
+  "app.py::_render_beta_trial_note": {
+    "reads": [
+      "selected_ticker",
+      "ticker",
+      "risk_preference",
+      "portfolio_size",
+      "agent_status",
+      "agent_error_log",
+      "cover",
+      "metadata",
+      "llm_warning",
+      "session_id",
+      "pdf_path",
+      "data_confidence",
+      "final_rating",
+      "report_package",
+      "data_confidence_label",
+      "company_metadata",
+      "market_data",
+      "investment_committee",
+      "bull_score",
+      "bear_score",
+      "pdf_warning",
+      "peer_comparison",
+      "competitive_analysis",
+      "competitive_landscape",
+      "company_name",
+      "pe_ratio",
+      "pb_ratio",
+      "dividend_yield",
+      "market_cap",
+      "risk_score",
+      "peers",
+      "strengths",
+      "weaknesses",
+      "source_transparency",
+      "data_confidence_score",
+      "financial_coverage_score",
+      "news_verification_score",
+      "hkex_verification_score",
+      "agent_consensus_score",
+      "data_freshness_score",
+      "data_sources",
+      "market_snapshot",
+      "current_price",
+      "week_52_high",
+      "week_52_low",
+      "volume",
+      "financial_analysis",
+      "revenue_trend",
+      "ebitda_trend",
+      "net_profit_trend",
+      "fcf_trend",
+      "risk_analysis",
+      "risk_assessment_v2",
+      "news_catalyst_analysis",
+      "positive_catalysts",
+      "neutral_events",
+      "negative_catalysts",
+      "risk_events",
+      "multi_agent_discussion",
+      "table",
+      "Agent",
+      "核心觀點",
+      "opinion",
+      "正面因素",
+      "主要憂慮",
+      "bull_points",
+      "bear_points",
+      "confidence",
+      "final_statement",
+      "agents",
+      "investment_horizon",
+      "executive_summary",
+      "summary",
+      "scenario_analysis",
+      "system_stability",
+      "has_failures",
+      "message",
+      "failed_agents"
+    ],
+    "canonical": [
+      "peer_comparison",
+      "competitive_landscape",
+      "market_snapshot",
+      "risk_assessment_v2"
+    ],
+    "legacy": [
+      "agent_status",
+      "data_confidence",
+      "source_transparency",
+      "risk_analysis"
+    ]
+  },
+  "fos_components.py::render_company_sidebar": {
+    "reads": [
+      "cover",
+      "company_metadata",
+      "market_data"
+    ],
+    "canonical": [],
+    "legacy": []
+  },
+  "fos_components.py::render_competitive_landscape": {
+    "reads": [
+      "peer_comparison",
+      "competitive_analysis",
+      "cover",
+      "peers",
+      "competitors",
+      "name",
+      "ticker",
+      "summary",
+      "description"
+    ],
+    "canonical": [
+      "peer_comparison"
+    ],
+    "legacy": []
+  },
+  "fos_components.py::render_confidence_breakdown": {
+    "reads": [
+      "data_confidence",
+      "cover",
+      "overall_score",
+      "score",
+      "data_confidence_score",
+      "level",
+      "financial_coverage",
+      "financial_data_coverage",
+      "news_verification",
+      "news_score",
+      "hkex_verification",
+      "hkex_score",
+      "agent_consensus",
+      "consensus_score",
+      "data_freshness",
+      "freshness_score",
+      "sources"
+    ],
+    "canonical": [],
+    "legacy": [
+      "data_confidence"
+    ]
+  },
+  "fos_components.py::render_risk_event_cards": {
+    "reads": [
+      "risk_assessment_v2",
+      "risk_analysis",
+      "risk_items",
+      "risks",
+      "risk_factors",
+      "category",
+      "type",
+      "reason",
+      "description",
+      "probability",
+      "prob",
+      "impact",
+      "impact_level",
+      "monitoring",
+      "suggested_monitoring",
+      "opinion",
+      "view",
+      "stance",
+      "reasoning",
+      "rationale",
+      "analysis",
+      "confidence",
+      "confidence_score"
+    ],
+    "canonical": [
+      "risk_assessment_v2"
+    ],
+    "legacy": [
+      "risk_analysis",
+      "confidence_score"
+    ]
+  },
+  "fos_components.py::render_multi_agent_committee": {
+    "reads": [
+      "investment_committee",
+      "agents",
+      "opinion",
+      "view",
+      "stance",
+      "reasoning",
+      "rationale",
+      "analysis",
+      "confidence",
+      "confidence_score",
+      "verdict",
+      "final_recommendation",
+      "committee_summary",
+      "bull_score",
+      "bear_score",
+      "overall_confidence"
+    ],
+    "canonical": [],
+    "legacy": [
+      "confidence_score"
+    ]
+  },
+  "fos_components.py::render_market_snapshot": {
+    "reads": [
+      "market_data",
+      "current_price",
+      "price",
+      "week_52_high",
+      "high_52w",
+      "week_52_low",
+      "low_52w",
+      "volume",
+      "avg_volume",
+      "change_pct",
+      "price_change_pct"
+    ],
+    "canonical": [],
+    "legacy": []
+  },
+  "fos_components.py::render_financial_trends": {
+    "reads": [
+      "financial_analysis",
+      "trends",
+      "financial_trends",
+      "year",
+      "period",
+      "value",
+      "amount"
+    ],
+    "canonical": [],
+    "legacy": []
+  },
+  "fos_components.py::render_news_sentiment": {
+    "reads": [
+      "news_analysis",
+      "positive_count",
+      "positive",
+      "neutral_count",
+      "neutral",
+      "negative_count",
+      "negative",
+      "credibility",
+      "news_credibility",
+      "catalysts",
+      "catalyst_events",
+      "watchlist",
+      "monitoring_items"
+    ],
+    "canonical": [],
+    "legacy": []
+  },
+  "fos_components.py::render_investment_conclusion": {
+    "reads": [
+      "investment_conclusion",
+      "investment_committee",
+      "rating",
+      "recommendation",
+      "final_recommendation",
+      "horizon",
+      "investment_horizon",
+      "investor_profile",
+      "suitable_for",
+      "summary",
+      "conclusion_summary",
+      "committee_summary",
+      "target_price",
+      "price_target",
+      "upside",
+      "upside_pct"
+    ],
+    "canonical": [
+      "investment_conclusion"
+    ],
+    "legacy": []
+  },
+  "fos_components.py::render_peer_comparison": {
+    "reads": [
+      "competitive_landscape",
+      "peers",
+      "subject",
+      "_is_subject",
+      "ticker",
+      "company_name",
+      "name",
+      "pe_ratio",
+      "pe",
+      "pb_ratio",
+      "pb",
+      "dividend_yield",
+      "div_yield",
+      "market_cap_bn",
+      "market_cap",
+      "risk_score",
+      "strengths",
+      "weaknesses"
+    ],
+    "canonical": [
+      "competitive_landscape"
+    ],
+    "legacy": []
+  },
+  "fos_components.py::render_source_transparency": {
+    "reads": [
+      "source_registry",
+      "source_transparency",
+      "cover",
+      "confidence_level",
+      "data_confidence",
+      "coverage_pct",
+      "name",
+      "verified_sources",
+      "confidence_reason"
+    ],
+    "canonical": [
+      "source_registry"
+    ],
+    "legacy": [
+      "source_transparency",
+      "data_confidence",
+      "verified_sources"
+    ]
+  },
+  "fos_components.py::render_risk_dashboard": {
+    "reads": [
+      "risk_assessment_v2",
+      "risk_items",
+      "composite_score",
+      "risk_label",
+      "score_raw",
+      "score",
+      "risk_name",
+      "level",
+      "reason",
+      "monitoring_signal",
+      "weight"
+    ],
+    "canonical": [
+      "risk_assessment_v2"
+    ],
+    "legacy": []
+  },
+  "fos_components.py::render_bull_bear_debate": {
+    "reads": [
+      "agent_opinions_v2",
+      "bull_agents",
+      "bear_agents",
+      "verdict",
+      "name",
+      "view",
+      "reasons",
+      "bull_score",
+      "bear_score",
+      "confidence",
+      "summary",
+      "committee_summary",
+      "recommendation",
+      "final_recommendation"
+    ],
+    "canonical": [],
+    "legacy": []
+  },
+  "fos_components.py::render_market_sentiment_background": {
+    "reads": [],
+    "canonical": [],
+    "legacy": []
+  }
+}

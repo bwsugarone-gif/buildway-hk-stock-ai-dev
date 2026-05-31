@@ -142,51 +142,83 @@ def render_competitive_landscape(report_data: Dict[str, Any]) -> None:
 
 
 # ─── 3. Confidence Score Breakdown ────────────────────────────────────────────
+# v4.0.5: This panel is REMOVED for INVALID tickers and when dimension scores
+# are not real. Only render_source_transparency (section 11) is authoritative.
+# This function is kept as a no-op stub to avoid import errors in legacy callers.
 
 def render_confidence_breakdown(report_data: Dict[str, Any]) -> None:
-    """5-dimension confidence score breakdown."""
-    conf = report_data.get("data_confidence", {}) or {}
-    cover= report_data.get("cover", {}) or {}
+    """
+    v4.0.5: Deprecated — replaced by render_source_transparency.
+    Only renders if ALL dimension scores are real (non-zero, non-hardcoded).
+    INVALID ticker → shows single honest message, no score, no bars.
+    """
+    # Check confidence level from source_registry (authoritative)
+    registry = report_data.get("source_registry", {}) or {}
+    cover = report_data.get("cover", {}) or {}
 
-    # Try to get overall score
-    overall_raw = (
-        conf.get("overall_score")
-        or conf.get("score")
-        or cover.get("data_confidence_score")
-        or 0
-    )
+    # Determine level
+    if registry:
+        try:
+            from core.source_registry import compute_confidence_level
+            level_upper = compute_confidence_level(registry).upper()
+        except Exception:
+            level_upper = "LOW"
+    else:
+        level_upper = str(
+            (report_data.get("source_transparency", {}) or {}).get("confidence_level")
+            or cover.get("data_confidence", "LOW")
+        ).upper()
+
+    # INVALID: show only honest message, no score panel
+    if level_upper == "INVALID":
+        st.info("資料驗證未完成，無法計算可信度評分。")
+        return
+
+    # For valid tickers: only show if we have real dimension scores
+    conf = report_data.get("data_confidence", {}) or {}
+    dimensions = [
+        conf.get("financial_coverage", conf.get("financial_data_coverage")),
+        conf.get("news_verification", conf.get("news_score")),
+        conf.get("hkex_verification", conf.get("hkex_score")),
+        conf.get("agent_consensus", conf.get("consensus_score")),
+        conf.get("data_freshness", conf.get("freshness_score")),
+    ]
+    real_dims = [d for d in dimensions if d not in (None, 0, 0.0, "")]
+    if not real_dims:
+        # No real dimension data — do not render fake bars
+        return
+
+    # All dimensions are real — render the breakdown
+    overall_raw = conf.get("overall_score") or conf.get("score") or 0
     try:
         overall = float(overall_raw)
     except (TypeError, ValueError):
         overall = 0.0
 
-    level_text = str(conf.get("level") or cover.get("data_confidence") or "").upper()
     if not overall:
-        if "HIGH" in level_text:
-            overall = 85.0
-        elif "MEDIUM" in level_text:
-            overall = 60.0
-        elif "LOW" in level_text:
-            overall = 35.0
+        vals = []
+        for d in dimensions:
+            try:
+                vals.append(float(d or 0))
+            except (TypeError, ValueError):
+                vals.append(0.0)
+        overall = sum(vals) / len(vals) if vals else 0.0
 
     color = _confidence_color(overall)
-
     st.markdown("## 📊 資料可信度評分")
     st.markdown(
         f'<div style="font-size:2.2rem;font-weight:700;color:{color};">'
         f'{overall:.0f}<span style="font-size:1rem;"> / 100</span></div>',
         unsafe_allow_html=True,
     )
-
-    dimensions = [
+    dim_labels = [
         ("財務數據覆蓋率", conf.get("financial_coverage", conf.get("financial_data_coverage", 0))),
         ("新聞驗證",       conf.get("news_verification", conf.get("news_score", 0))),
         ("HKEX 驗證",     conf.get("hkex_verification", conf.get("hkex_score", 0))),
         ("Agent 共識度",  conf.get("agent_consensus", conf.get("consensus_score", 0))),
         ("數據新鮮度",    conf.get("data_freshness", conf.get("freshness_score", 0))),
     ]
-
-    for dim_name, raw_val in dimensions:
+    for dim_name, raw_val in dim_labels:
         try:
             val = float(raw_val or 0)
         except (TypeError, ValueError):
@@ -194,13 +226,6 @@ def render_confidence_breakdown(report_data: Dict[str, Any]) -> None:
         c = _confidence_color(val)
         st.markdown(f"**{dim_name}**", unsafe_allow_html=False)
         st.markdown(_pct_bar(val, c), unsafe_allow_html=True)
-
-    # Sources
-    sources = conf.get("sources", []) or []
-    if sources:
-        st.markdown("**已驗證來源**")
-        for s in sources:
-            st.markdown(f"✓ {s}")
 
 
 # ─── 4. Risk Event Cards ──────────────────────────────────────────────────────

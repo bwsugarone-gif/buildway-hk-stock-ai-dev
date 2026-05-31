@@ -126,7 +126,7 @@ check("source_registry has market_data key", "market_data" in sr, got=list(sr.ke
 # ─── Test 5: config version ───────────────────────────────────────────────────
 print("\n=== Test 5: config version ===")
 from core.config import APP_VERSION, BUILD_STAGE
-check("APP_VERSION == v4.0.4", APP_VERSION == "v4.0.4", got=APP_VERSION)
+check("APP_VERSION >= v4.0.4", APP_VERSION in ("v4.0.4", "v4.0.5"), got=APP_VERSION)
 check("BUILD_STAGE updated",   "Browser" in BUILD_STAGE or "Mobile" in BUILD_STAGE, got=BUILD_STAGE)
 
 

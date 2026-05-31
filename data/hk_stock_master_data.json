@@ -178,5 +178,31 @@
     "market_type_en": "Large-cap technology stock",
     "short_positioning_zh": "大型電商與雲服務平台，適合展示平台估值與重組分析。",
     "logo_url": "https://logo.clearbit.com/alibabagroup.com"
+  },
+  "0728.HK": {
+    "name_zh": "中國電訊",
+    "name_en": "China Telecom",
+    "sector": "電訊 / 公用",
+    "sector_zh": "電訊 / 公用",
+    "sector_en": "Telecom / Utilities",
+    "business": "固網寬頻、移動通信及企業資訊科技服務",
+    "business_zh": "固網寬頻、移動通信及企業資訊科技服務",
+    "business_en": "Fixed-line broadband, mobile communications and enterprise IT services.",
+    "market_type": "大型電訊股",
+    "market_type_zh": "大型電訊股",
+    "market_type_en": "Large-cap telecom stock"
+  },
+  "0762.HK": {
+    "name_zh": "中國聯通",
+    "name_en": "China Unicom",
+    "sector": "電訊 / 公用",
+    "sector_zh": "電訊 / 公用",
+    "sector_en": "Telecom / Utilities",
+    "business": "移動通信、固網寬頻及雲端服務",
+    "business_zh": "移動通信、固網寬頻及雲端服務",
+    "business_en": "Mobile communications, fixed-line broadband and cloud services.",
+    "market_type": "大型電訊股",
+    "market_type_zh": "大型電訊股",
+    "market_type_en": "Large-cap telecom stock"
   }
 }

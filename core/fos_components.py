@@ -207,7 +207,12 @@ def render_confidence_breakdown(report_data: Dict[str, Any]) -> None:
 
 def render_risk_event_cards(report_data: Dict[str, Any]) -> None:
     """Risk event cards with category, reason, probability, impact, monitoring."""
-    risk = report_data.get("risk_analysis", {}) or {}
+    # canonical key first, legacy key as fallback
+    risk = (
+        report_data.get("risk_assessment_v2", {})
+        or report_data.get("risk_analysis", {})
+        or {}
+    )
     items = risk.get("risk_items", risk.get("risks", risk.get("risk_factors", []))) or []
 
     st.markdown("## ⚠️ 風險事件分析")

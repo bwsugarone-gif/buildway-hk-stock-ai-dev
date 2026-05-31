@@ -930,7 +930,12 @@ def _render_financial_sections(
     financial = sections.get("financial_analysis", {}) or {}
     metrics = _valid_metric_rows(financial.get("metrics", []) or [])
     history = _valid_history_rows(financial.get("history", []) or [])
-    risk = sections.get("risk_analysis", {}) or {}
+    # canonical key first, legacy key as fallback
+    risk = (
+        (report_package or {}).get("risk_assessment_v2", {})
+        or sections.get("risk_analysis", {})
+        or {}
+    )
     market = (report_package or {}).get("market_data", {}) or {}
 
     market_metrics = [
@@ -1715,7 +1720,9 @@ if st.session_state.report_sections:
     if confidence_level != "INVALID":
         _section_title("風險分析", "風險分析", "")
         risk_sec = sections.get("risk_analysis", {}) or {}
+        risk_v2_sec = (report_package or {}).get("risk_assessment_v2", {}) or {}
         render_risk_event_cards({
+            "risk_assessment_v2": risk_v2_sec,
             "risk_analysis": risk_sec,
         })
         # Risk Dashboard v3.5

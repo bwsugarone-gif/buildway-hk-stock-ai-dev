@@ -14,6 +14,7 @@ from core.market_snapshot import build_market_snapshot
 from core.scenario_engine import build_scenario_analysis
 from core.risk_engine_v2 import build_risk_assessment
 from core.source_transparency import build_source_transparency
+from core.source_registry import build_source_registry
 from core.agent_opinion_engine import build_agent_opinions
 from core.competitive_landscape_engine import build_competitive_landscape
 from core.data_confidence import (
@@ -124,6 +125,12 @@ class ReportBuilder:
         except Exception:
             competitive_landscape = {}
 
+        # v4.0.4: build authoritative source_registry — UI reads from this key
+        try:
+            source_registry = build_source_registry(report_package)
+        except Exception:
+            source_registry = {}
+
         sections = {
             "metadata": {
                 "brand": APP_NAME,
@@ -142,6 +149,7 @@ class ReportBuilder:
             # ── v3.5 新增 ──
             "competitive_landscape": competitive_landscape,
             "source_transparency": source_transparency,
+            "source_registry": source_registry,   # v4.0.4: authoritative registry for UI
             "agent_opinions_v2": agent_opinions_v2,
             "risk_assessment_v2": risk_v2,
             # ─────────────────
@@ -189,6 +197,12 @@ class ReportBuilder:
             out["competitive_landscape"] = build_competitive_landscape(ticker, report_package)
         except Exception as exc:
             out["competitive_landscape"] = {"error": str(exc)}
+
+        # v4.0.4: authoritative source_registry for UI rendering
+        try:
+            out["source_registry"] = build_source_registry(report_package)
+        except Exception as exc:
+            out["source_registry"] = {"error": str(exc)}
 
         return out
 

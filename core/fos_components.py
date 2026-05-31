@@ -207,7 +207,12 @@ def render_confidence_breakdown(report_data: Dict[str, Any]) -> None:
 
 def render_risk_event_cards(report_data: Dict[str, Any]) -> None:
     """Risk event cards with category, reason, probability, impact, monitoring."""
-    risk = report_data.get("risk_analysis", {}) or {}
+    # canonical key first, legacy key as fallback
+    risk = (
+        report_data.get("risk_assessment_v2", {})
+        or report_data.get("risk_analysis", {})
+        or {}
+    )
     items = risk.get("risk_items", risk.get("risks", risk.get("risk_factors", []))) or []
 
     st.markdown("## ⚠️ 風險事件分析")
@@ -265,12 +270,30 @@ def render_risk_event_cards(report_data: Dict[str, Any]) -> None:
 
 # ─── 5. Multi-Agent Investment Committee ──────────────────────────────────────
 
+_PLACEHOLDER_OPINIONS = {"觀點待整合", "論據待整合", "", None}
+
+def _agent_has_real_data(agent: dict) -> bool:
+    """Return True only if the agent dict contains non-placeholder opinion data."""
+    opinion = agent.get("opinion") or agent.get("view") or agent.get("stance") or ""
+    reasoning = agent.get("reasoning") or agent.get("rationale") or agent.get("analysis") or ""
+    confidence = agent.get("confidence") or agent.get("confidence_score") or 0
+    try:
+        conf_val = float(confidence)
+    except (TypeError, ValueError):
+        conf_val = 0.0
+    # Real data: opinion is non-empty and not a placeholder, OR confidence > 0
+    opinion_real = bool(opinion) and opinion not in _PLACEHOLDER_OPINIONS
+    return opinion_real or conf_val > 0
+
+
 def render_multi_agent_committee(report_data: Dict[str, Any]) -> None:
-    """6-agent investment committee — each shows opinion, reasoning, confidence."""
+    """6-agent investment committee — each shows opinion, reasoning, confidence.
+
+    v4.0.4 fix: panel is hidden entirely when no agent has real data.
+    Placeholder strings '觀點待整合' / 0% are never shown.
+    """
     ic = report_data.get("investment_committee", {}) or {}
     agents_data = ic.get("agents", {}) or {}
-
-    st.markdown("## 🏛️ AI 投資委員會")
 
     agent_defs = [
         ("financial_agent",  "💹 財務 Agent",  "#1a73e8"),
@@ -281,16 +304,24 @@ def render_multi_agent_committee(report_data: Dict[str, Any]) -> None:
         ("pm_agent",         "🎯 PM Agent",    "#2e7d32"),
     ]
 
-    cols = st.columns(3)
-    for idx, (key, label, color) in enumerate(agent_defs):
-        agent = agents_data.get(key, {}) or {}
-        # Fallback: try top-level keys
-        if not agent:
-            agent = ic.get(key, {}) or {}
+    # Collect agents that have real data
+    real_agents = []
+    for key, label, color in agent_defs:
+        agent = agents_data.get(key, {}) or ic.get(key, {}) or {}
+        if _agent_has_real_data(agent):
+            real_agents.append((key, label, color, agent))
 
-        opinion    = agent.get("opinion", agent.get("view", agent.get("stance", "觀點待整合")))
-        reasoning  = agent.get("reasoning", agent.get("rationale", agent.get("analysis", "論據待整合")))
-        confidence = agent.get("confidence", agent.get("confidence_score", 0))
+    # If no agent has real data, hide the entire panel
+    if not real_agents:
+        return
+
+    st.markdown("## 🏛️ AI 投資委員會")
+
+    cols = st.columns(3)
+    for idx, (key, label, color, agent) in enumerate(real_agents):
+        opinion    = agent.get("opinion") or agent.get("view") or agent.get("stance") or "—"
+        reasoning  = agent.get("reasoning") or agent.get("rationale") or agent.get("analysis") or "—"
+        confidence = agent.get("confidence") or agent.get("confidence_score") or 0
         try:
             conf_val = float(confidence or 0)
         except (TypeError, ValueError):
@@ -309,11 +340,11 @@ def render_multi_agent_committee(report_data: Dict[str, Any]) -> None:
                 unsafe_allow_html=True,
             )
 
-    # Committee verdict
-    verdict   = ic.get("verdict", ic.get("final_recommendation", ic.get("committee_summary", "")))
-    bull_score= ic.get("bull_score", 0)
-    bear_score= ic.get("bear_score", 0)
-    ic_conf   = ic.get("confidence", ic.get("overall_confidence", 0))
+    # Committee verdict — only show if real data exists
+    verdict   = ic.get("verdict") or ic.get("final_recommendation") or ic.get("committee_summary") or ""
+    bull_score= ic.get("bull_score") or 0
+    bear_score= ic.get("bear_score") or 0
+    ic_conf   = ic.get("confidence") or ic.get("overall_confidence") or 0
 
     if verdict or bull_score or bear_score:
         st.markdown("---")
@@ -558,7 +589,21 @@ def render_peer_comparison(report_data: Dict[str, Any]) -> None:
         bg = "#e8f0fe" if is_sub else "#fff"
         fw = "700" if is_sub else "400"
         ticker = row.get("ticker", "—")
-        name = row.get("name", row.get("company_name", "—"))
+
+        # v4.0.4 fix: show real company name or explicit fallback — never raw ticker
+        raw_name = (
+            row.get("company_name")
+            or row.get("name")
+            or ""
+        )
+        # Reject names that are just the ticker code (e.g. "0728", "0728.HK")
+        _ticker_clean = str(ticker).upper().replace(".HK", "").strip()
+        _name_clean = str(raw_name).upper().replace(".HK", "").strip()
+        if not raw_name or _name_clean == _ticker_clean or raw_name in ("—", "N/A"):
+            name = "公司名稱未收錄"
+        else:
+            name = raw_name
+
         pe = row.get("pe_ratio", row.get("pe", "—"))
         pb = row.get("pb_ratio", row.get("pb", "—"))
         div = row.get("dividend_yield", row.get("div_yield", "—"))
@@ -605,22 +650,55 @@ def render_peer_comparison(report_data: Dict[str, Any]) -> None:
 # ─── 11. Source Transparency (v3.5) ───────────────────────────────────────────
 
 def render_source_transparency(report_data: Dict[str, Any]) -> None:
-    """Data confidence evidence: level, coverage %, verified sources."""
-    st_data = report_data.get("source_transparency", {}) or {}
-    cover = report_data.get("cover", {}) or {}
+    """Data confidence evidence: level, coverage %, verified sources.
 
-    level = st_data.get("confidence_level") or cover.get("data_confidence", "LOW")
-    coverage = st_data.get("coverage_pct", 0)
-    sources = st_data.get("verified_sources", []) or []
-    reason = st_data.get("confidence_reason", "")
+    v4.0.4 fix: reads exclusively from source_registry payload.
+    INVALID ticker → coverage=0, verified_sources=[], no green ticks.
+    """
+    # ── Primary: read from source_registry (authoritative, built by source_registry.py) ──
+    registry = report_data.get("source_registry", {}) or {}
 
-    LEVEL_COLOR = {"HIGH": "#1e8e3e", "MEDIUM": "#f29900", "LOW": "#d93025"}
-    color = LEVEL_COLOR.get(str(level).upper(), "#5f6368")
+    # Derive level and coverage from registry when available
+    if registry:
+        # Import lazily to avoid circular imports at module level
+        try:
+            from core.source_registry import compute_coverage_pct, compute_confidence_level, get_verified_sources
+            level = compute_confidence_level(registry)
+            cov_pct = compute_coverage_pct(registry)
+            verified_source_names = get_verified_sources(registry)
+        except Exception:
+            level = "LOW"
+            cov_pct = 0.0
+            verified_source_names = []
+    else:
+        # Fallback: read from source_transparency sub-dict (legacy path)
+        st_data = report_data.get("source_transparency", {}) or {}
+        cover = report_data.get("cover", {}) or {}
+        level = st_data.get("confidence_level") or cover.get("data_confidence", "LOW")
+        try:
+            cov_pct = float(st_data.get("coverage_pct", 0) or 0)
+        except (TypeError, ValueError):
+            cov_pct = 0.0
+        verified_source_names = [
+            (s.get("name", str(s)) if isinstance(s, dict) else str(s))
+            for s in (st_data.get("verified_sources", []) or [])
+        ]
 
-    try:
-        cov_pct = float(coverage)
-    except (TypeError, ValueError):
+    # INVALID guard: if level is INVALID, force coverage=0 and no sources
+    level_upper = str(level).upper()
+    if level_upper == "INVALID":
         cov_pct = 0.0
+        verified_source_names = []
+
+    reason = (report_data.get("source_transparency", {}) or {}).get("confidence_reason", "")
+
+    LEVEL_COLOR = {
+        "HIGH": "#1e8e3e",
+        "MEDIUM": "#f29900",
+        "LOW": "#d93025",
+        "INVALID": "#7b1fa2",
+    }
+    color = LEVEL_COLOR.get(level_upper, "#5f6368")
 
     st.markdown("## 🔍 資料可信度來源")
 
@@ -629,27 +707,28 @@ def render_source_transparency(report_data: Dict[str, Any]) -> None:
         st.markdown(
             f'<div style="text-align:center;padding:20px;border:2px solid {color};'
             f'border-radius:12px;background:{color}18;">'
-            f'<div style="font-size:1.6rem;font-weight:800;color:{color};">{level}</div>'
+            f'<div style="font-size:1.6rem;font-weight:800;color:{color};">{level_upper}</div>'
             f'<div style="font-size:2.4rem;font-weight:900;color:{color};">{cov_pct:.0f}%</div>'
             f'<div style="font-size:0.8rem;color:#5f6368;">資料覆蓋率</div>'
             f'</div>',
             unsafe_allow_html=True,
         )
     with col2:
-        if reason:
-            st.markdown(f"**為何 {level}？**")
-            st.markdown(reason)
-        if sources:
-            st.markdown("**已驗證來源**")
-            for src in sources:
-                icon = src.get("icon", "✓") if isinstance(src, dict) else "✓"
-                name = src.get("name", str(src)) if isinstance(src, dict) else str(src)
-                verified = src.get("verified", True) if isinstance(src, dict) else True
-                check_color = "#1e8e3e" if verified else "#d93025"
-                st.markdown(
-                    f'<span style="color:{check_color};font-weight:600;">{icon} {name}</span>',
-                    unsafe_allow_html=True,
-                )
+        if level_upper == "INVALID":
+            st.error("⚠️ 股票代碼無效或資料完全不可用。請確認代碼是否正確。")
+        else:
+            if reason:
+                st.markdown(f"**為何 {level_upper}？**")
+                st.markdown(reason)
+            if verified_source_names:
+                st.markdown("**已驗證來源**")
+                for name in verified_source_names:
+                    st.markdown(
+                        f'<span style="color:#1e8e3e;font-weight:600;">✓ {name}</span>',
+                        unsafe_allow_html=True,
+                    )
+            else:
+                st.warning("無已驗證來源")
 
 
 # ─── 12. Risk Dashboard (v3.5) ────────────────────────────────────────────────

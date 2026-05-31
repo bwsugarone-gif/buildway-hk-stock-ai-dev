@@ -1,0 +1,135 @@
+{
+  "audit_target": "0066",
+  "normalized_ticker": "0066.HK",
+  "ticker_normalization": {
+    "raw_input": "0066",
+    "normalized": "0066.HK",
+    "in_master_data": false,
+    "in_sample_data": false,
+    "master_data_keys_count": 14
+  },
+  "yahoo_finance_payload": {
+    "yfinance_available": false,
+    "forced_offline_for_audit": true,
+    "market_data_confidence": "INVALID",
+    "current_price": 0,
+    "market_cap": 0,
+    "company_name": "",
+    "fallback_reason": null,
+    "is_demo": false,
+    "missing_data_flags": [
+      "invalid_or_unconfirmed_ticker"
+    ]
+  },
+  "metadata_payload": {
+    "company_metadata_from_master": null,
+    "company_metadata_in_market_result": {},
+    "name_zh": null,
+    "name_en": null,
+    "sector": null
+  },
+  "source_registry": {
+    "market_data": {
+      "enabled": true,
+      "verified": false,
+      "source": "Yahoo Finance / yfinance",
+      "last_updated": "2026-05-31",
+      "verified_fields": [],
+      "missing_fields": [
+        "現價",
+        "市盈率",
+        "市帳率",
+        "股息率",
+        "市值",
+        "52週高位",
+        "52週低位",
+        "成交量",
+        "Beta"
+      ],
+      "note": "市場數據未能取得，使用本地參考數據。"
+    },
+    "company_metadata": {
+      "enabled": true,
+      "verified": false,
+      "source": "本地公司資料庫 / HK Stock Master Data",
+      "last_updated": "2026-05-31",
+      "verified_fields": [],
+      "missing_fields": [
+        "中文名稱",
+        "英文名稱",
+        "行業板塊",
+        "業務簡介",
+        "市場類別"
+      ],
+      "note": "公司資料未收錄，請確認股票代碼是否正確。"
+    },
+    "financial_statement": {
+      "enabled": true,
+      "verified": false,
+      "source": "Yahoo Finance 財務報表 / yfinance",
+      "last_updated": "2026-05-31",
+      "verified_fields": [],
+      "missing_fields": [
+        "收入",
+        "淨利潤",
+        "EBITDA",
+        "自由現金流",
+        "毛利率",
+        "淨利率",
+        "ROE",
+        "總資產",
+        "總負債"
+      ],
+      "note": "財務報表數據未能取得，部分財務分析可能不完整。"
+    },
+    "news": {
+      "enabled": true,
+      "verified": false,
+      "source": "TipRanks / Yahoo Finance News",
+      "last_updated": "2026-05-31",
+      "verified_fields": [],
+      "missing_fields": [
+        "新聞資料"
+      ],
+      "note": "新聞資料未能取得，新聞分析將顯示為不可用。"
+    },
+    "hkex": {
+      "enabled": false,
+      "verified": false,
+      "source": "未接入",
+      "status": "DISABLED",
+      "last_updated": "2026-05-31",
+      "verified_fields": [],
+      "missing_fields": [
+        "全部 HKEX 公告資料"
+      ],
+      "note": "HKEX 公告模組尚未啟用，不計入資料可信度評分。"
+    }
+  },
+  "confidence_level": "INVALID",
+  "confidence_coverage_pct": 0.0,
+  "verified_sources": [],
+  "investment_committee": {},
+  "final_report_data": {
+    "fos_keys": [
+      "risk_assessment_v2",
+      "source_transparency",
+      "agent_opinions_v2",
+      "competitive_landscape",
+      "source_registry"
+    ],
+    "market_data_verified": false,
+    "company_metadata_verified": false,
+    "financial_statement_verified": false,
+    "news_verified": false
+  },
+  "root_cause_analysis": {
+    "primary_cause": "0066.HK not in hk_stock_master_data.json AND not in SAMPLE_HK_STOCKS",
+    "secondary_cause": "With yfinance offline: market_data_agent returns invalid_market_data() because normalized not in SAMPLE_HK_STOCKS and metadata is empty",
+    "tertiary_cause": "With yfinance online: yfinance may return data but company_metadata will be empty (no name_zh/name_en), causing company_metadata.verified=False",
+    "gate_check_file": "agents/market_data_agent.py",
+    "gate_check_line": "line 145: if normalized not in SAMPLE_HK_STOCKS and not metadata: return invalid_market_data(...)",
+    "master_data_file": "data/hk_stock_master_data.json",
+    "sample_data_file": "data/sample_data.py"
+  }
+}

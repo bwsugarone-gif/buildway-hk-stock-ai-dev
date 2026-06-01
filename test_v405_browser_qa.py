@@ -293,11 +293,11 @@ class TestInvestmentCommitteePanel:
 class TestConfigVersion:
     def test_version_is_v405(self):
         from core.config import APP_VERSION
-        assert APP_VERSION == "v4.0.5", f"Expected v4.0.5, got {APP_VERSION}"
+        assert APP_VERSION in ("v4.0.5", "v4.1.0"), f"Expected v4.0.5 or v4.1.0, got {APP_VERSION}"
 
     def test_build_stage(self):
         from core.config import BUILD_STAGE
-        assert "Browser QA" in BUILD_STAGE or "Final" in BUILD_STAGE
+        assert "Browser QA" in BUILD_STAGE or "Final" in BUILD_STAGE or "Data Foundation" in BUILD_STAGE
 
 
 # ─── Test 5: competitive_landscape_engine peer name resolution ────────────────

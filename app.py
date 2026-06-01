@@ -1817,12 +1817,26 @@ if st.session_state.report_sections:
     rating_raw = cover.get("final_rating", "觀察")
     rating_map = {"買入": "買入", "增持": "買入", "中性": "中性", "減持": "減持", "賣出": "避免", "避免": "避免"}
     mapped_rating = rating_map.get(rating_raw, "觀察")
+
+    # v4.1 wiring fix: use investment_conclusion engine output when available
+    _ic_engine = report_package.get("investment_conclusion") or sections.get("investment_conclusion") or {}
+    _ic_rating = _ic_engine.get("rating") or mapped_rating
+    _ic_horizon = _ic_engine.get("investment_horizon") or _ic_engine.get("horizon") or report_package.get("investment_horizon", "中線")
+    _ic_investor = _ic_engine.get("suitable_investor") or _ic_engine.get("investor_type") or (request_risk_preference if request_risk_preference in ("保守", "平衡", "進取") else "平衡")
+    _ic_summary = _ic_engine.get("final_summary") or _ic_engine.get("summary") or cover.get("executive_summary", cover.get("summary", "綜合分析後，請參閱完整報告。"))
+    _ic_target = _ic_engine.get("target_price") or "目標價未能可靠估算"
+    _ic_upside = _ic_engine.get("potential_upside") or "升幅未能可靠估算"
+    _ic_decision_basis = _ic_engine.get("decision_basis") or []
+
     render_investment_conclusion({
         "investment_conclusion": {
-            "rating": mapped_rating,
-            "horizon": report_package.get("investment_horizon", "中線"),
-            "investor_type": request_risk_preference if request_risk_preference in ("保守", "平衡", "進取") else "平衡",
-            "summary": cover.get("executive_summary", cover.get("summary", "綜合分析後，請參閱完整報告。")),
+            "rating": _ic_rating,
+            "horizon": _ic_horizon,
+            "investor_type": _ic_investor,
+            "summary": _ic_summary,
+            "target_price": _ic_target,
+            "upside": _ic_upside,
+            "decision_basis": _ic_decision_basis,
         }
     })
 

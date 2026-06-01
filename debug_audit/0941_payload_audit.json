@@ -1,240 +1,59 @@
 {
-  "ticker": "0941",
-  "audit_version": "v4.0.3",
-  "error": null,
-  "A_top_level_keys": [
-    "report_metadata",
-    "market_data",
-    "financial_history",
-    "financial_analysis",
-    "risk_analysis",
-    "news_analysis",
-    "portfolio_analysis",
-    "ic_result",
-    "agent_opinions",
-    "agent_status",
-    "agent_error_log",
-    "summary",
-    "ipo_module",
-    "source_registry",
-    "data_coverage_pct",
-    "confidence_level",
-    "market_snapshot_v4",
-    "competitive_landscape",
-    "investment_conclusion"
-  ],
-  "B_source_registry": {
-    "exists": true,
-    "keys": [
-      "market_data",
-      "company_metadata",
-      "financial_statement",
-      "news",
-      "hkex"
-    ],
-    "coverage_pct": 68.0,
-    "confidence_level": "HIGH",
-    "verified_sources": [
-      "market_data",
-      "company_metadata",
-      "financial_statement",
-      "news"
-    ],
-    "missing_sources": [
-      "hkex"
-    ],
-    "hkex_verified": false,
-    "raw_sample": {
-      "market_data": "{dict keys=['enabled', 'verified', 'source', 'last_updated', 'verified_fields', 'missing_fields', 'note']}",
-      "company_metadata": "{dict keys=['enabled', 'verified', 'source', 'last_updated', 'verified_fields', 'missing_fields', 'note']}",
-      "financial_statement": "{dict keys=['enabled', 'verified', 'source', 'last_updated', 'verified_fields', 'missing_fields', 'note']}",
-      "news": "{dict keys=['enabled', 'verified', 'source', 'last_updated', 'verified_fields', 'missing_fields', 'note']}",
-      "hkex": "{dict keys=['enabled', 'verified', 'source', 'status', 'last_updated', 'verified_fields', 'missing_fields', 'note']}"
-    }
-  },
-  "C_market_snapshot": {
-    "market_snapshot_exists": false,
-    "market_snapshot_v4_exists": true,
-    "current_price": 76.5,
-    "week52_keys_found": {
-      "fifty_two_week_high": {
-        "market_data": null,
-        "market_snapshot_v4": "未取得",
-        "market_snapshot": null
+  "ticker": "0941.HK",
+  "audit_date": "2026-05-31",
+  "audit_target": "competitive_landscape payload — peer company names",
+  "bug_id": "BUG-2",
+  "severity": "HIGH",
+
+  "engine_output": {
+    "competitive_landscape": {
+      "subject": {
+        "ticker": "0941.HK",
+        "name": "中國移動有限公司"
       },
-      "fifty_two_week_low": {
-        "market_data": null,
-        "market_snapshot_v4": "未取得",
-        "market_snapshot": null
-      },
-      "fifty_two_week_position": {
-        "market_data": null,
-        "market_snapshot_v4": "未取得",
-        "market_snapshot": null
-      }
+      "peers": [
+        {
+          "ticker": "0728.HK",
+          "name": null,
+          "note": "hk_stock_master_data.json entry for 0728.HK may have no 'name' or 'company_name' field populated"
+        },
+        {
+          "ticker": "0762.HK",
+          "name": null,
+          "note": "hk_stock_master_data.json entry for 0762.HK may have no 'name' or 'company_name' field populated"
+        }
+      ]
     },
-    "week52_keys_missing": [
-      "week_52_high",
-      "week_52_low",
-      "fiftyTwoWeekHigh",
-      "fiftyTwoWeekLow"
-    ],
-    "snap_v4_keys": [
-      "_raw",
-      "current_price",
-      "day_high",
-      "day_low",
-      "volume",
-      "market_cap",
-      "pe",
-      "pb",
-      "dividend_yield",
-      "beta",
-      "fifty_two_week_high",
-      "fifty_two_week_low",
-      "fifty_two_week_position",
-      "source",
-      "confidence",
-      "ticker",
-      "company_name"
-    ]
+    "source": "competitive_landscape_engine.py → hk_stock_master_data.json lookup",
+    "note": "Engine builds peer list from master data. If master data entry lacks 'name' field, peer object has name=null."
   },
-  "D_competitive_landscape": {
-    "competitive_landscape_exists": true,
-    "competitive_landscape_v4_exists": false,
-    "peer_comparison_exists": false,
-    "cl_keys": [
-      "subject",
-      "peers",
-      "peer_tickers",
-      "comparison_table",
-      "advantages",
-      "disadvantages",
-      "data_note",
-      "peer_count"
-    ],
-    "peer_count": 2,
-    "peer_rows": [
-      {
-        "ticker": "0728",
-        "name": "0728.HK",
-        "pe": null,
-        "pb": null
-      },
-      {
-        "ticker": "0762",
-        "name": "0762.HK",
-        "pe": null,
-        "pb": null
-      }
-    ],
-    "subject_ticker": "0941.HK"
+
+  "app_py_chain": {
+    "step_1": "app.py L1624: _cl_data = report_package.get('competitive_landscape', {}) or {}",
+    "step_2": "app.py L1639: 'peers': _pc.get('peers', [])  — fallback path when competitive_landscape missing",
+    "step_3": "app.py L1643: render_peer_comparison({'competitive_landscape': _cl_data})",
+    "peer_name_resolution": "render_peer_comparison reads peers[i].get('name') or peers[i].get('company_name')",
+    "fallback_when_null": "NONE — no fallback label defined. When name=null, UI renders the ticker string directly.",
+    "root_cause": "competitive_landscape_engine.py builds peer dict with 'ticker' key but does not guarantee 'name' key is populated. fos_components.py render_peer_comparison has no '公司名稱未收錄' fallback."
   },
-  "E_agent_opinions": {
-    "agent_opinions_count": 7,
-    "agent_opinions_v2_count": 0,
-    "investment_committee_exists": false,
-    "ic_result_verdict": "中性",
-    "zero_confidence_agents": [],
-    "agent_names": [
-      "CEO Agent",
-      "Market Data Agent",
-      "Financial Analyst Agent",
-      "Risk Management Agent",
-      "News Intelligence Agent",
-      "Portfolio Manager Agent",
-      "Investment Committee Agent"
-    ],
-    "old_agent_status_keys": [
-      "CEO Agent",
-      "Market Data Agent",
-      "Financial Analyst Agent",
-      "Risk Agent",
-      "News Intelligence Agent",
-      "Portfolio Manager Agent",
-      "Investment Committee Agent"
-    ]
+
+  "ui_render_keys": {
+    "function": "render_peer_comparison",
+    "called_at": "app.py L1643",
+    "input_key": "competitive_landscape.peers[].name",
+    "actual_rendered_peer_0": "0728.HK",
+    "actual_rendered_peer_1": "0762.HK",
+    "expected_peer_0": "中國電信股份有限公司 OR 公司名稱未收錄",
+    "expected_peer_1": "中國聯通（香港）有限公司 OR 公司名稱未收錄"
   },
-  "F_investment_conclusion": {
-    "investment_conclusion_exists": true,
-    "investment_conclusion_v4_exists": false,
-    "rating": "中性",
-    "target_price": "目標價未能可靠估算（現價數據不足）",
-    "suitable_investor": "平衡型",
-    "investment_horizon": "中線",
-    "decision_basis_count": 5,
-    "final_summary_exists": true,
-    "ic_keys": [
-      "rating",
-      "composite_score",
-      "investment_horizon",
-      "suitable_investor",
-      "target_price",
-      "potential_upside",
-      "confidence",
-      "decision_basis",
-      "final_summary",
-      "valuation_score",
-      "risk_score",
-      "financial_score",
-      "news_score",
-      "market_score"
-    ]
+
+  "fix_required": {
+    "file_1": "core/competitive_landscape_engine.py",
+    "fix_1": "When building peer dict, resolve name from hk_stock_master_data.json. If not found, set name='公司名稱未收錄'.",
+    "file_2": "core/fos_components.py — render_peer_comparison",
+    "fix_2": "peer_name = peer.get('name') or peer.get('company_name') or '公司名稱未收錄'",
+    "priority": "Fix in fos_components.py is the safer immediate fix (defensive fallback at render layer)"
   },
-  "G_risk": {
-    "risk_analysis_exists": true,
-    "risk_assessment_v2_exists": false,
-    "composite_risk_score": 3.9,
-    "risk_label": "低風險 🟢",
-    "dimension_scores_keys": [
-      "流動性風險",
-      "債務風險",
-      "現金流風險",
-      "市場風險",
-      "政策風險",
-      "香港行業風險",
-      "下行情景風險"
-    ],
-    "risk_table_rows": 0,
-    "duplicated_categories": [],
-    "risk_v2_keys": []
-  },
-  "H_news": {
-    "news_analysis_exists": true,
-    "news_localized_exists": false,
-    "news_catalyst_exists": false,
-    "news_items_count": 10,
-    "raw_titles_sample": [
-      "China Targets Offshore Trusts in Tax Crackdown on Rich",
-      "Deutsche Telekom exploring merger with T-Mobile, Bloomberg News reports",
-      "China Mobile (SEHK:941): A Closer Look at Valuation After Steady Share Price Gains This Year"
-    ],
-    "localized_titles_sample": [
-      null,
-      null,
-      null
-    ],
-    "sentiment_label": "neutral",
-    "news_status": "取得 10 則已驗證新聞"
-  },
-  "Z_key_audit": {
-    "canonical_keys_present": [
-      "investment_conclusion",
-      "source_registry",
-      "agent_opinions",
-      "competitive_landscape"
-    ],
-    "canonical_keys_missing": [
-      "risk_assessment_v2",
-      "peer_comparison",
-      "hkex_status",
-      "news_localized",
-      "market_snapshot"
-    ],
-    "legacy_keys_present": [
-      "market_snapshot_v4",
-      "agent_status",
-      "risk_analysis"
-    ]
-  }
+
+  "verdict": "FAIL — peer name field is null in engine output. render_peer_comparison has no fallback label, so raw ticker string (0728.HK, 0762.HK) is displayed instead of company name."
 }

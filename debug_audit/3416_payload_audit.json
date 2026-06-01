@@ -1,238 +1,82 @@
 {
-  "ticker": "3416",
-  "audit_version": "v4.0.3",
-  "error": null,
-  "A_top_level_keys": [
-    "report_metadata",
-    "market_data",
-    "financial_history",
-    "financial_analysis",
-    "risk_analysis",
-    "news_analysis",
-    "portfolio_analysis",
-    "ic_result",
-    "agent_opinions",
-    "agent_status",
-    "agent_error_log",
-    "summary",
-    "ipo_module",
-    "source_registry",
-    "data_coverage_pct",
-    "confidence_level",
-    "market_snapshot_v4",
-    "competitive_landscape",
-    "investment_conclusion"
-  ],
-  "B_source_registry": {
-    "exists": true,
-    "keys": [
-      "market_data",
-      "company_metadata",
-      "financial_statement",
-      "news",
-      "hkex"
-    ],
-    "coverage_pct": 32.0,
-    "confidence_level": "HIGH",
-    "verified_sources": [
-      "market_data",
-      "company_metadata",
-      "financial_statement"
-    ],
-    "missing_sources": [
-      "news",
-      "hkex"
-    ],
-    "hkex_verified": false,
-    "raw_sample": {
-      "market_data": "{dict keys=['enabled', 'verified', 'source', 'last_updated', 'verified_fields', 'missing_fields', 'note']}",
-      "company_metadata": "{dict keys=['enabled', 'verified', 'source', 'last_updated', 'verified_fields', 'missing_fields', 'note']}",
-      "financial_statement": "{dict keys=['enabled', 'verified', 'source', 'last_updated', 'verified_fields', 'missing_fields', 'note']}",
-      "news": "{dict keys=['enabled', 'verified', 'source', 'last_updated', 'verified_fields', 'missing_fields', 'note']}",
-      "hkex": "{dict keys=['enabled', 'verified', 'source', 'status', 'last_updated', 'verified_fields', 'missing_fields', 'note']}"
+  "ticker": "3416.HK",
+  "audit_date": "2026-05-31",
+  "audit_target": "investment_committee + agent_opinions payload",
+  "bug_id": "BUG-3",
+  "severity": "HIGH",
+
+  "engine_output": {
+    "investment_committee": {},
+    "multi_agent_discussion": {
+      "table": [],
+      "final_statement": ""
+    },
+    "note": "investment_committee_agent returns empty dict when LLM API unavailable or ticker has insufficient data. sections['multi_agent_discussion']['table'] is empty list."
+  },
+
+  "app_py_chain": {
+    "step_1": "app.py L1752: ic_data = report_package.get('investment_committee', {}) or {}  → {}",
+    "step_2": "app.py L1753: table = discussion.get('table', []) or []  → []",
+    "step_3": "app.py L1760-1776: for row in table: → loop never executes, _bull_agents_v2=[], _bear_agents_v2=[]",
+    "step_4_bull_fallback": "app.py L1777-1779: if not _bull_agents_v2: → injects ic_data.get('bull_points', ['估值合理','股息率具吸引力','業務穩定'])",
+    "step_4_bear_fallback": "app.py L1780-1782: if not _bear_agents_v2: → injects ic_data.get('bear_points', ['市場競爭加劇','監管風險','增長放緩'])",
+    "step_5": "app.py L1784-1799: _ao_v2 built with hardcoded bull_score=60, bear_score=40, confidence=70",
+    "step_6": "app.py L1800: render_bull_bear_debate({'agent_opinions_v2': _ao_v2}) → shows hardcoded content",
+    "step_7": "app.py L1803-1812: render_multi_agent_committee({'investment_committee': {'agents': {}, ...}}) → agents={} → shows 觀點待整合",
+    "root_cause_1": "render_multi_agent_committee in fos_components.py renders placeholder cards when agents={} instead of hiding the panel",
+    "root_cause_2": "app.py L1777-1782 hardcoded fallback content always fires when table=[], making bull/bear debate appear populated with fake data",
+    "root_cause_3": "ic_data.get('bull_score', 60) default=60 and ic_data.get('confidence', 70) default=70 inject fake scores when engine returns {}"
+  },
+
+  "ui_render_keys": {
+    "render_multi_agent_committee": {
+      "function": "render_multi_agent_committee",
+      "called_at": "app.py L1803",
+      "input_key": "investment_committee.agents",
+      "actual_value": {},
+      "actual_rendered": "觀點待整合 placeholder cards",
+      "expected": "panel hidden OR real agent opinions"
+    },
+    "render_bull_bear_debate": {
+      "function": "render_bull_bear_debate",
+      "called_at": "app.py L1800",
+      "input_key": "agent_opinions_v2.bull_agents / bear_agents",
+      "actual_bull_agents": [
+        {"name": "牛市 Agent", "view": "估值合理"},
+        {"name": "牛市 Agent", "view": "股息率具吸引力"},
+        {"name": "牛市 Agent", "view": "業務穩定"}
+      ],
+      "actual_bear_agents": [
+        {"name": "熊市 Agent", "view": "市場競爭加劇"},
+        {"name": "熊市 Agent", "view": "監管風險"},
+        {"name": "熊市 Agent", "view": "增長放緩"}
+      ],
+      "actual_bull_score": 60,
+      "actual_confidence": 70,
+      "expected": "real agent opinions OR panel hidden"
     }
   },
-  "C_market_snapshot": {
-    "market_snapshot_exists": false,
-    "market_snapshot_v4_exists": true,
-    "current_price": 0.55,
-    "week52_keys_found": {
-      "fifty_two_week_high": {
-        "market_data": null,
-        "market_snapshot_v4": "未取得",
-        "market_snapshot": null
-      },
-      "fifty_two_week_low": {
-        "market_data": null,
-        "market_snapshot_v4": "未取得",
-        "market_snapshot": null
-      },
-      "fifty_two_week_position": {
-        "market_data": null,
-        "market_snapshot_v4": "未取得",
-        "market_snapshot": null
-      }
+
+  "fix_required": {
+    "fix_1": {
+      "file": "app.py",
+      "lines": "L1748-1812",
+      "action": "Add guard: if not ic_data and not table: skip entire AI Investment Committee section (hide panel)",
+      "code": "if not ic_data and not table:\n    st.info('AI 投資委員會資料不足，已略過此區塊。')\nelse:\n    # existing render logic"
     },
-    "week52_keys_missing": [
-      "week_52_high",
-      "week_52_low",
-      "fiftyTwoWeekHigh",
-      "fiftyTwoWeekLow"
-    ],
-    "snap_v4_keys": [
-      "_raw",
-      "current_price",
-      "day_high",
-      "day_low",
-      "volume",
-      "market_cap",
-      "pe",
-      "pb",
-      "dividend_yield",
-      "beta",
-      "fifty_two_week_high",
-      "fifty_two_week_low",
-      "fifty_two_week_position",
-      "source",
-      "confidence",
-      "ticker",
-      "company_name"
-    ]
+    "fix_2": {
+      "file": "app.py",
+      "lines": "L1777-1782",
+      "action": "Remove hardcoded fallback bull/bear points. If no real data, do not inject fake agents.",
+      "current": "if not _bull_agents_v2:\n    for pt in ic_data.get('bull_points', ['估值合理', ...]):",
+      "fixed": "# Remove fallback injection entirely — empty agents_v2 should trigger panel hide"
+    },
+    "fix_3": {
+      "file": "core/fos_components.py",
+      "function": "render_multi_agent_committee",
+      "action": "When agents={} or agents is empty, render nothing (return early) instead of placeholder cards"
+    }
   },
-  "D_competitive_landscape": {
-    "competitive_landscape_exists": true,
-    "competitive_landscape_v4_exists": false,
-    "peer_comparison_exists": false,
-    "cl_keys": [
-      "subject",
-      "peers",
-      "peer_tickers",
-      "comparison_table",
-      "advantages",
-      "disadvantages",
-      "data_note",
-      "peer_count"
-    ],
-    "peer_count": 3,
-    "peer_rows": [
-      {
-        "ticker": "0700",
-        "name": "0700.HK",
-        "pe": null,
-        "pb": null
-      },
-      {
-        "ticker": "0005",
-        "name": "0005.HK",
-        "pe": null,
-        "pb": null
-      },
-      {
-        "ticker": "0941",
-        "name": "0941.HK",
-        "pe": null,
-        "pb": null
-      }
-    ],
-    "subject_ticker": "3416.HK"
-  },
-  "E_agent_opinions": {
-    "agent_opinions_count": 7,
-    "agent_opinions_v2_count": 0,
-    "investment_committee_exists": false,
-    "ic_result_verdict": "中性",
-    "zero_confidence_agents": [],
-    "agent_names": [
-      "CEO Agent",
-      "Market Data Agent",
-      "Financial Analyst Agent",
-      "Risk Management Agent",
-      "News Intelligence Agent",
-      "Portfolio Manager Agent",
-      "Investment Committee Agent"
-    ],
-    "old_agent_status_keys": [
-      "CEO Agent",
-      "Market Data Agent",
-      "Financial Analyst Agent",
-      "Risk Agent",
-      "News Intelligence Agent",
-      "Portfolio Manager Agent",
-      "Investment Committee Agent"
-    ]
-  },
-  "F_investment_conclusion": {
-    "investment_conclusion_exists": true,
-    "investment_conclusion_v4_exists": false,
-    "rating": "中性",
-    "target_price": "目標價未能可靠估算（現價數據不足）",
-    "suitable_investor": "平衡型",
-    "investment_horizon": "中線",
-    "decision_basis_count": 5,
-    "final_summary_exists": true,
-    "ic_keys": [
-      "rating",
-      "composite_score",
-      "investment_horizon",
-      "suitable_investor",
-      "target_price",
-      "potential_upside",
-      "confidence",
-      "decision_basis",
-      "final_summary",
-      "valuation_score",
-      "risk_score",
-      "financial_score",
-      "news_score",
-      "market_score"
-    ]
-  },
-  "G_risk": {
-    "risk_analysis_exists": true,
-    "risk_assessment_v2_exists": false,
-    "composite_risk_score": 6.9,
-    "risk_label": "中等風險 🟡",
-    "dimension_scores_keys": [
-      "流動性風險",
-      "債務風險",
-      "現金流風險",
-      "市場風險",
-      "政策風險",
-      "香港行業風險",
-      "下行情景風險"
-    ],
-    "risk_table_rows": 0,
-    "duplicated_categories": [],
-    "risk_v2_keys": []
-  },
-  "H_news": {
-    "news_analysis_exists": true,
-    "news_localized_exists": false,
-    "news_catalyst_exists": false,
-    "news_items_count": 0,
-    "raw_titles_sample": [],
-    "localized_titles_sample": [],
-    "sentiment_label": "NONE",
-    "news_status": "未取得已驗證新聞資料"
-  },
-  "Z_key_audit": {
-    "canonical_keys_present": [
-      "investment_conclusion",
-      "source_registry",
-      "agent_opinions",
-      "competitive_landscape"
-    ],
-    "canonical_keys_missing": [
-      "risk_assessment_v2",
-      "peer_comparison",
-      "hkex_status",
-      "news_localized",
-      "market_snapshot"
-    ],
-    "legacy_keys_present": [
-      "market_snapshot_v4",
-      "agent_status",
-      "risk_analysis"
-    ]
-  }
+
+  "verdict": "FAIL — Three compounding issues: (1) app.py injects hardcoded bull/bear fallback content when table=[]; (2) render_multi_agent_committee shows 觀點待整合 placeholder instead of hiding; (3) default scores 60/40/70 are injected as fake confidence metrics."
 }

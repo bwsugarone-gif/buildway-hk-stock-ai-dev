@@ -1,4 +1,14 @@
 {
+  "0001.HK": {
+    "name_zh": "長和",
+    "name_en": "CK Hutchison Holdings",
+    "sector": "綜合企業",
+    "sector_zh": "綜合企業",
+    "sector_en": "Conglomerates",
+    "business_zh": "港口、零售、基建、能源及電訊業務",
+    "business_en": "Ports, retail, infrastructure, energy and telecom businesses.",
+    "market_type": "大型綜合企業股"
+  },
   "0002.HK": {
     "name_zh": "中電控股",
     "name_en": "CLP Holdings",
@@ -14,6 +24,26 @@
     "short_positioning_zh": "香港防守型公用事業代表。",
     "logo_url": "https://logo.clearbit.com/clpgroup.com"
   },
+  "0003.HK": {
+    "name_zh": "香港中華煤氣",
+    "name_en": "Hong Kong and China Gas",
+    "sector": "公用事業",
+    "sector_zh": "公用事業",
+    "sector_en": "Utilities",
+    "business_zh": "香港及中國內地燃氣供應、分銷及相關業務",
+    "business_en": "Gas supply, distribution and related businesses in HK and mainland China.",
+    "market_type": "大型公用股"
+  },
+  "0004.HK": {
+    "name_zh": "九龍倉集團",
+    "name_en": "Wharf Holdings",
+    "sector": "地產 / 零售",
+    "sector_zh": "地產 / 零售",
+    "sector_en": "Property / Retail",
+    "business_zh": "香港及中國內地物業發展、投資物業及物流業務",
+    "business_en": "Property development, investment properties and logistics in HK and mainland China.",
+    "market_type": "大型地產股"
+  },
   "0005.HK": {
     "name_zh": "匯豐控股",
     "name_en": "HSBC Holdings",
@@ -28,6 +58,206 @@
     "market_type_en": "Large-cap financial stock",
     "short_positioning_zh": "香港市場國際銀行與高息金融股代表。",
     "logo_url": "https://logo.clearbit.com/hsbc.com"
+  },
+  "0006.HK": {
+    "name_zh": "電能實業",
+    "name_en": "Power Assets Holdings",
+    "sector": "公用事業",
+    "sector_zh": "公用事業",
+    "sector_en": "Utilities",
+    "business_zh": "香港及海外電力及能源基建投資",
+    "business_en": "Electricity and energy infrastructure investments in HK and overseas.",
+    "market_type": "大型公用股"
+  },
+  "0011.HK": {
+    "name_zh": "恒生銀行",
+    "name_en": "Hang Seng Bank",
+    "sector": "銀行 / 金融",
+    "sector_zh": "銀行 / 金融",
+    "sector_en": "Banking / Financials",
+    "business_zh": "零售銀行、工商金融及財富管理",
+    "business_en": "Retail banking, commercial banking and wealth management.",
+    "market_type": "大型銀行股"
+  },
+  "0012.HK": {
+    "name_zh": "恒基地產",
+    "name_en": "Henderson Land Development",
+    "sector": "地產 / 香港",
+    "sector_zh": "地產 / 香港",
+    "sector_en": "Property / Hong Kong",
+    "business_zh": "香港及中國內地物業發展與投資",
+    "business_en": "Property development and investment in HK and mainland China.",
+    "market_type": "大型地產股"
+  },
+  "0016.HK": {
+    "name_zh": "新鴻基地產",
+    "name_en": "Sun Hung Kai Properties",
+    "sector": "地產 / 香港",
+    "sector_zh": "地產 / 香港",
+    "sector_en": "Property / Hong Kong",
+    "business_zh": "香港物業發展、投資物業及酒店業務",
+    "business_en": "Property development, investment properties and hotels in HK.",
+    "market_type": "大型地產股"
+  },
+  "0017.HK": {
+    "name_zh": "新世界發展",
+    "name_en": "New World Development",
+    "sector": "地產 / 綜合",
+    "sector_zh": "地產 / 綜合",
+    "sector_en": "Property / Conglomerates",
+    "business_zh": "香港及中國內地物業發展、基建及服務業務",
+    "business_en": "Property development, infrastructure and services in HK and mainland China.",
+    "market_type": "大型地產股"
+  },
+  "0019.HK": {
+    "name_zh": "太古股份公司",
+    "name_en": "Swire Pacific",
+    "sector": "綜合企業",
+    "sector_zh": "綜合企業",
+    "sector_en": "Conglomerates",
+    "business_zh": "物業、航空、飲料及海洋服務業務",
+    "business_en": "Properties, aviation, beverages and marine services businesses.",
+    "market_type": "大型綜合企業股"
+  },
+  "0023.HK": {
+    "name_zh": "東亞銀行",
+    "name_en": "Bank of East Asia",
+    "sector": "銀行 / 金融",
+    "sector_zh": "銀行 / 金融",
+    "sector_en": "Banking / Financials",
+    "business_zh": "零售銀行、工商金融及財富管理",
+    "business_en": "Retail banking, commercial banking and wealth management.",
+    "market_type": "中型銀行股"
+  },
+  "0027.HK": {
+    "name_zh": "銀河娛樂",
+    "name_en": "Galaxy Entertainment Group",
+    "sector": "博彩 / 娛樂",
+    "sector_zh": "博彩 / 娛樂",
+    "sector_en": "Gaming / Entertainment",
+    "business_zh": "澳門博彩及酒店度假村業務",
+    "business_en": "Gaming and hotel resort businesses in Macau.",
+    "market_type": "大型博彩股"
+  },
+  "0066.HK": {
+    "name_zh": "港鐵公司",
+    "name_en": "MTR Corporation",
+    "sector": "交通運輸 / 基建",
+    "sector_zh": "交通運輸 / 基建",
+    "sector_en": "Transport / Infrastructure",
+    "business_zh": "香港鐵路運營、物業發展及海外鐵路業務",
+    "business_en": "Railway operations, property development and overseas railway businesses in HK.",
+    "market_type": "大型基建股"
+  },
+  "0083.HK": {
+    "name_zh": "信和置業",
+    "name_en": "Sino Land",
+    "sector": "地產 / 香港",
+    "sector_zh": "地產 / 香港",
+    "sector_en": "Property / Hong Kong",
+    "business_zh": "香港物業發展及投資物業業務",
+    "business_en": "Property development and investment properties in HK.",
+    "market_type": "中型地產股"
+  },
+  "0101.HK": {
+    "name_zh": "恒隆地產",
+    "name_en": "Hang Lung Properties",
+    "sector": "地產 / 香港",
+    "sector_zh": "地產 / 香港",
+    "sector_en": "Property / Hong Kong",
+    "business_zh": "香港及中國內地商業物業投資及發展",
+    "business_en": "Commercial property investment and development in HK and mainland China.",
+    "market_type": "中型地產股"
+  },
+  "0175.HK": {
+    "name_zh": "吉利汽車",
+    "name_en": "Geely Automobile Holdings",
+    "sector": "汽車",
+    "sector_zh": "汽車",
+    "sector_en": "Automobiles",
+    "business_zh": "乘用車研發、製造及銷售",
+    "business_en": "Research, development, manufacturing and sales of passenger vehicles.",
+    "market_type": "大型汽車股"
+  },
+  "0267.HK": {
+    "name_zh": "中信股份",
+    "name_en": "CITIC Limited",
+    "sector": "綜合企業",
+    "sector_zh": "綜合企業",
+    "sector_en": "Conglomerates",
+    "business_zh": "金融、資源能源、製造及工程業務",
+    "business_en": "Financial, resources and energy, manufacturing and engineering businesses.",
+    "market_type": "大型綜合企業股"
+  },
+  "0288.HK": {
+    "name_zh": "萬洲國際",
+    "name_en": "WH Group",
+    "sector": "食品 / 消費",
+    "sector_zh": "食品 / 消費",
+    "sector_en": "Food / Consumer",
+    "business_zh": "豬肉及相關食品加工、包裝及銷售",
+    "business_en": "Pork and related food processing, packaging and sales.",
+    "market_type": "大型消費股"
+  },
+  "0293.HK": {
+    "name_zh": "國泰航空",
+    "name_en": "Cathay Pacific Airways",
+    "sector": "航空 / 交通",
+    "sector_zh": "航空 / 交通",
+    "sector_en": "Aviation / Transport",
+    "business_zh": "國際航空客運及貨運服務",
+    "business_en": "International passenger and cargo airline services.",
+    "market_type": "大型航空股"
+  },
+  "0316.HK": {
+    "name_zh": "東方海外國際",
+    "name_en": "Orient Overseas International",
+    "sector": "航運 / 物流",
+    "sector_zh": "航運 / 物流",
+    "sector_en": "Shipping / Logistics",
+    "business_zh": "集裝箱航運及物流服務",
+    "business_en": "Container shipping and logistics services.",
+    "market_type": "大型航運股"
+  },
+  "0322.HK": {
+    "name_zh": "康師傅控股",
+    "name_en": "Tingyi Holding",
+    "sector": "食品 / 消費",
+    "sector_zh": "食品 / 消費",
+    "sector_en": "Food / Consumer",
+    "business_zh": "即食麵、飲料及相關食品業務",
+    "business_en": "Instant noodles, beverages and related food businesses.",
+    "market_type": "大型消費股"
+  },
+  "0386.HK": {
+    "name_zh": "中國石油化工股份",
+    "name_en": "Sinopec Corp",
+    "sector": "能源 / 石油化工",
+    "sector_zh": "能源 / 石油化工",
+    "sector_en": "Energy / Petrochemicals",
+    "business_zh": "石油勘探、開採、煉製及銷售",
+    "business_en": "Oil exploration, extraction, refining and sales.",
+    "market_type": "大型能源股"
+  },
+  "0388.HK": {
+    "name_zh": "香港交易所",
+    "name_en": "Hong Kong Exchanges and Clearing",
+    "sector": "金融 / 交易所",
+    "sector_zh": "金融 / 交易所",
+    "sector_en": "Financials / Exchange",
+    "business_zh": "股票、衍生品及商品交易所及結算業務",
+    "business_en": "Stock, derivatives and commodities exchange and clearing businesses.",
+    "market_type": "大型金融股"
+  },
+  "0669.HK": {
+    "name_zh": "創科實業",
+    "name_en": "Techtronic Industries",
+    "sector": "工業 / 消費電子",
+    "sector_zh": "工業 / 消費電子",
+    "sector_en": "Industrial / Consumer Electronics",
+    "business_zh": "電動工具、戶外電力設備及地板護理產品",
+    "business_en": "Power tools, outdoor power equipment and floor care products.",
+    "market_type": "大型工業股"
   },
   "0688.HK": {
     "name_zh": "中國海外發展",
@@ -59,6 +289,72 @@
     "short_positioning_zh": "香港大型科技平台龍頭，適合展示完整 SaaS 分析流程。",
     "logo_url": "https://logo.clearbit.com/tencent.com"
   },
+  "0728.HK": {
+    "name_zh": "中國電訊",
+    "name_en": "China Telecom",
+    "sector": "電訊 / 公用",
+    "sector_zh": "電訊 / 公用",
+    "sector_en": "Telecom / Utilities",
+    "business": "固網寬頻、移動通信及企業資訊科技服務",
+    "business_zh": "固網寬頻、移動通信及企業資訊科技服務",
+    "business_en": "Fixed-line broadband, mobile communications and enterprise IT services.",
+    "market_type": "大型電訊股",
+    "market_type_zh": "大型電訊股",
+    "market_type_en": "Large-cap telecom stock"
+  },
+  "0762.HK": {
+    "name_zh": "中國聯通",
+    "name_en": "China Unicom",
+    "sector": "電訊 / 公用",
+    "sector_zh": "電訊 / 公用",
+    "sector_en": "Telecom / Utilities",
+    "business": "移動通信、固網寬頻及雲端服務",
+    "business_zh": "移動通信、固網寬頻及雲端服務",
+    "business_en": "Mobile communications, fixed-line broadband and cloud services.",
+    "market_type": "大型電訊股",
+    "market_type_zh": "大型電訊股",
+    "market_type_en": "Large-cap telecom stock"
+  },
+  "0823.HK": {
+    "name_zh": "領展房產基金",
+    "name_en": "Link REIT",
+    "sector": "房地產信託基金",
+    "sector_zh": "房地產信託基金",
+    "sector_en": "REIT",
+    "business_zh": "香港零售及停車場物業投資及管理",
+    "business_en": "Retail and car park property investment and management in HK.",
+    "market_type": "大型REIT"
+  },
+  "0857.HK": {
+    "name_zh": "中國石油天然氣股份",
+    "name_en": "PetroChina",
+    "sector": "能源 / 石油天然氣",
+    "sector_zh": "能源 / 石油天然氣",
+    "sector_en": "Energy / Oil and Gas",
+    "business_zh": "石油天然氣勘探、開採、輸送及銷售",
+    "business_en": "Oil and gas exploration, extraction, transportation and sales.",
+    "market_type": "大型能源股"
+  },
+  "0883.HK": {
+    "name_zh": "中國海洋石油",
+    "name_en": "CNOOC Limited",
+    "sector": "能源 / 石油天然氣",
+    "sector_zh": "能源 / 石油天然氣",
+    "sector_en": "Energy / Oil and Gas",
+    "business_zh": "海上石油天然氣勘探、開採及銷售",
+    "business_en": "Offshore oil and gas exploration, extraction and sales.",
+    "market_type": "大型能源股"
+  },
+  "0939.HK": {
+    "name_zh": "建設銀行",
+    "name_en": "China Construction Bank",
+    "sector": "銀行 / 金融",
+    "sector_zh": "銀行 / 金融",
+    "sector_en": "Banking / Financials",
+    "business_zh": "零售銀行、工商金融、投資銀行及資產管理",
+    "business_en": "Retail banking, commercial banking, investment banking and asset management.",
+    "market_type": "大型銀行股"
+  },
   "0941.HK": {
     "name_zh": "中國移動",
     "name_en": "China Mobile",
@@ -73,6 +369,76 @@
     "market_type_en": "Large-cap telecom stock",
     "short_positioning_zh": "高現金流電訊龍頭，適合展示防守型收益分析。",
     "logo_url": "https://logo.clearbit.com/chinamobileltd.com"
+  },
+  "0945.HK": {
+    "name_zh": "富衛集團",
+    "name_en": "FWD Group Holdings",
+    "sector": "保險 / 金融",
+    "sector_zh": "保險 / 金融",
+    "sector_en": "Insurance / Financials",
+    "business_zh": "人壽保險及健康保障產品",
+    "business_en": "Life insurance and health protection products.",
+    "market_type": "中型保險股"
+  },
+  "0960.HK": {
+    "name_zh": "龍湖集團",
+    "name_en": "Longfor Group Holdings",
+    "sector": "地產 / 內房",
+    "sector_zh": "地產 / 內房",
+    "sector_en": "Property / Mainland China real estate",
+    "business_zh": "住宅開發、商業運營及物業服務",
+    "business_en": "Residential development, commercial operations and property services.",
+    "market_type": "大型地產股"
+  },
+  "0966.HK": {
+    "name_zh": "中國太平保險控股",
+    "name_en": "China Taiping Insurance Holdings",
+    "sector": "保險 / 金融",
+    "sector_zh": "保險 / 金融",
+    "sector_en": "Insurance / Financials",
+    "business_zh": "人壽保險、財產保險及再保險業務",
+    "business_en": "Life insurance, property insurance and reinsurance businesses.",
+    "market_type": "中型保險股"
+  },
+  "1038.HK": {
+    "name_zh": "長江基建集團",
+    "name_en": "CK Infrastructure Holdings",
+    "sector": "基建 / 公用",
+    "sector_zh": "基建 / 公用",
+    "sector_en": "Infrastructure / Utilities",
+    "business_zh": "能源、交通、水務及廢物管理基建投資",
+    "business_en": "Energy, transport, water and waste management infrastructure investments.",
+    "market_type": "大型基建股"
+  },
+  "1044.HK": {
+    "name_zh": "恒安國際集團",
+    "name_en": "Hengan International Group",
+    "sector": "消費品",
+    "sector_zh": "消費品",
+    "sector_en": "Consumer Goods",
+    "business_zh": "個人衛生用品、紙巾及嬰兒護理產品",
+    "business_en": "Personal hygiene products, tissue paper and baby care products.",
+    "market_type": "中型消費股"
+  },
+  "1088.HK": {
+    "name_zh": "中國神華能源",
+    "name_en": "China Shenhua Energy",
+    "sector": "能源 / 煤炭",
+    "sector_zh": "能源 / 煤炭",
+    "sector_en": "Energy / Coal",
+    "business_zh": "煤炭開採、電力生產及鐵路運輸業務",
+    "business_en": "Coal mining, power generation and railway transportation businesses.",
+    "market_type": "大型能源股"
+  },
+  "1093.HK": {
+    "name_zh": "石藥集團",
+    "name_en": "CSPC Pharmaceutical Group",
+    "sector": "醫藥 / 健康",
+    "sector_zh": "醫藥 / 健康",
+    "sector_en": "Pharmaceuticals / Healthcare",
+    "business_zh": "創新藥、原料藥及維生素產品研發及銷售",
+    "business_en": "Innovative drugs, APIs and vitamin products R&D and sales.",
+    "market_type": "大型醫藥股"
   },
   "1109.HK": {
     "name_zh": "華潤置地",
@@ -89,6 +455,36 @@
     "short_positioning_zh": "大型綜合地產平台，適合比較內房財務與週期風險。",
     "logo_url": "https://logo.clearbit.com/crland.com.hk"
   },
+  "1177.HK": {
+    "name_zh": "中國生物製藥",
+    "name_en": "Sino Biopharmaceutical",
+    "sector": "醫藥 / 健康",
+    "sector_zh": "醫藥 / 健康",
+    "sector_en": "Pharmaceuticals / Healthcare",
+    "business_zh": "創新藥及仿製藥研發、製造及銷售",
+    "business_en": "Innovative and generic drug R&D, manufacturing and sales.",
+    "market_type": "大型醫藥股"
+  },
+  "1211.HK": {
+    "name_zh": "比亞迪股份",
+    "name_en": "BYD Company",
+    "sector": "汽車 / 新能源",
+    "sector_zh": "汽車 / 新能源",
+    "sector_en": "Automobiles / New Energy",
+    "business_zh": "新能源汽車、電池及電子業務",
+    "business_en": "New energy vehicles, batteries and electronics businesses.",
+    "market_type": "大型新能源股"
+  },
+  "1288.HK": {
+    "name_zh": "農業銀行",
+    "name_en": "Agricultural Bank of China",
+    "sector": "銀行 / 金融",
+    "sector_zh": "銀行 / 金融",
+    "sector_en": "Banking / Financials",
+    "business_zh": "零售銀行、工商金融及農業金融服務",
+    "business_en": "Retail banking, commercial banking and agricultural financial services.",
+    "market_type": "大型銀行股"
+  },
   "1299.HK": {
     "name_zh": "友邦保險",
     "name_en": "AIA Group",
@@ -104,6 +500,56 @@
     "short_positioning_zh": "泛亞洲保險龍頭，適合展示金融與利率敏感度分析。",
     "logo_url": "https://logo.clearbit.com/aia.com"
   },
+  "1336.HK": {
+    "name_zh": "新華保險",
+    "name_en": "New China Life Insurance",
+    "sector": "保險 / 金融",
+    "sector_zh": "保險 / 金融",
+    "sector_en": "Insurance / Financials",
+    "business_zh": "人壽保險及健康保障產品",
+    "business_en": "Life insurance and health protection products.",
+    "market_type": "中型保險股"
+  },
+  "1347.HK": {
+    "name_zh": "華虹半導體",
+    "name_en": "Hua Hong Semiconductor",
+    "sector": "半導體 / 科技",
+    "sector_zh": "半導體 / 科技",
+    "sector_en": "Semiconductors / Technology",
+    "business_zh": "特色工藝半導體晶圓代工服務",
+    "business_en": "Specialty process semiconductor wafer foundry services.",
+    "market_type": "中型科技股"
+  },
+  "1398.HK": {
+    "name_zh": "工商銀行",
+    "name_en": "Industrial and Commercial Bank of China",
+    "sector": "銀行 / 金融",
+    "sector_zh": "銀行 / 金融",
+    "sector_en": "Banking / Financials",
+    "business_zh": "零售銀行、工商金融、投資銀行及資產管理",
+    "business_en": "Retail banking, commercial banking, investment banking and asset management.",
+    "market_type": "大型銀行股"
+  },
+  "1658.HK": {
+    "name_zh": "郵儲銀行",
+    "name_en": "Postal Savings Bank of China",
+    "sector": "銀行 / 金融",
+    "sector_zh": "銀行 / 金融",
+    "sector_en": "Banking / Financials",
+    "business_zh": "零售銀行及農村金融服務",
+    "business_en": "Retail banking and rural financial services.",
+    "market_type": "大型銀行股"
+  },
+  "1772.HK": {
+    "name_zh": "贛鋒鋰業",
+    "name_en": "Ganfeng Lithium Group",
+    "sector": "材料 / 新能源",
+    "sector_zh": "材料 / 新能源",
+    "sector_en": "Materials / New Energy",
+    "business_zh": "鋰資源開採、鋰化合物及鋰電池業務",
+    "business_en": "Lithium resource mining, lithium compounds and lithium battery businesses.",
+    "market_type": "中型材料股"
+  },
   "1810.HK": {
     "name_zh": "小米集團",
     "name_en": "Xiaomi Corporation",
@@ -118,6 +564,166 @@
     "market_type_en": "Large-cap technology stock",
     "short_positioning_zh": "消費電子與智能硬件平台。",
     "logo_url": "https://logo.clearbit.com/mi.com"
+  },
+  "1876.HK": {
+    "name_zh": "百威亞太",
+    "name_en": "Budweiser Brewing Company APAC",
+    "sector": "食品飲料",
+    "sector_zh": "食品飲料",
+    "sector_en": "Food and Beverages",
+    "business_zh": "亞太地區啤酒釀造及銷售",
+    "business_en": "Beer brewing and sales in Asia Pacific.",
+    "market_type": "大型消費股"
+  },
+  "1929.HK": {
+    "name_zh": "周大福珠寶",
+    "name_en": "Chow Tai Fook Jewellery Group",
+    "sector": "零售 / 消費",
+    "sector_zh": "零售 / 消費",
+    "sector_en": "Retail / Consumer",
+    "business_zh": "珠寶首飾零售及批發業務",
+    "business_en": "Jewellery retail and wholesale businesses.",
+    "market_type": "大型零售股"
+  },
+  "1997.HK": {
+    "name_zh": "九龍倉置業",
+    "name_en": "Wharf Real Estate Investment",
+    "sector": "地產 / 香港",
+    "sector_zh": "地產 / 香港",
+    "sector_en": "Property / Hong Kong",
+    "business_zh": "香港投資物業及酒店業務",
+    "business_en": "Investment properties and hotels in HK.",
+    "market_type": "大型地產股"
+  },
+  "2007.HK": {
+    "name_zh": "碧桂園",
+    "name_en": "Country Garden Holdings",
+    "sector": "地產 / 內房",
+    "sector_zh": "地產 / 內房",
+    "sector_en": "Property / Mainland China real estate",
+    "business_zh": "中國內地住宅物業開發及物業管理",
+    "business_en": "Residential property development and property management in mainland China.",
+    "market_type": "大型地產股"
+  },
+  "2018.HK": {
+    "name_zh": "瑞聲科技",
+    "name_en": "AAC Technologies Holdings",
+    "sector": "科技 / 零部件",
+    "sector_zh": "科技 / 零部件",
+    "sector_en": "Technology / Components",
+    "business_zh": "聲學、光學及電磁傳動零部件",
+    "business_en": "Acoustic, optical and electromagnetic drive components.",
+    "market_type": "中型科技股"
+  },
+  "2020.HK": {
+    "name_zh": "安踏體育",
+    "name_en": "Anta Sports Products",
+    "sector": "消費 / 運動",
+    "sector_zh": "消費 / 運動",
+    "sector_en": "Consumer / Sportswear",
+    "business_zh": "運動服裝、鞋履及配件設計、製造及銷售",
+    "business_en": "Design, manufacturing and sales of sportswear, footwear and accessories.",
+    "market_type": "大型消費股"
+  },
+  "2269.HK": {
+    "name_zh": "藥明生物",
+    "name_en": "WuXi Biologics",
+    "sector": "醫藥 / 生物科技",
+    "sector_zh": "醫藥 / 生物科技",
+    "sector_en": "Pharmaceuticals / Biotechnology",
+    "business_zh": "生物藥研發及生產外包服務",
+    "business_en": "Biologics R&D and manufacturing outsourcing services.",
+    "market_type": "大型醫藥股"
+  },
+  "2313.HK": {
+    "name_zh": "申洲國際",
+    "name_en": "Shenzhou International Group",
+    "sector": "紡織 / 消費",
+    "sector_zh": "紡織 / 消費",
+    "sector_en": "Textiles / Consumer",
+    "business_zh": "針織面料及成衣製造",
+    "business_en": "Knitted fabric and garment manufacturing.",
+    "market_type": "中型消費股"
+  },
+  "2318.HK": {
+    "name_zh": "中國平安保險",
+    "name_en": "Ping An Insurance Group",
+    "sector": "保險 / 金融",
+    "sector_zh": "保險 / 金融",
+    "sector_en": "Insurance / Financials",
+    "business_zh": "人壽保險、財產保險、銀行及金融科技業務",
+    "business_en": "Life insurance, property insurance, banking and fintech businesses.",
+    "market_type": "大型保險股"
+  },
+  "2319.HK": {
+    "name_zh": "蒙牛乳業",
+    "name_en": "China Mengniu Dairy",
+    "sector": "食品 / 消費",
+    "sector_zh": "食品 / 消費",
+    "sector_en": "Food / Consumer",
+    "business_zh": "液態奶、冰淇淋及奶粉產品",
+    "business_en": "Liquid milk, ice cream and milk powder products.",
+    "market_type": "大型消費股"
+  },
+  "2331.HK": {
+    "name_zh": "李寧",
+    "name_en": "Li Ning Company",
+    "sector": "消費 / 運動",
+    "sector_zh": "消費 / 運動",
+    "sector_en": "Consumer / Sportswear",
+    "business_zh": "運動服裝、鞋履及配件設計及銷售",
+    "business_en": "Design and sales of sportswear, footwear and accessories.",
+    "market_type": "中型消費股"
+  },
+  "2382.HK": {
+    "name_zh": "舜宇光學科技",
+    "name_en": "Sunny Optical Technology",
+    "sector": "科技 / 光學",
+    "sector_zh": "科技 / 光學",
+    "sector_en": "Technology / Optics",
+    "business_zh": "光學零件、光學儀器及光電產品",
+    "business_en": "Optical components, optical instruments and optoelectronic products.",
+    "market_type": "中型科技股"
+  },
+  "2388.HK": {
+    "name_zh": "中銀香港",
+    "name_en": "BOC Hong Kong Holdings",
+    "sector": "銀行 / 金融",
+    "sector_zh": "銀行 / 金融",
+    "sector_en": "Banking / Financials",
+    "business_zh": "零售銀行、工商金融及財富管理",
+    "business_en": "Retail banking, commercial banking and wealth management.",
+    "market_type": "大型銀行股"
+  },
+  "2628.HK": {
+    "name_zh": "中國人壽保險",
+    "name_en": "China Life Insurance",
+    "sector": "保險 / 金融",
+    "sector_zh": "保險 / 金融",
+    "sector_en": "Insurance / Financials",
+    "business_zh": "人壽保險及健康保障產品",
+    "business_en": "Life insurance and health protection products.",
+    "market_type": "大型保險股"
+  },
+  "3328.HK": {
+    "name_zh": "交通銀行",
+    "name_en": "Bank of Communications",
+    "sector": "銀行 / 金融",
+    "sector_zh": "銀行 / 金融",
+    "sector_en": "Banking / Financials",
+    "business_zh": "零售銀行、工商金融及投資銀行",
+    "business_en": "Retail banking, commercial banking and investment banking.",
+    "market_type": "大型銀行股"
+  },
+  "3333.HK": {
+    "name_zh": "中國恒大",
+    "name_en": "China Evergrande Group",
+    "sector": "地產 / 內房",
+    "sector_zh": "地產 / 內房",
+    "sector_en": "Property / Mainland China real estate",
+    "business_zh": "中國內地住宅物業開發（重組中）",
+    "business_en": "Residential property development in mainland China (under restructuring).",
+    "market_type": "大型地產股"
   },
   "3416.HK": {
     "name_zh": "保興財務集團",
@@ -149,6 +755,56 @@
     "short_positioning_zh": "中國本地生活平台代表，適合展示平台經濟風險。",
     "logo_url": "https://logo.clearbit.com/meituan.com"
   },
+  "3968.HK": {
+    "name_zh": "招商銀行",
+    "name_en": "China Merchants Bank",
+    "sector": "銀行 / 金融",
+    "sector_zh": "銀行 / 金融",
+    "sector_en": "Banking / Financials",
+    "business_zh": "零售銀行、工商金融及財富管理",
+    "business_en": "Retail banking, commercial banking and wealth management.",
+    "market_type": "大型銀行股"
+  },
+  "6098.HK": {
+    "name_zh": "碧桂園服務",
+    "name_en": "Country Garden Services Holdings",
+    "sector": "物業管理",
+    "sector_zh": "物業管理",
+    "sector_en": "Property Management",
+    "business_zh": "住宅及商業物業管理服務",
+    "business_en": "Residential and commercial property management services.",
+    "market_type": "中型物業管理股"
+  },
+  "6618.HK": {
+    "name_zh": "京東健康",
+    "name_en": "JD Health International",
+    "sector": "醫藥 / 健康科技",
+    "sector_zh": "醫藥 / 健康科技",
+    "sector_en": "Pharmaceuticals / Health Technology",
+    "business_zh": "線上醫療健康服務及藥品零售",
+    "business_en": "Online healthcare services and pharmaceutical retail.",
+    "market_type": "中型醫藥股"
+  },
+  "6690.HK": {
+    "name_zh": "海爾智家",
+    "name_en": "Haier Smart Home",
+    "sector": "消費電子 / 家電",
+    "sector_zh": "消費電子 / 家電",
+    "sector_en": "Consumer Electronics / Home Appliances",
+    "business_zh": "智能家電及家居解決方案",
+    "business_en": "Smart home appliances and home solutions.",
+    "market_type": "大型消費股"
+  },
+  "6862.HK": {
+    "name_zh": "海底撈",
+    "name_en": "Haidilao International Holding",
+    "sector": "餐飲 / 消費",
+    "sector_zh": "餐飲 / 消費",
+    "sector_en": "Catering / Consumer",
+    "business_zh": "火鍋餐廳連鎖業務",
+    "business_en": "Hot pot restaurant chain businesses.",
+    "market_type": "大型消費股"
+  },
   "9618.HK": {
     "name_zh": "京東集團",
     "name_en": "JD.com",
@@ -163,6 +819,26 @@
     "market_type_en": "Large-cap platform stock",
     "short_positioning_zh": "供應鏈與自營電商平台，適合展示營運效率分析。",
     "logo_url": "https://logo.clearbit.com/jd.com"
+  },
+  "9888.HK": {
+    "name_zh": "百度集團",
+    "name_en": "Baidu Inc",
+    "sector": "科技 / 互聯網",
+    "sector_zh": "科技 / 互聯網",
+    "sector_en": "Technology / Internet",
+    "business_zh": "搜索引擎、人工智能及自動駕駛業務",
+    "business_en": "Search engine, artificial intelligence and autonomous driving businesses.",
+    "market_type": "大型科技股"
+  },
+  "9961.HK": {
+    "name_zh": "攜程集團",
+    "name_en": "Trip.com Group",
+    "sector": "科技 / 旅遊",
+    "sector_zh": "科技 / 旅遊",
+    "sector_en": "Technology / Travel",
+    "business_zh": "線上旅遊服務平台",
+    "business_en": "Online travel services platform.",
+    "market_type": "大型科技股"
   },
   "9988.HK": {
     "name_zh": "阿里巴巴集團",
@@ -179,30 +855,14 @@
     "short_positioning_zh": "大型電商與雲服務平台，適合展示平台估值與重組分析。",
     "logo_url": "https://logo.clearbit.com/alibabagroup.com"
   },
-  "0728.HK": {
-    "name_zh": "中國電訊",
-    "name_en": "China Telecom",
-    "sector": "電訊 / 公用",
-    "sector_zh": "電訊 / 公用",
-    "sector_en": "Telecom / Utilities",
-    "business": "固網寬頻、移動通信及企業資訊科技服務",
-    "business_zh": "固網寬頻、移動通信及企業資訊科技服務",
-    "business_en": "Fixed-line broadband, mobile communications and enterprise IT services.",
-    "market_type": "大型電訊股",
-    "market_type_zh": "大型電訊股",
-    "market_type_en": "Large-cap telecom stock"
-  },
-  "0762.HK": {
-    "name_zh": "中國聯通",
-    "name_en": "China Unicom",
-    "sector": "電訊 / 公用",
-    "sector_zh": "電訊 / 公用",
-    "sector_en": "Telecom / Utilities",
-    "business": "移動通信、固網寬頻及雲端服務",
-    "business_zh": "移動通信、固網寬頻及雲端服務",
-    "business_en": "Mobile communications, fixed-line broadband and cloud services.",
-    "market_type": "大型電訊股",
-    "market_type_zh": "大型電訊股",
-    "market_type_en": "Large-cap telecom stock"
+  "9999.HK": {
+    "name_zh": "網易",
+    "name_en": "NetEase Inc",
+    "sector": "科技 / 互聯網",
+    "sector_zh": "科技 / 互聯網",
+    "sector_en": "Technology / Internet",
+    "business_zh": "遊戲、音樂、教育及電商業務",
+    "business_en": "Games, music, education and ecommerce businesses.",
+    "market_type": "大型科技股"
   }
 }

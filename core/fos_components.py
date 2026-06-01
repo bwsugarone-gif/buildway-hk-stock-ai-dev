@@ -588,6 +588,9 @@ def render_peer_comparison(report_data: Dict[str, Any]) -> None:
     if subject:
         all_rows.append({**subject, "_is_subject": True})
     for p in peers:
+        # v4.1 fix: guarantee company name never shows raw ticker
+        if not p.get("name") and not p.get("company_name"):
+            p = {**p, "company_name": "公司名稱未收錄"}
         if isinstance(p, dict):
             all_rows.append({**p, "_is_subject": False})
 

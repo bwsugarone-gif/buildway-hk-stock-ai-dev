@@ -710,7 +710,10 @@ class PDFGenerator:
         top_risks = section.get("top_risks", [])[:5]
         if top_risks:
             for item in top_risks:
-                elements.append(Paragraph(f"- {item['dimension']}: {item['score']}/10, {item['level']}", self.styles["BodyTC"]))
+                dimension = item.get("dimension") or item.get("risk_name") or "Risk item"
+                score = item.get("score", "")
+                level = item.get("level", "")
+                elements.append(Paragraph(f"- {dimension}: {score}, {level}", self.styles["BodyTC"]))
         else:
             elements.append(Paragraph("無可用風險項目。", self.styles["BodyTC"]))
         return elements

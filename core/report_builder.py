@@ -11,12 +11,14 @@ from typing import Any, Dict, List
 
 from core.config import APP_NAME, APP_VERSION, USE_AI_ANALYSIS
 from core.market_snapshot import build_market_snapshot
+from core.market_snapshot_engine import build_market_snapshot as build_unified_market_snapshot
 from core.scenario_engine import build_scenario_analysis
 from core.risk_engine_v2 import build_risk_assessment
 from core.source_transparency import build_source_transparency
 from core.source_registry import build_source_registry
 from core.agent_opinion_engine import build_agent_opinions
 from core.competitive_landscape_engine import build_competitive_landscape
+from core.investment_conclusion_engine import build_investment_conclusion
 from core.data_confidence import (
     INVALID,
     INVALID_MARKET_DATA_MESSAGE,
@@ -131,6 +133,23 @@ class ReportBuilder:
         except Exception:
             source_registry = {}
 
+        try:
+            unified_market_snapshot = build_unified_market_snapshot(report_package)
+        except Exception:
+            unified_market_snapshot = {"_raw": {}}
+
+        try:
+            investment_conclusion = build_investment_conclusion(
+                unified_market_snapshot,
+                {**market, **fin, **history},
+                risk_v2 or risk,
+                agent_opinions_v2 or {"agents": agent_opinions},
+                competitive_landscape,
+                source_registry,
+            )
+        except Exception:
+            investment_conclusion = {}
+
         sections = {
             "metadata": {
                 "brand": APP_NAME,
@@ -152,18 +171,19 @@ class ReportBuilder:
             "source_registry": source_registry,   # v4.0.4: authoritative registry for UI
             "agent_opinions_v2": agent_opinions_v2,
             "risk_assessment_v2": risk_v2,
+            "investment_conclusion": investment_conclusion,
             # ─────────────────
             "system_stability": self._build_system_stability(agent_status, agent_error_log),
             "multi_agent_discussion": self._build_multi_agent_discussion(
                 market, fin, risk, news, portfolio, ic, rating, agent_opinions
             ),
             "financial_analysis": self._build_financial_analysis(market, history, fin),
-            "risk_analysis": self._build_risk_analysis(risk),
+            "risk_analysis": self._build_risk_analysis_from_v2(risk_v2) if risk_v2 else self._build_risk_analysis(risk),
             "news_catalyst_analysis": self._build_news_catalyst_analysis(news),
             "hkex_intelligence": self._build_hkex_intelligence(market),
             "scenario_analysis": build_scenario_analysis(market, fin, risk, self._build_news_catalyst_analysis(news)),
             "portfolio_view": self._build_portfolio_view(portfolio, risk, rating),
-            "ic_conclusion": self._build_ic_conclusion(ic, risk, rating, llm_warning, fin),
+            "ic_conclusion": self._build_ic_conclusion_from_engine(investment_conclusion, llm_warning) if investment_conclusion else self._build_ic_conclusion(ic, risk, rating, llm_warning, fin),
             "disclaimer": self._build_disclaimer(),
         }
         return self._strip_placeholder_values(sections)
@@ -203,6 +223,23 @@ class ReportBuilder:
             out["source_registry"] = build_source_registry(report_package)
         except Exception as exc:
             out["source_registry"] = {"error": str(exc)}
+
+        try:
+            snapshot = build_unified_market_snapshot(report_package)
+            out["investment_conclusion"] = build_investment_conclusion(
+                snapshot,
+                {
+                    **(report_package.get("market_data", {}) or {}),
+                    **(report_package.get("financial_analysis", {}) or {}),
+                    **(report_package.get("financial_history", {}) or {}),
+                },
+                out.get("risk_assessment_v2", {}),
+                out.get("agent_opinions_v2", {}),
+                out.get("competitive_landscape", {}),
+                out.get("source_registry", {}),
+            )
+        except Exception as exc:
+            out["investment_conclusion"] = {"error": str(exc)}
 
         return out
 
@@ -590,6 +627,30 @@ class ReportBuilder:
             "top_risks": risk_table[:5],
         }
 
+    def _build_risk_analysis_from_v2(self, risk_v2: Dict[str, Any]) -> Dict[str, Any]:
+        """PDF-facing risk section built from the same v2 payload used by the web UI."""
+        risk_items = risk_v2.get("risk_items", []) or []
+        risk_table = []
+        for item in risk_items:
+            risk_table.append({
+                "dimension": item.get("risk_name", "風險項目"),
+                "score": item.get("score", ""),
+                "level": item.get("level", ""),
+                "weight": item.get("weight", ""),
+                "heat": item.get("level", ""),
+                "reason": item.get("reason", ""),
+                "monitoring_signal": item.get("monitoring_signal", ""),
+            })
+        return {
+            "title": "Risk Analysis",
+            "composite_score": risk_v2.get("composite_score", ""),
+            "risk_label": risk_v2.get("risk_label", ""),
+            "risk_table": risk_table,
+            "risk_items": risk_items,
+            "top_risks": risk_v2.get("top_risks", risk_items[:3]),
+            "total_weight": risk_v2.get("total_weight", "100%"),
+        }
+
     def _build_news_catalyst_analysis(self, news: Dict[str, Any]) -> Dict[str, Any]:
         confidence = news.get("news_confidence") or news.get("sentiment_analysis", {}).get("confidence") or "未接入"
         positive = news.get("positive_catalysts") or news.get("positive_factors") or []
@@ -690,6 +751,29 @@ class ReportBuilder:
             "risk_control": "可設定定期檢討點，包括業績公布、債務變化、現金流轉弱、股價跌穿關鍵區間或重大公告。",
             "action_category": rating,
             "no_advice": "以上內容只作教育及研究用途，不構成買入、沽出或持有任何證券的建議。",
+        }
+
+    def _build_ic_conclusion_from_engine(
+        self,
+        conclusion: Dict[str, Any],
+        llm_warning: str,
+    ) -> Dict[str, Any]:
+        basis = conclusion.get("decision_basis", []) or []
+        monitor_next = [
+            f"{item.get('factor', '決策因子')}：{item.get('score', '')}，{item.get('summary', '')}"
+            for item in basis[:5]
+        ]
+        if not monitor_next:
+            monitor_next = ["持續監察估值、風險、財務、新聞及市場五項決策因子。"]
+        return {
+            "title": "Investment Committee Final Conclusion",
+            "final_decision": conclusion.get("rating", ""),
+            "why": conclusion.get("final_summary", ""),
+            "monitor_next": monitor_next,
+            "data_limitations": conclusion.get("target_price", ""),
+            "data_completeness_note": "",
+            "llm_warning": llm_warning,
+            "multi_agent_statement": f"Investment Conclusion Engine composite score: {conclusion.get('composite_score', '')}",
         }
 
     def _build_ic_conclusion(

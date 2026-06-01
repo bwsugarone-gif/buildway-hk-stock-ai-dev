@@ -1,112 +1,2533 @@
 {
-  "0700": {
-    "ticker": "0700.HK",
-    "sector": "科技 / 互聯網",
-    "product_lines": ["微信 / WeChat", "遊戲業務", "金融科技", "企業服務", "雲端運算"],
-    "market_positioning": "中國最大互聯網科技集團，社交媒體與遊戲雙引擎驅動",
-    "strengths": ["微信生態系統壟斷地位", "遊戲業務全球領先", "多元化收入來源", "強勁自由現金流"],
-    "weaknesses": ["監管政策風險較高", "遊戲版號審批不確定性", "廣告收入受宏觀經濟影響", "海外擴張受地緣政治制約"],
-    "future_strategy": ["AI 技術深度整合", "企業服務與雲端業務擴張", "海外遊戲市場佈局", "金融科技合規化"],
-    "peer_group": ["9988.HK", "9618.HK", "3690.HK"]
-  },
-  "9988": {
-    "ticker": "9988.HK",
-    "sector": "科技 / 電商",
-    "product_lines": ["淘寶 / 天貓電商", "阿里雲", "菜鳥物流", "國際電商", "本地生活服務"],
-    "market_positioning": "中國最大電商平台，雲端運算市場領導者",
-    "strengths": ["電商生態系統完整", "阿里雲市場份額領先", "物流基礎設施完善", "國際化佈局廣泛"],
-    "weaknesses": ["監管整改影響業務", "電商市場競爭加劇", "盈利能力承壓", "組織架構調整帶來不確定性"],
-    "future_strategy": ["AI 驅動電商升級", "阿里雲盈利能力提升", "國際業務加速擴張", "聚焦核心業務"],
-    "peer_group": ["0700.HK", "9618.HK", "3690.HK"]
-  },
-  "0005": {
-    "ticker": "0005.HK",
-    "sector": "金融 / 銀行",
-    "product_lines": ["零售銀行", "環球銀行及資本市場", "財富管理", "保險", "商業銀行"],
-    "market_positioning": "全球最大銀行之一，亞洲業務為核心增長引擎",
-    "strengths": ["亞洲市場深厚根基", "全球網絡覆蓋廣泛", "財富管理業務強勁", "資本充足率穩健"],
-    "weaknesses": ["利率環境敏感度高", "合規成本持續上升", "部分新興市場風險", "數字化轉型投入龐大"],
-    "future_strategy": ["亞洲財富管理擴張", "數字銀行升級", "可持續金融佈局", "成本效益優化"],
-    "peer_group": ["2388.HK", "1398.HK", "3988.HK"]
-  },
-  "1299": {
-    "ticker": "1299.HK",
-    "sector": "金融 / 保險",
-    "product_lines": ["人壽保險", "財產保險", "資產管理", "再保險", "健康保險"],
-    "market_positioning": "亞洲最大保險集團，香港及中國內地市場領導者",
-    "strengths": ["品牌認知度極高", "分銷網絡廣泛", "內地市場增長潛力大", "資產管理規模龐大"],
-    "weaknesses": ["利率下行壓縮投資回報", "監管環境趨嚴", "競爭對手積極進取", "新業務價值增長放緩"],
-    "future_strategy": ["內地市場深耕", "健康保險產品擴展", "數字化銷售渠道升級", "資產管理多元化"],
-    "peer_group": ["0945.HK", "2318.HK", "0966.HK"]
-  },
-  "0941": {
-    "ticker": "0941.HK",
-    "sector": "電訊",
-    "product_lines": ["移動通訊服務", "5G 網絡", "家居寬頻", "企業通訊解決方案", "數字內容服務"],
-    "market_positioning": "中國最大移動電訊運營商，5G 用戶規模全球領先",
-    "strengths": ["用戶規模全球最大", "5G 基礎設施領先", "國企背景融資優勢", "穩定股息回報"],
-    "weaknesses": ["ARPU 增長空間有限", "資本開支持續龐大", "市場飽和度高", "創新業務盈利待驗證"],
-    "future_strategy": ["5G 商業應用深化", "算力網絡佈局", "企業數字化服務擴張", "海外市場拓展"],
-    "peer_group": ["0728.HK", "0762.HK"]
-  },
-  "0688": {
-    "ticker": "0688.HK",
-    "sector": "地產 / 內房",
-    "product_lines": ["住宅開發", "商業物業", "物業投資", "物業管理"],
-    "market_positioning": "大型央企地產商，以一二線城市為主要市場",
-    "strengths": ["國企背景融資成本相對較低", "資產規模龐大", "品牌信譽穩固", "土地儲備充足"],
-    "weaknesses": ["行業週期下行壓力", "銷售增長放緩", "資產周轉效率待提升", "現金流管理挑戰"],
-    "future_strategy": ["改善現金流管理", "控制槓桿水平", "聚焦一二線核心城市", "輕資產模式探索"],
-    "peer_group": ["1109.HK", "0960.HK", "0016.HK"]
-  },
-  "1109": {
-    "ticker": "1109.HK",
-    "sector": "地產 / 內房",
-    "product_lines": ["住宅開發", "商業地產", "物業管理", "城市更新"],
-    "market_positioning": "大型央企地產商，以住宅開發為核心業務",
-    "strengths": ["央企信用背書", "全國化佈局完善", "品牌知名度高", "政策支持優勢"],
-    "weaknesses": ["行業整體下行壓力", "去化速度放緩", "利潤率收窄", "土地成本高企"],
-    "future_strategy": ["聚焦核心城市群", "提升運營效率", "探索城市更新機遇", "降低負債比率"],
-    "peer_group": ["0688.HK", "0960.HK", "0016.HK"]
-  },
-  "0960": {
-    "ticker": "0960.HK",
-    "sector": "地產 / 內房",
-    "product_lines": ["住宅開發", "商業地產", "物業服務", "文旅地產"],
-    "market_positioning": "大型民營地產商，以高端住宅及文旅地產見稱",
-    "strengths": ["高端品牌定位", "文旅地產差異化", "管理團隊經驗豐富", "產品口碑良好"],
-    "weaknesses": ["民企融資成本較高", "行業信心尚未完全恢復", "高端市場需求波動", "擴張步伐放緩"],
-    "future_strategy": ["文旅地產深化", "輕資產合作模式", "聚焦高利潤項目", "優化資產負債表"],
-    "peer_group": ["0688.HK", "1109.HK", "0016.HK"]
+  "0001": {
+    "ticker": "0001.HK",
+    "sector": "綜合企業",
+    "product_lines": [
+      "港口、零售、基建、能源及電訊業務",
+      "綜合企業 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "長和 is covered as a Hong Kong listed 綜合企業 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 綜合企業",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 綜合企業 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0019.HK",
+      "0267.HK",
+      "0700.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
   },
   "0002": {
     "ticker": "0002.HK",
     "sector": "公用事業 / 電力",
-    "product_lines": ["電力供應", "天然氣分銷", "可再生能源", "電網基礎設施"],
+    "product_lines": [
+      "電力供應",
+      "天然氣分銷",
+      "可再生能源",
+      "電網基礎設施"
+    ],
     "market_positioning": "香港主要電力供應商，穩定公用事業龍頭",
-    "strengths": ["壟斷性市場地位", "穩定現金流", "受監管回報保障", "股息記錄優良"],
-    "weaknesses": ["增長空間受限", "資本開支龐大", "能源轉型成本高", "監管審查風險"],
-    "future_strategy": ["可再生能源投資", "智能電網升級", "電動車充電基礎設施", "碳中和目標推進"],
-    "peer_group": ["0006.HK", "0836.HK"]
+    "strengths": [
+      "壟斷性市場地位",
+      "穩定現金流",
+      "受監管回報保障",
+      "股息記錄優良"
+    ],
+    "weaknesses": [
+      "增長空間受限",
+      "資本開支龐大",
+      "能源轉型成本高",
+      "監管審查風險"
+    ],
+    "future_strategy": [
+      "可再生能源投資",
+      "智能電網升級",
+      "電動車充電基礎設施",
+      "碳中和目標推進"
+    ],
+    "peer_group": [
+      "0728.HK",
+      "0762.HK",
+      "0941.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0003": {
+    "ticker": "0003.HK",
+    "sector": "公用事業",
+    "product_lines": [
+      "香港及中國內地燃氣供應、分銷及相關業務",
+      "公用事業 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "香港中華煤氣 is covered as a Hong Kong listed 公用事業 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 公用事業",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 公用事業 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0006.HK",
+      "0700.HK",
+      "0005.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0004": {
+    "ticker": "0004.HK",
+    "sector": "地產 / 零售",
+    "product_lines": [
+      "香港及中國內地物業發展、投資物業及物流業務",
+      "地產 / 零售 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "九龍倉集團 is covered as a Hong Kong listed 地產 / 零售 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 地產 / 零售",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 地產 / 零售 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0012.HK",
+      "0016.HK",
+      "0017.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0005": {
+    "ticker": "0005.HK",
+    "sector": "金融 / 銀行",
+    "product_lines": [
+      "零售銀行",
+      "環球銀行及資本市場",
+      "財富管理",
+      "保險",
+      "商業銀行"
+    ],
+    "market_positioning": "全球最大銀行之一，亞洲業務為核心增長引擎",
+    "strengths": [
+      "亞洲市場深厚根基",
+      "全球網絡覆蓋廣泛",
+      "財富管理業務強勁",
+      "資本充足率穩健"
+    ],
+    "weaknesses": [
+      "利率環境敏感度高",
+      "合規成本持續上升",
+      "部分新興市場風險",
+      "數字化轉型投入龐大"
+    ],
+    "future_strategy": [
+      "亞洲財富管理擴張",
+      "數字銀行升級",
+      "可持續金融佈局",
+      "成本效益優化"
+    ],
+    "peer_group": [
+      "0011.HK",
+      "0023.HK",
+      "0939.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0006": {
+    "ticker": "0006.HK",
+    "sector": "公用事業",
+    "product_lines": [
+      "香港及海外電力及能源基建投資",
+      "公用事業 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "電能實業 is covered as a Hong Kong listed 公用事業 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 公用事業",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 公用事業 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0003.HK",
+      "0700.HK",
+      "0005.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0011": {
+    "ticker": "0011.HK",
+    "sector": "銀行 / 金融",
+    "product_lines": [
+      "零售銀行、工商金融及財富管理",
+      "銀行 / 金融 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "恒生銀行 is covered as a Hong Kong listed 銀行 / 金融 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 銀行 / 金融",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 銀行 / 金融 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0005.HK",
+      "0023.HK",
+      "0939.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0012": {
+    "ticker": "0012.HK",
+    "sector": "地產 / 香港",
+    "product_lines": [
+      "香港及中國內地物業發展與投資",
+      "地產 / 香港 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "恒基地產 is covered as a Hong Kong listed 地產 / 香港 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 地產 / 香港",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 地產 / 香港 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0004.HK",
+      "0016.HK",
+      "0017.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0016": {
+    "ticker": "0016.HK",
+    "sector": "地產 / 香港",
+    "product_lines": [
+      "香港物業發展、投資物業及酒店業務",
+      "地產 / 香港 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "新鴻基地產 is covered as a Hong Kong listed 地產 / 香港 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 地產 / 香港",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 地產 / 香港 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0004.HK",
+      "0012.HK",
+      "0017.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0017": {
+    "ticker": "0017.HK",
+    "sector": "地產 / 綜合",
+    "product_lines": [
+      "香港及中國內地物業發展、基建及服務業務",
+      "地產 / 綜合 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "新世界發展 is covered as a Hong Kong listed 地產 / 綜合 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 地產 / 綜合",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 地產 / 綜合 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0004.HK",
+      "0012.HK",
+      "0016.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0019": {
+    "ticker": "0019.HK",
+    "sector": "綜合企業",
+    "product_lines": [
+      "物業、航空、飲料及海洋服務業務",
+      "綜合企業 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "太古股份公司 is covered as a Hong Kong listed 綜合企業 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 綜合企業",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 綜合企業 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0001.HK",
+      "0267.HK",
+      "0700.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0023": {
+    "ticker": "0023.HK",
+    "sector": "銀行 / 金融",
+    "product_lines": [
+      "零售銀行、工商金融及財富管理",
+      "銀行 / 金融 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "東亞銀行 is covered as a Hong Kong listed 銀行 / 金融 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 銀行 / 金融",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 銀行 / 金融 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0005.HK",
+      "0011.HK",
+      "0939.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0027": {
+    "ticker": "0027.HK",
+    "sector": "博彩 / 娛樂",
+    "product_lines": [
+      "澳門博彩及酒店度假村業務",
+      "博彩 / 娛樂 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "銀河娛樂 is covered as a Hong Kong listed 博彩 / 娛樂 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 博彩 / 娛樂",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 博彩 / 娛樂 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "0005.HK",
+      "0941.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0066": {
+    "ticker": "0066.HK",
+    "sector": "交通運輸 / 基建",
+    "product_lines": [
+      "香港鐵路運營、物業發展及海外鐵路業務",
+      "交通運輸 / 基建 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "港鐵公司 is covered as a Hong Kong listed 交通運輸 / 基建 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 交通運輸 / 基建",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 交通運輸 / 基建 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0293.HK",
+      "0316.HK",
+      "1038.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0083": {
+    "ticker": "0083.HK",
+    "sector": "地產 / 香港",
+    "product_lines": [
+      "香港物業發展及投資物業業務",
+      "地產 / 香港 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "信和置業 is covered as a Hong Kong listed 地產 / 香港 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 地產 / 香港",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 地產 / 香港 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0004.HK",
+      "0012.HK",
+      "0016.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0101": {
+    "ticker": "0101.HK",
+    "sector": "地產 / 香港",
+    "product_lines": [
+      "香港及中國內地商業物業投資及發展",
+      "地產 / 香港 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "恒隆地產 is covered as a Hong Kong listed 地產 / 香港 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 地產 / 香港",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 地產 / 香港 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0004.HK",
+      "0012.HK",
+      "0016.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0175": {
+    "ticker": "0175.HK",
+    "sector": "汽車",
+    "product_lines": [
+      "乘用車研發、製造及銷售",
+      "汽車 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "吉利汽車 is covered as a Hong Kong listed 汽車 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 汽車",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 汽車 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "1211.HK",
+      "0700.HK",
+      "0005.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0267": {
+    "ticker": "0267.HK",
+    "sector": "綜合企業",
+    "product_lines": [
+      "金融、資源能源、製造及工程業務",
+      "綜合企業 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "中信股份 is covered as a Hong Kong listed 綜合企業 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 綜合企業",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 綜合企業 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0001.HK",
+      "0019.HK",
+      "0700.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0288": {
+    "ticker": "0288.HK",
+    "sector": "食品 / 消費",
+    "product_lines": [
+      "豬肉及相關食品加工、包裝及銷售",
+      "食品 / 消費 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "萬洲國際 is covered as a Hong Kong listed 食品 / 消費 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 食品 / 消費",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 食品 / 消費 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0322.HK",
+      "2319.HK",
+      "0700.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0293": {
+    "ticker": "0293.HK",
+    "sector": "航空 / 交通",
+    "product_lines": [
+      "國際航空客運及貨運服務",
+      "航空 / 交通 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "國泰航空 is covered as a Hong Kong listed 航空 / 交通 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 航空 / 交通",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 航空 / 交通 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0066.HK",
+      "0316.HK",
+      "0019.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0316": {
+    "ticker": "0316.HK",
+    "sector": "航運 / 物流",
+    "product_lines": [
+      "集裝箱航運及物流服務",
+      "航運 / 物流 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "東方海外國際 is covered as a Hong Kong listed 航運 / 物流 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 航運 / 物流",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 航運 / 物流 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0293.HK",
+      "0066.HK",
+      "1038.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0322": {
+    "ticker": "0322.HK",
+    "sector": "食品 / 消費",
+    "product_lines": [
+      "即食麵、飲料及相關食品業務",
+      "食品 / 消費 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "康師傅控股 is covered as a Hong Kong listed 食品 / 消費 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 食品 / 消費",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 食品 / 消費 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0288.HK",
+      "2319.HK",
+      "0700.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0386": {
+    "ticker": "0386.HK",
+    "sector": "能源 / 石油化工",
+    "product_lines": [
+      "石油勘探、開採、煉製及銷售",
+      "能源 / 石油化工 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "中國石油化工股份 is covered as a Hong Kong listed 能源 / 石油化工 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 能源 / 石油化工",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 能源 / 石油化工 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0857.HK",
+      "0883.HK",
+      "1088.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0388": {
+    "ticker": "0388.HK",
+    "sector": "金融 / 交易所",
+    "product_lines": [
+      "股票、衍生品及商品交易所及結算業務",
+      "金融 / 交易所 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "香港交易所 is covered as a Hong Kong listed 金融 / 交易所 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 金融 / 交易所",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 金融 / 交易所 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "3416.HK",
+      "0700.HK",
+      "0005.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0669": {
+    "ticker": "0669.HK",
+    "sector": "工業 / 消費電子",
+    "product_lines": [
+      "電動工具、戶外電力設備及地板護理產品",
+      "工業 / 消費電子 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "創科實業 is covered as a Hong Kong listed 工業 / 消費電子 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 工業 / 消費電子",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 工業 / 消費電子 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "0005.HK",
+      "0941.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0688": {
+    "ticker": "0688.HK",
+    "sector": "地產 / 內房",
+    "product_lines": [
+      "住宅開發",
+      "商業物業",
+      "物業投資",
+      "物業管理"
+    ],
+    "market_positioning": "大型央企地產商，以一二線城市為主要市場",
+    "strengths": [
+      "國企背景融資成本相對較低",
+      "資產規模龐大",
+      "品牌信譽穩固",
+      "土地儲備充足"
+    ],
+    "weaknesses": [
+      "行業週期下行壓力",
+      "銷售增長放緩",
+      "資產周轉效率待提升",
+      "現金流管理挑戰"
+    ],
+    "future_strategy": [
+      "改善現金流管理",
+      "控制槓桿水平",
+      "聚焦一二線核心城市",
+      "輕資產模式探索"
+    ],
+    "peer_group": [
+      "0004.HK",
+      "0012.HK",
+      "0016.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0700": {
+    "ticker": "0700.HK",
+    "sector": "科技 / 互聯網",
+    "product_lines": [
+      "微信 / WeChat",
+      "遊戲業務",
+      "金融科技",
+      "企業服務",
+      "雲端運算"
+    ],
+    "market_positioning": "中國最大互聯網科技集團，社交媒體與遊戲雙引擎驅動",
+    "strengths": [
+      "微信生態系統壟斷地位",
+      "遊戲業務全球領先",
+      "多元化收入來源",
+      "強勁自由現金流"
+    ],
+    "weaknesses": [
+      "監管政策風險較高",
+      "遊戲版號審批不確定性",
+      "廣告收入受宏觀經濟影響",
+      "海外擴張受地緣政治制約"
+    ],
+    "future_strategy": [
+      "AI 技術深度整合",
+      "企業服務與雲端業務擴張",
+      "海外遊戲市場佈局",
+      "金融科技合規化"
+    ],
+    "peer_group": [
+      "1810.HK",
+      "2018.HK",
+      "2382.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0728": {
+    "ticker": "0728.HK",
+    "sector": "電訊 / 公用",
+    "product_lines": [
+      "固網寬頻、移動通信及企業資訊科技服務",
+      "電訊 / 公用 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "中國電訊 is covered as a Hong Kong listed 電訊 / 公用 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 電訊 / 公用",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 電訊 / 公用 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0002.HK",
+      "0762.HK",
+      "0941.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0762": {
+    "ticker": "0762.HK",
+    "sector": "電訊 / 公用",
+    "product_lines": [
+      "移動通信、固網寬頻及雲端服務",
+      "電訊 / 公用 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "中國聯通 is covered as a Hong Kong listed 電訊 / 公用 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 電訊 / 公用",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 電訊 / 公用 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0002.HK",
+      "0728.HK",
+      "0941.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0823": {
+    "ticker": "0823.HK",
+    "sector": "房地產信託基金",
+    "product_lines": [
+      "香港零售及停車場物業投資及管理",
+      "房地產信託基金 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "領展房產基金 is covered as a Hong Kong listed 房地產信託基金 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 房地產信託基金",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 房地產信託基金 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "0005.HK",
+      "0941.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0857": {
+    "ticker": "0857.HK",
+    "sector": "能源 / 石油天然氣",
+    "product_lines": [
+      "石油天然氣勘探、開採、輸送及銷售",
+      "能源 / 石油天然氣 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "中國石油天然氣股份 is covered as a Hong Kong listed 能源 / 石油天然氣 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 能源 / 石油天然氣",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 能源 / 石油天然氣 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0386.HK",
+      "0883.HK",
+      "1088.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0883": {
+    "ticker": "0883.HK",
+    "sector": "能源 / 石油天然氣",
+    "product_lines": [
+      "海上石油天然氣勘探、開採及銷售",
+      "能源 / 石油天然氣 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "中國海洋石油 is covered as a Hong Kong listed 能源 / 石油天然氣 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 能源 / 石油天然氣",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 能源 / 石油天然氣 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0386.HK",
+      "0857.HK",
+      "1088.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0939": {
+    "ticker": "0939.HK",
+    "sector": "銀行 / 金融",
+    "product_lines": [
+      "零售銀行、工商金融、投資銀行及資產管理",
+      "銀行 / 金融 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "建設銀行 is covered as a Hong Kong listed 銀行 / 金融 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 銀行 / 金融",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 銀行 / 金融 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0005.HK",
+      "0011.HK",
+      "0023.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0941": {
+    "ticker": "0941.HK",
+    "sector": "電訊",
+    "product_lines": [
+      "移動通訊服務",
+      "5G 網絡",
+      "家居寬頻",
+      "企業通訊解決方案",
+      "數字內容服務"
+    ],
+    "market_positioning": "中國最大移動電訊運營商，5G 用戶規模全球領先",
+    "strengths": [
+      "用戶規模全球最大",
+      "5G 基礎設施領先",
+      "國企背景融資優勢",
+      "穩定股息回報"
+    ],
+    "weaknesses": [
+      "ARPU 增長空間有限",
+      "資本開支持續龐大",
+      "市場飽和度高",
+      "創新業務盈利待驗證"
+    ],
+    "future_strategy": [
+      "5G 商業應用深化",
+      "算力網絡佈局",
+      "企業數字化服務擴張",
+      "海外市場拓展"
+    ],
+    "peer_group": [
+      "0002.HK",
+      "0728.HK",
+      "0762.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0945": {
+    "ticker": "0945.HK",
+    "sector": "保險 / 金融",
+    "product_lines": [
+      "人壽保險及健康保障產品",
+      "保險 / 金融 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "富衛集團 is covered as a Hong Kong listed 保險 / 金融 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 保險 / 金融",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 保險 / 金融 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0966.HK",
+      "1336.HK",
+      "2318.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0960": {
+    "ticker": "0960.HK",
+    "sector": "地產 / 內房",
+    "product_lines": [
+      "住宅開發",
+      "商業地產",
+      "物業服務",
+      "文旅地產"
+    ],
+    "market_positioning": "大型民營地產商，以高端住宅及文旅地產見稱",
+    "strengths": [
+      "高端品牌定位",
+      "文旅地產差異化",
+      "管理團隊經驗豐富",
+      "產品口碑良好"
+    ],
+    "weaknesses": [
+      "民企融資成本較高",
+      "行業信心尚未完全恢復",
+      "高端市場需求波動",
+      "擴張步伐放緩"
+    ],
+    "future_strategy": [
+      "文旅地產深化",
+      "輕資產合作模式",
+      "聚焦高利潤項目",
+      "優化資產負債表"
+    ],
+    "peer_group": [
+      "0004.HK",
+      "0012.HK",
+      "0016.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "0966": {
+    "ticker": "0966.HK",
+    "sector": "保險 / 金融",
+    "product_lines": [
+      "人壽保險、財產保險及再保險業務",
+      "保險 / 金融 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "中國太平保險控股 is covered as a Hong Kong listed 保險 / 金融 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 保險 / 金融",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 保險 / 金融 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0945.HK",
+      "1336.HK",
+      "2318.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1038": {
+    "ticker": "1038.HK",
+    "sector": "基建 / 公用",
+    "product_lines": [
+      "能源、交通、水務及廢物管理基建投資",
+      "基建 / 公用 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "長江基建集團 is covered as a Hong Kong listed 基建 / 公用 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 基建 / 公用",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 基建 / 公用 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0066.HK",
+      "0002.HK",
+      "0006.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1044": {
+    "ticker": "1044.HK",
+    "sector": "消費品",
+    "product_lines": [
+      "個人衛生用品、紙巾及嬰兒護理產品",
+      "消費品 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "恒安國際集團 is covered as a Hong Kong listed 消費品 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 消費品",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 消費品 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "0005.HK",
+      "0941.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1088": {
+    "ticker": "1088.HK",
+    "sector": "能源 / 煤炭",
+    "product_lines": [
+      "煤炭開採、電力生產及鐵路運輸業務",
+      "能源 / 煤炭 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "中國神華能源 is covered as a Hong Kong listed 能源 / 煤炭 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 能源 / 煤炭",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 能源 / 煤炭 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0386.HK",
+      "0857.HK",
+      "0883.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1093": {
+    "ticker": "1093.HK",
+    "sector": "醫藥 / 健康",
+    "product_lines": [
+      "創新藥、原料藥及維生素產品研發及銷售",
+      "醫藥 / 健康 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "石藥集團 is covered as a Hong Kong listed 醫藥 / 健康 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 醫藥 / 健康",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 醫藥 / 健康 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "1177.HK",
+      "2269.HK",
+      "6618.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1109": {
+    "ticker": "1109.HK",
+    "sector": "地產 / 內房",
+    "product_lines": [
+      "住宅開發",
+      "商業地產",
+      "物業管理",
+      "城市更新"
+    ],
+    "market_positioning": "大型央企地產商，以住宅開發為核心業務",
+    "strengths": [
+      "央企信用背書",
+      "全國化佈局完善",
+      "品牌知名度高",
+      "政策支持優勢"
+    ],
+    "weaknesses": [
+      "行業整體下行壓力",
+      "去化速度放緩",
+      "利潤率收窄",
+      "土地成本高企"
+    ],
+    "future_strategy": [
+      "聚焦核心城市群",
+      "提升運營效率",
+      "探索城市更新機遇",
+      "降低負債比率"
+    ],
+    "peer_group": [
+      "0004.HK",
+      "0012.HK",
+      "0016.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1177": {
+    "ticker": "1177.HK",
+    "sector": "醫藥 / 健康",
+    "product_lines": [
+      "創新藥及仿製藥研發、製造及銷售",
+      "醫藥 / 健康 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "中國生物製藥 is covered as a Hong Kong listed 醫藥 / 健康 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 醫藥 / 健康",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 醫藥 / 健康 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "1093.HK",
+      "2269.HK",
+      "6618.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1211": {
+    "ticker": "1211.HK",
+    "sector": "汽車 / 新能源",
+    "product_lines": [
+      "新能源汽車、電池及電子業務",
+      "汽車 / 新能源 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "比亞迪股份 is covered as a Hong Kong listed 汽車 / 新能源 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 汽車 / 新能源",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 汽車 / 新能源 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0175.HK",
+      "0700.HK",
+      "0005.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1288": {
+    "ticker": "1288.HK",
+    "sector": "銀行 / 金融",
+    "product_lines": [
+      "零售銀行、工商金融及農業金融服務",
+      "銀行 / 金融 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "農業銀行 is covered as a Hong Kong listed 銀行 / 金融 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 銀行 / 金融",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 銀行 / 金融 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0005.HK",
+      "0011.HK",
+      "0023.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1299": {
+    "ticker": "1299.HK",
+    "sector": "金融 / 保險",
+    "product_lines": [
+      "人壽保險",
+      "財產保險",
+      "資產管理",
+      "再保險",
+      "健康保險"
+    ],
+    "market_positioning": "亞洲最大保險集團，香港及中國內地市場領導者",
+    "strengths": [
+      "品牌認知度極高",
+      "分銷網絡廣泛",
+      "內地市場增長潛力大",
+      "資產管理規模龐大"
+    ],
+    "weaknesses": [
+      "利率下行壓縮投資回報",
+      "監管環境趨嚴",
+      "競爭對手積極進取",
+      "新業務價值增長放緩"
+    ],
+    "future_strategy": [
+      "內地市場深耕",
+      "健康保險產品擴展",
+      "數字化銷售渠道升級",
+      "資產管理多元化"
+    ],
+    "peer_group": [
+      "0005.HK",
+      "0011.HK",
+      "0023.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1336": {
+    "ticker": "1336.HK",
+    "sector": "保險 / 金融",
+    "product_lines": [
+      "人壽保險及健康保障產品",
+      "保險 / 金融 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "新華保險 is covered as a Hong Kong listed 保險 / 金融 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 保險 / 金融",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 保險 / 金融 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0945.HK",
+      "0966.HK",
+      "2318.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1347": {
+    "ticker": "1347.HK",
+    "sector": "半導體 / 科技",
+    "product_lines": [
+      "特色工藝半導體晶圓代工服務",
+      "半導體 / 科技 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "華虹半導體 is covered as a Hong Kong listed 半導體 / 科技 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 半導體 / 科技",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 半導體 / 科技 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "0005.HK",
+      "0941.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1398": {
+    "ticker": "1398.HK",
+    "sector": "銀行 / 金融",
+    "product_lines": [
+      "零售銀行、工商金融、投資銀行及資產管理",
+      "銀行 / 金融 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "工商銀行 is covered as a Hong Kong listed 銀行 / 金融 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 銀行 / 金融",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 銀行 / 金融 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0005.HK",
+      "0011.HK",
+      "0023.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1658": {
+    "ticker": "1658.HK",
+    "sector": "銀行 / 金融",
+    "product_lines": [
+      "零售銀行及農村金融服務",
+      "銀行 / 金融 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "郵儲銀行 is covered as a Hong Kong listed 銀行 / 金融 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 銀行 / 金融",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 銀行 / 金融 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0005.HK",
+      "0011.HK",
+      "0023.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1772": {
+    "ticker": "1772.HK",
+    "sector": "材料 / 新能源",
+    "product_lines": [
+      "鋰資源開採、鋰化合物及鋰電池業務",
+      "材料 / 新能源 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "贛鋒鋰業 is covered as a Hong Kong listed 材料 / 新能源 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 材料 / 新能源",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 材料 / 新能源 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "0005.HK",
+      "0941.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1810": {
+    "ticker": "1810.HK",
+    "sector": "科技 / 消費電子",
+    "product_lines": [
+      "智能手機、IoT與生活消費產品、互聯網服務及智能電動車相關業務",
+      "科技 / 消費電子 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "小米集團 is covered as a Hong Kong listed 科技 / 消費電子 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 科技 / 消費電子",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 科技 / 消費電子 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "2018.HK",
+      "2382.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1876": {
+    "ticker": "1876.HK",
+    "sector": "食品飲料",
+    "product_lines": [
+      "亞太地區啤酒釀造及銷售",
+      "食品飲料 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "百威亞太 is covered as a Hong Kong listed 食品飲料 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 食品飲料",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 食品飲料 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "0005.HK",
+      "0941.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1929": {
+    "ticker": "1929.HK",
+    "sector": "零售 / 消費",
+    "product_lines": [
+      "珠寶首飾零售及批發業務",
+      "零售 / 消費 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "周大福珠寶 is covered as a Hong Kong listed 零售 / 消費 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 零售 / 消費",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 零售 / 消費 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "0005.HK",
+      "0941.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "1997": {
+    "ticker": "1997.HK",
+    "sector": "地產 / 香港",
+    "product_lines": [
+      "香港投資物業及酒店業務",
+      "地產 / 香港 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "九龍倉置業 is covered as a Hong Kong listed 地產 / 香港 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 地產 / 香港",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 地產 / 香港 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0004.HK",
+      "0012.HK",
+      "0016.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "2007": {
+    "ticker": "2007.HK",
+    "sector": "地產 / 內房",
+    "product_lines": [
+      "中國內地住宅物業開發及物業管理",
+      "地產 / 內房 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "碧桂園 is covered as a Hong Kong listed 地產 / 內房 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 地產 / 內房",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 地產 / 內房 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0004.HK",
+      "0012.HK",
+      "0016.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "2018": {
+    "ticker": "2018.HK",
+    "sector": "科技 / 零部件",
+    "product_lines": [
+      "聲學、光學及電磁傳動零部件",
+      "科技 / 零部件 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "瑞聲科技 is covered as a Hong Kong listed 科技 / 零部件 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 科技 / 零部件",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 科技 / 零部件 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "1810.HK",
+      "2382.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "2020": {
+    "ticker": "2020.HK",
+    "sector": "消費 / 運動",
+    "product_lines": [
+      "運動服裝、鞋履及配件設計、製造及銷售",
+      "消費 / 運動 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "安踏體育 is covered as a Hong Kong listed 消費 / 運動 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 消費 / 運動",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 消費 / 運動 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "2331.HK",
+      "3690.HK",
+      "9618.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "2269": {
+    "ticker": "2269.HK",
+    "sector": "醫藥 / 生物科技",
+    "product_lines": [
+      "生物藥研發及生產外包服務",
+      "醫藥 / 生物科技 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "藥明生物 is covered as a Hong Kong listed 醫藥 / 生物科技 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 醫藥 / 生物科技",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 醫藥 / 生物科技 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "1093.HK",
+      "1177.HK",
+      "6618.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "2313": {
+    "ticker": "2313.HK",
+    "sector": "紡織 / 消費",
+    "product_lines": [
+      "針織面料及成衣製造",
+      "紡織 / 消費 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "申洲國際 is covered as a Hong Kong listed 紡織 / 消費 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 紡織 / 消費",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 紡織 / 消費 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "0005.HK",
+      "0941.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "2318": {
+    "ticker": "2318.HK",
+    "sector": "保險 / 金融",
+    "product_lines": [
+      "人壽保險、財產保險、銀行及金融科技業務",
+      "保險 / 金融 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "中國平安保險 is covered as a Hong Kong listed 保險 / 金融 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 保險 / 金融",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 保險 / 金融 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0945.HK",
+      "0966.HK",
+      "1336.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "2319": {
+    "ticker": "2319.HK",
+    "sector": "食品 / 消費",
+    "product_lines": [
+      "液態奶、冰淇淋及奶粉產品",
+      "食品 / 消費 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "蒙牛乳業 is covered as a Hong Kong listed 食品 / 消費 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 食品 / 消費",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 食品 / 消費 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0288.HK",
+      "0322.HK",
+      "0700.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "2331": {
+    "ticker": "2331.HK",
+    "sector": "消費 / 運動",
+    "product_lines": [
+      "運動服裝、鞋履及配件設計及銷售",
+      "消費 / 運動 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "李寧 is covered as a Hong Kong listed 消費 / 運動 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 消費 / 運動",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 消費 / 運動 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "2020.HK",
+      "3690.HK",
+      "9618.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "2382": {
+    "ticker": "2382.HK",
+    "sector": "科技 / 光學",
+    "product_lines": [
+      "光學零件、光學儀器及光電產品",
+      "科技 / 光學 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "舜宇光學科技 is covered as a Hong Kong listed 科技 / 光學 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 科技 / 光學",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 科技 / 光學 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "1810.HK",
+      "2018.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "2388": {
+    "ticker": "2388.HK",
+    "sector": "銀行 / 金融",
+    "product_lines": [
+      "零售銀行、工商金融及財富管理",
+      "銀行 / 金融 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "中銀香港 is covered as a Hong Kong listed 銀行 / 金融 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 銀行 / 金融",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 銀行 / 金融 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0005.HK",
+      "0011.HK",
+      "0023.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "2628": {
+    "ticker": "2628.HK",
+    "sector": "保險 / 金融",
+    "product_lines": [
+      "人壽保險及健康保障產品",
+      "保險 / 金融 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "中國人壽保險 is covered as a Hong Kong listed 保險 / 金融 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 保險 / 金融",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 保險 / 金融 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0945.HK",
+      "0966.HK",
+      "1336.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "3328": {
+    "ticker": "3328.HK",
+    "sector": "銀行 / 金融",
+    "product_lines": [
+      "零售銀行、工商金融及投資銀行",
+      "銀行 / 金融 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "交通銀行 is covered as a Hong Kong listed 銀行 / 金融 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 銀行 / 金融",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 銀行 / 金融 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0005.HK",
+      "0011.HK",
+      "0023.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "3333": {
+    "ticker": "3333.HK",
+    "sector": "地產 / 內房",
+    "product_lines": [
+      "中國內地住宅物業開發（重組中）",
+      "地產 / 內房 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "中國恒大 is covered as a Hong Kong listed 地產 / 內房 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 地產 / 內房",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 地產 / 內房 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0004.HK",
+      "0012.HK",
+      "0016.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "3416": {
+    "ticker": "3416.HK",
+    "sector": "金融 / 其他金融",
+    "product_lines": [
+      "金融服務及相關業務；具體收入結構需以公司公告及年報核對",
+      "金融 / 其他金融 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "保興財務集團 is covered as a Hong Kong listed 金融 / 其他金融 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 金融 / 其他金融",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 金融 / 其他金融 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0388.HK",
+      "0700.HK",
+      "0005.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
   },
   "3690": {
     "ticker": "3690.HK",
     "sector": "科技 / 外賣平台",
-    "product_lines": ["外賣配送", "到店餐飲", "酒店旅遊", "閃購即時零售", "共享單車"],
+    "product_lines": [
+      "外賣配送",
+      "到店餐飲",
+      "酒店旅遊",
+      "閃購即時零售",
+      "共享單車"
+    ],
     "market_positioning": "中國最大本地生活服務平台，外賣市場絕對龍頭",
-    "strengths": ["外賣市場份額超60%", "即時配送網絡壁壘高", "用戶黏性強", "多元化本地生活服務"],
-    "weaknesses": ["盈利能力仍在爬坡", "騎手成本持續上升", "監管合規壓力", "新業務投入龐大"],
-    "future_strategy": ["即時零售規模化", "海外市場擴張", "AI 技術提升效率", "企業服務拓展"],
-    "peer_group": ["9988.HK", "0700.HK", "9618.HK"]
+    "strengths": [
+      "外賣市場份額超60%",
+      "即時配送網絡壁壘高",
+      "用戶黏性強",
+      "多元化本地生活服務"
+    ],
+    "weaknesses": [
+      "盈利能力仍在爬坡",
+      "騎手成本持續上升",
+      "監管合規壓力",
+      "新業務投入龐大"
+    ],
+    "future_strategy": [
+      "即時零售規模化",
+      "海外市場擴張",
+      "AI 技術提升效率",
+      "企業服務拓展"
+    ],
+    "peer_group": [
+      "2020.HK",
+      "2331.HK",
+      "9618.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "3968": {
+    "ticker": "3968.HK",
+    "sector": "銀行 / 金融",
+    "product_lines": [
+      "零售銀行、工商金融及財富管理",
+      "銀行 / 金融 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "招商銀行 is covered as a Hong Kong listed 銀行 / 金融 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 銀行 / 金融",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 銀行 / 金融 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0005.HK",
+      "0011.HK",
+      "0023.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "6098": {
+    "ticker": "6098.HK",
+    "sector": "物業管理",
+    "product_lines": [
+      "住宅及商業物業管理服務",
+      "物業管理 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "碧桂園服務 is covered as a Hong Kong listed 物業管理 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 物業管理",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 物業管理 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "0005.HK",
+      "0941.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "6618": {
+    "ticker": "6618.HK",
+    "sector": "醫藥 / 健康科技",
+    "product_lines": [
+      "線上醫療健康服務及藥品零售",
+      "醫藥 / 健康科技 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "京東健康 is covered as a Hong Kong listed 醫藥 / 健康科技 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 醫藥 / 健康科技",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 醫藥 / 健康科技 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "1093.HK",
+      "1177.HK",
+      "2269.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "6690": {
+    "ticker": "6690.HK",
+    "sector": "消費電子 / 家電",
+    "product_lines": [
+      "智能家電及家居解決方案",
+      "消費電子 / 家電 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "海爾智家 is covered as a Hong Kong listed 消費電子 / 家電 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 消費電子 / 家電",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 消費電子 / 家電 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "0005.HK",
+      "0941.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "6862": {
+    "ticker": "6862.HK",
+    "sector": "餐飲 / 消費",
+    "product_lines": [
+      "火鍋餐廳連鎖業務",
+      "餐飲 / 消費 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "海底撈 is covered as a Hong Kong listed 餐飲 / 消費 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 餐飲 / 消費",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 餐飲 / 消費 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "0005.HK",
+      "0941.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
   },
   "9618": {
     "ticker": "9618.HK",
     "sector": "科技 / 電商",
-    "product_lines": ["自營電商", "物流服務", "企業採購", "健康業務", "工業品電商"],
+    "product_lines": [
+      "自營電商",
+      "物流服務",
+      "企業採購",
+      "健康業務",
+      "工業品電商"
+    ],
     "market_positioning": "中國第二大電商平台，以自營模式及物流能力著稱",
-    "strengths": ["自營模式品質保障", "物流基礎設施完善", "企業採購市場領先", "用戶信任度高"],
-    "weaknesses": ["市場份額被競爭對手蠶食", "盈利能力波動", "新業務投入大", "用戶增長放緩"],
-    "future_strategy": ["下沉市場滲透", "即時零售擴張", "企業服務深化", "海外業務拓展"],
-    "peer_group": ["9988.HK", "0700.HK", "3690.HK"]
+    "strengths": [
+      "自營模式品質保障",
+      "物流基礎設施完善",
+      "企業採購市場領先",
+      "用戶信任度高"
+    ],
+    "weaknesses": [
+      "市場份額被競爭對手蠶食",
+      "盈利能力波動",
+      "新業務投入大",
+      "用戶增長放緩"
+    ],
+    "future_strategy": [
+      "下沉市場滲透",
+      "即時零售擴張",
+      "企業服務深化",
+      "海外業務拓展"
+    ],
+    "peer_group": [
+      "2020.HK",
+      "2331.HK",
+      "3690.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "9888": {
+    "ticker": "9888.HK",
+    "sector": "科技 / 互聯網",
+    "product_lines": [
+      "搜索引擎、人工智能及自動駕駛業務",
+      "科技 / 互聯網 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "百度集團 is covered as a Hong Kong listed 科技 / 互聯網 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 科技 / 互聯網",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 科技 / 互聯網 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "1810.HK",
+      "2018.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "9961": {
+    "ticker": "9961.HK",
+    "sector": "科技 / 旅遊",
+    "product_lines": [
+      "線上旅遊服務平台",
+      "科技 / 旅遊 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "攜程集團 is covered as a Hong Kong listed 科技 / 旅遊 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 科技 / 旅遊",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 科技 / 旅遊 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "1810.HK",
+      "2018.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "9988": {
+    "ticker": "9988.HK",
+    "sector": "科技 / 電商",
+    "product_lines": [
+      "淘寶 / 天貓電商",
+      "阿里雲",
+      "菜鳥物流",
+      "國際電商",
+      "本地生活服務"
+    ],
+    "market_positioning": "中國最大電商平台，雲端運算市場領導者",
+    "strengths": [
+      "電商生態系統完整",
+      "阿里雲市場份額領先",
+      "物流基礎設施完善",
+      "國際化佈局廣泛"
+    ],
+    "weaknesses": [
+      "監管整改影響業務",
+      "電商市場競爭加劇",
+      "盈利能力承壓",
+      "組織架構調整帶來不確定性"
+    ],
+    "future_strategy": [
+      "AI 驅動電商升級",
+      "阿里雲盈利能力提升",
+      "國際業務加速擴張",
+      "聚焦核心業務"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "1810.HK",
+      "2018.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
+  },
+  "9999": {
+    "ticker": "9999.HK",
+    "sector": "科技 / 互聯網",
+    "product_lines": [
+      "遊戲、音樂、教育及電商業務",
+      "科技 / 互聯網 core services",
+      "Enterprise and retail market solutions"
+    ],
+    "market_positioning": "網易 is covered as a Hong Kong listed 科技 / 互聯網 peer. The comparison focuses on valuation, scale, profitability and risk profile.",
+    "strengths": [
+      "Clear positioning in 科技 / 互聯網",
+      "Listed-company disclosure supports peer comparison",
+      "Comparable valuation and risk benchmarks are available"
+    ],
+    "weaknesses": [
+      "Earnings may be affected by macro and sector cycles",
+      "Valuation needs to be read together with interest-rate and peer context",
+      "Short-term share price can be affected by market sentiment"
+    ],
+    "future_strategy": [
+      "Deepening core 科技 / 互聯網 operations",
+      "Improving operating efficiency and capital discipline",
+      "Using cash flow and risk control to support long-term competitiveness"
+    ],
+    "peer_group": [
+      "0700.HK",
+      "1810.HK",
+      "2018.HK"
+    ],
+    "profile_source": "Buildway internal competitive profile dataset v4.1.1"
   }
 }

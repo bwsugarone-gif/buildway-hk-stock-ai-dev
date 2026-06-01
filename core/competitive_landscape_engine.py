@@ -102,6 +102,8 @@ METRIC_LABELS = {
     "risk_score":     "風險評分",
 }
 
+MISSING_DISPLAY = "未取得可靠數值"
+
 
 def _load_master_data() -> Dict[str, Any]:
     try:
@@ -185,7 +187,7 @@ def _fmt_metric(value: Any, metric: str) -> str:
     """Format a metric value for display."""
     n = safe_number(value)
     if n == 0:
-        return "N/A"
+        return MISSING_DISPLAY
     if metric == "pe_ratio":
         return f"{n:.1f}x"
     if metric == "pb_ratio":
@@ -235,11 +237,17 @@ def _build_peer_record(ticker: str, master: Dict[str, Any], report_data: Dict[st
         "metrics": {},
         "data_quality": "partial",
     }
+    record["name"] = record["company_name"]
+    if stock_info.get("peer_data_source"):
+        record["source"] = stock_info["peer_data_source"]
 
     metrics_found = 0
     for metric in METRIC_LABELS:
         val = stock_info.get(metric)
         if val is not None and safe_number(val) != 0:
+            record[metric] = safe_number(val)
+            if metric == "market_cap":
+                record["market_cap_bn"] = round(safe_number(val) / 1_000_000_000, 1)
             record["metrics"][metric] = {
                 "value": safe_number(val),
                 "display": _fmt_metric(val, metric),
@@ -275,11 +283,15 @@ def _build_subject_record(ticker: str, report_data: Dict[str, Any]) -> Dict:
         "metrics": {},
         "data_quality": "live",
     }
+    record["name"] = company_name
 
     metrics_found = 0
     for metric in METRIC_LABELS:
         val = flat.get(metric)
         if val is not None and safe_number(val) != 0:
+            record[metric] = safe_number(val)
+            if metric == "market_cap":
+                record["market_cap_bn"] = round(safe_number(val) / 1_000_000_000, 1)
             record["metrics"][metric] = {
                 "value": safe_number(val),
                 "display": _fmt_metric(val, metric),
@@ -290,6 +302,7 @@ def _build_subject_record(ticker: str, report_data: Dict[str, Any]) -> Dict:
     # Also try risk_score from risk_analysis
     risk_raw = safe_number(flat.get("composite_score_raw"))
     if risk_raw > 0 and "risk_score" not in record["metrics"]:
+        record["risk_score"] = risk_raw
         record["metrics"]["risk_score"] = {
             "value": risk_raw,
             "display": _fmt_metric(risk_raw, "risk_score"),
@@ -350,6 +363,7 @@ def build_competitive_landscape(ticker: str, report_data: Dict[str, Any]) -> Dic
     """
     master = _load_master_data()
     peer_tickers = _get_peer_tickers(ticker)
+    profile = get_competitive_profile(ticker)
 
     subject = _build_subject_record(ticker, report_data)
     peers = [_build_peer_record(pt, master, report_data) for pt in peer_tickers]
@@ -369,10 +383,10 @@ def build_competitive_landscape(ticker: str, report_data: Dict[str, Any]) -> Dic
         row = {
             "metric": METRIC_LABELS.get(metric, metric),
             "metric_id": metric,
-            "subject": subject["metrics"].get(metric, {}).get("display", "N/A"),
+            "subject": subject["metrics"].get(metric, {}).get("display", MISSING_DISPLAY),
         }
         for p in all_peers:
-            row[p["ticker"]] = p["metrics"].get(metric, {}).get("display", "N/A")
+            row[p["ticker"]] = p["metrics"].get(metric, {}).get("display", MISSING_DISPLAY)
         comparison_table.append(row)
 
     adv = _compute_advantages(subject, peers_with_data) if peers_with_data else {
@@ -385,6 +399,13 @@ def build_competitive_landscape(ticker: str, report_data: Dict[str, Any]) -> Dic
         "peers": all_peers,
         "peer_tickers": peer_tickers,
         "comparison_table": comparison_table,
+        "sector": profile.get("sector"),
+        "product_lines": profile.get("product_lines", []),
+        "market_positioning": profile.get("market_positioning"),
+        "strengths": profile.get("strengths", []),
+        "weaknesses": profile.get("weaknesses", []),
+        "future_strategy": profile.get("future_strategy", []),
+        "profile_source": profile.get("profile_source") or "Buildway internal competitive profile dataset",
         "advantages": adv["advantages"],
         "disadvantages": adv["disadvantages"],
         "data_note": (

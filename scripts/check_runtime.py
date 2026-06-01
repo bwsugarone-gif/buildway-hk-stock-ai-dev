@@ -27,7 +27,7 @@ def check():
     if major != REQUIRED_MAJOR or minor != REQUIRED_MINOR:
         print()
         print("=" * 60)
-        print(f"❌ RUNTIME LOCK FAIL")
+        print(f"FAIL RUNTIME LOCK FAIL")
         print(f"   Required : Python {REQUIRED_MAJOR}.{REQUIRED_MINOR}.x")
         print(f"   Found    : Python {major}.{minor}.{patch}")
         print()
@@ -42,7 +42,7 @@ def check():
 
     print()
     print("=" * 60)
-    print(f"✅ RUNTIME LOCK PASS — Python {major}.{minor}.{patch}")
+    print(f"PASS RUNTIME LOCK PASS — Python {major}.{minor}.{patch}")
     print("=" * 60)
 
 

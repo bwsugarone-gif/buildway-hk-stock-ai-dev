@@ -100,6 +100,7 @@ def render_competitive_landscape(report_data: Dict[str, Any]) -> None:
     """Competitive landscape — products, position, strengths, weaknesses, strategy."""
     peer = report_data.get("peer_comparison", {}) or {}
     comp = report_data.get("competitive_analysis", {}) or {}
+    cl = report_data.get("competitive_landscape", {}) or {}
 
     st.markdown("## 🏆 競爭格局分析")
 
@@ -110,11 +111,16 @@ def render_competitive_landscape(report_data: Dict[str, Any]) -> None:
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"#### {name}")
-        products  = _safe(comp, "products", default=_safe(peer, "products"))
-        position  = _safe(comp, "market_position", default=_safe(peer, "market_position"))
-        strengths = _safe(comp, "strengths", default=_safe(peer, "strengths"))
-        weaknesses= _safe(comp, "weaknesses", default=_safe(peer, "weaknesses"))
-        strategy  = _safe(comp, "future_strategy", default=_safe(peer, "future_strategy"))
+        products  = cl.get("product_lines") or _safe(comp, "products", default=_safe(peer, "products"))
+        position  = cl.get("market_positioning") or _safe(comp, "market_position", default=_safe(peer, "market_position"))
+        strengths = cl.get("strengths") or _safe(comp, "strengths", default=_safe(peer, "strengths"))
+        weaknesses= cl.get("weaknesses") or _safe(comp, "weaknesses", default=_safe(peer, "weaknesses"))
+        strategy  = cl.get("future_strategy") or _safe(comp, "future_strategy", default=_safe(peer, "future_strategy"))
+
+        def _lines(value: Any) -> str:
+            if isinstance(value, list):
+                return "<br>".join(f"? {item}" for item in value if item)
+            return str(value)
 
         for label, val in [
             ("📦 產品線", products),
@@ -123,11 +129,11 @@ def render_competitive_landscape(report_data: Dict[str, Any]) -> None:
             ("⚠️ 弱點", weaknesses),
             ("🔭 未來策略", strategy),
         ]:
-            st.markdown(f"**{label}**  \n{val}")
+            st.markdown(f"**{label}**  \n{_lines(val)}", unsafe_allow_html=True)
 
     with col2:
         st.markdown("#### 競爭對手摘要")
-        peers = peer.get("peers", []) or comp.get("competitors", []) or []
+        peers = cl.get("peers", []) or peer.get("peers", []) or comp.get("competitors", []) or []
         if peers:
             for p in peers[:4]:
                 if isinstance(p, dict):
@@ -538,6 +544,7 @@ def render_investment_conclusion(report_data: Dict[str, Any]) -> None:
     summary  = conc.get("summary", conc.get("conclusion_summary", ic.get("committee_summary", "")))
     target   = conc.get("target_price", conc.get("price_target", "—"))
     upside   = conc.get("upside", conc.get("upside_pct", "—"))
+    decision_basis = conc.get("decision_basis", []) or []
 
     RATING_COLORS = {
         "買入": "#1e8e3e", "BUY": "#1e8e3e",
@@ -567,6 +574,21 @@ def render_investment_conclusion(report_data: Dict[str, Any]) -> None:
         f'</div>',
         unsafe_allow_html=True,
     )
+
+    if decision_basis:
+        st.markdown("#### ????")
+        basis_rows = []
+        for item in decision_basis:
+            if not isinstance(item, dict):
+                continue
+            basis_rows.append({
+                "??": item.get("factor", ""),
+                "??": item.get("weight", ""),
+                "??": item.get("score", ""),
+                "??": item.get("summary", ""),
+            })
+        if basis_rows:
+            st.dataframe(basis_rows, use_container_width=True, hide_index=True)
 
 
 # ─── 10. Peer Comparison Table (v3.5) ─────────────────────────────────────────

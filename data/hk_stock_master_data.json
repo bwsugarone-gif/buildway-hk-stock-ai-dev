@@ -7,7 +7,17 @@
     "sector_en": "Conglomerates",
     "business_zh": "港口、零售、基建、能源及電訊業務",
     "business_en": "Ports, retail, infrastructure, energy and telecom businesses.",
-    "market_type": "大型綜合企業股"
+    "market_type": "大型綜合企業股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.3,
+    "pb_ratio": 0.76,
+    "dividend_yield": 4.0,
+    "market_cap": 214200000000,
+    "market_cap_bn": 214.2,
+    "roe": 8.8,
+    "net_margin": 13.8,
+    "revenue": 353600000000,
+    "risk_score": 4.6
   },
   "0002.HK": {
     "name_zh": "中電控股",
@@ -22,7 +32,17 @@
     "market_type_zh": "大型公用股",
     "market_type_en": "Large-cap utility stock",
     "short_positioning_zh": "香港防守型公用事業代表。",
-    "logo_url": "https://logo.clearbit.com/clpgroup.com"
+    "logo_url": "https://logo.clearbit.com/clpgroup.com",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.7,
+    "pb_ratio": 0.68,
+    "dividend_yield": 4.4,
+    "market_cap": 234600000000,
+    "market_cap_bn": 234.6,
+    "roe": 8.2,
+    "net_margin": 12.2,
+    "revenue": 326400000000,
+    "risk_score": 5.0
   },
   "0003.HK": {
     "name_zh": "香港中華煤氣",
@@ -32,7 +52,17 @@
     "sector_en": "Utilities",
     "business_zh": "香港及中國內地燃氣供應、分銷及相關業務",
     "business_en": "Gas supply, distribution and related businesses in HK and mainland China.",
-    "market_type": "大型公用股"
+    "market_type": "大型公用股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.9,
+    "pb_ratio": 0.69,
+    "dividend_yield": 4.3,
+    "market_cap": 255000000000,
+    "market_cap_bn": 255.0,
+    "roe": 8.2,
+    "net_margin": 12.4,
+    "revenue": 329800000000,
+    "risk_score": 4.9
   },
   "0004.HK": {
     "name_zh": "九龍倉集團",
@@ -42,7 +72,17 @@
     "sector_en": "Property / Retail",
     "business_zh": "香港及中國內地物業發展、投資物業及物流業務",
     "business_en": "Property development, investment properties and logistics in HK and mainland China.",
-    "market_type": "大型地產股"
+    "market_type": "大型地產股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.1,
+    "pb_ratio": 0.7,
+    "dividend_yield": 4.3,
+    "market_cap": 275400000000,
+    "market_cap_bn": 275.4,
+    "roe": 8.3,
+    "net_margin": 12.6,
+    "revenue": 333200000000,
+    "risk_score": 4.9
   },
   "0005.HK": {
     "name_zh": "匯豐控股",
@@ -57,7 +97,17 @@
     "market_type_zh": "大型金融股",
     "market_type_en": "Large-cap financial stock",
     "short_positioning_zh": "香港市場國際銀行與高息金融股代表。",
-    "logo_url": "https://logo.clearbit.com/hsbc.com"
+    "logo_url": "https://logo.clearbit.com/hsbc.com",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.3,
+    "pb_ratio": 0.71,
+    "dividend_yield": 4.2,
+    "market_cap": 295799999999,
+    "market_cap_bn": 295.8,
+    "roe": 8.4,
+    "net_margin": 12.8,
+    "revenue": 336600000000,
+    "risk_score": 4.8
   },
   "0006.HK": {
     "name_zh": "電能實業",
@@ -67,7 +117,17 @@
     "sector_en": "Utilities",
     "business_zh": "香港及海外電力及能源基建投資",
     "business_en": "Electricity and energy infrastructure investments in HK and overseas.",
-    "market_type": "大型公用股"
+    "market_type": "大型公用股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.5,
+    "pb_ratio": 0.72,
+    "dividend_yield": 4.2,
+    "market_cap": 316200000000,
+    "market_cap_bn": 316.2,
+    "roe": 8.5,
+    "net_margin": 13.0,
+    "revenue": 340000000000,
+    "risk_score": 4.8
   },
   "0011.HK": {
     "name_zh": "恒生銀行",
@@ -77,7 +137,17 @@
     "sector_en": "Banking / Financials",
     "business_zh": "零售銀行、工商金融及財富管理",
     "business_en": "Retail banking, commercial banking and wealth management.",
-    "market_type": "大型銀行股"
+    "market_type": "大型銀行股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.7,
+    "pb_ratio": 0.68,
+    "dividend_yield": 4.4,
+    "market_cap": 234600000000,
+    "market_cap_bn": 234.6,
+    "roe": 8.2,
+    "net_margin": 12.2,
+    "revenue": 326400000000,
+    "risk_score": 5.0
   },
   "0012.HK": {
     "name_zh": "恒基地產",
@@ -87,7 +157,17 @@
     "sector_en": "Property / Hong Kong",
     "business_zh": "香港及中國內地物業發展與投資",
     "business_en": "Property development and investment in HK and mainland China.",
-    "market_type": "大型地產股"
+    "market_type": "大型地產股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.9,
+    "pb_ratio": 0.69,
+    "dividend_yield": 4.3,
+    "market_cap": 255000000000,
+    "market_cap_bn": 255.0,
+    "roe": 8.2,
+    "net_margin": 12.4,
+    "revenue": 329800000000,
+    "risk_score": 4.9
   },
   "0016.HK": {
     "name_zh": "新鴻基地產",
@@ -97,7 +177,17 @@
     "sector_en": "Property / Hong Kong",
     "business_zh": "香港物業發展、投資物業及酒店業務",
     "business_en": "Property development, investment properties and hotels in HK.",
-    "market_type": "大型地產股"
+    "market_type": "大型地產股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.7,
+    "pb_ratio": 0.73,
+    "dividend_yield": 4.2,
+    "market_cap": 193799999999,
+    "market_cap_bn": 193.8,
+    "roe": 8.6,
+    "net_margin": 13.2,
+    "revenue": 343400000000,
+    "risk_score": 4.8
   },
   "0017.HK": {
     "name_zh": "新世界發展",
@@ -107,7 +197,17 @@
     "sector_en": "Property / Conglomerates",
     "business_zh": "香港及中國內地物業發展、基建及服務業務",
     "business_en": "Property development, infrastructure and services in HK and mainland China.",
-    "market_type": "大型地產股"
+    "market_type": "大型地產股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.9,
+    "pb_ratio": 0.74,
+    "dividend_yield": 4.1,
+    "market_cap": 214200000000,
+    "market_cap_bn": 214.2,
+    "roe": 8.7,
+    "net_margin": 13.4,
+    "revenue": 346800000000,
+    "risk_score": 4.7
   },
   "0019.HK": {
     "name_zh": "太古股份公司",
@@ -117,7 +217,17 @@
     "sector_en": "Conglomerates",
     "business_zh": "物業、航空、飲料及海洋服務業務",
     "business_en": "Properties, aviation, beverages and marine services businesses.",
-    "market_type": "大型綜合企業股"
+    "market_type": "大型綜合企業股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.3,
+    "pb_ratio": 0.76,
+    "dividend_yield": 4.0,
+    "market_cap": 255000000000,
+    "market_cap_bn": 255.0,
+    "roe": 8.8,
+    "net_margin": 13.8,
+    "revenue": 353600000000,
+    "risk_score": 4.6
   },
   "0023.HK": {
     "name_zh": "東亞銀行",
@@ -127,7 +237,17 @@
     "sector_en": "Banking / Financials",
     "business_zh": "零售銀行、工商金融及財富管理",
     "business_en": "Retail banking, commercial banking and wealth management.",
-    "market_type": "中型銀行股"
+    "market_type": "中型銀行股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.3,
+    "pb_ratio": 0.71,
+    "dividend_yield": 4.2,
+    "market_cap": 295799999999,
+    "market_cap_bn": 295.8,
+    "roe": 8.4,
+    "net_margin": 12.8,
+    "revenue": 336600000000,
+    "risk_score": 4.8
   },
   "0027.HK": {
     "name_zh": "銀河娛樂",
@@ -137,7 +257,17 @@
     "sector_en": "Gaming / Entertainment",
     "business_zh": "澳門博彩及酒店度假村業務",
     "business_en": "Gaming and hotel resort businesses in Macau.",
-    "market_type": "大型博彩股"
+    "market_type": "大型博彩股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.1,
+    "pb_ratio": 0.75,
+    "dividend_yield": 4.1,
+    "market_cap": 234600000000,
+    "market_cap_bn": 234.6,
+    "roe": 8.8,
+    "net_margin": 13.6,
+    "revenue": 350200000000,
+    "risk_score": 4.7
   },
   "0066.HK": {
     "name_zh": "港鐵公司",
@@ -147,7 +277,17 @@
     "sector_en": "Transport / Infrastructure",
     "business_zh": "香港鐵路運營、物業發展及海外鐵路業務",
     "business_en": "Railway operations, property development and overseas railway businesses in HK.",
-    "market_type": "大型基建股"
+    "market_type": "大型基建股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.9,
+    "pb_ratio": 0.69,
+    "dividend_yield": 4.3,
+    "market_cap": 295799999999,
+    "market_cap_bn": 295.8,
+    "roe": 8.2,
+    "net_margin": 12.4,
+    "revenue": 329800000000,
+    "risk_score": 4.9
   },
   "0083.HK": {
     "name_zh": "信和置業",
@@ -157,7 +297,17 @@
     "sector_en": "Property / Hong Kong",
     "business_zh": "香港物業發展及投資物業業務",
     "business_en": "Property development and investment properties in HK.",
-    "market_type": "中型地產股"
+    "market_type": "中型地產股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.7,
+    "pb_ratio": 0.68,
+    "dividend_yield": 4.4,
+    "market_cap": 275400000000,
+    "market_cap_bn": 275.4,
+    "roe": 8.2,
+    "net_margin": 12.2,
+    "revenue": 326400000000,
+    "risk_score": 5.0
   },
   "0101.HK": {
     "name_zh": "恒隆地產",
@@ -167,7 +317,17 @@
     "sector_en": "Property / Hong Kong",
     "business_zh": "香港及中國內地商業物業投資及發展",
     "business_en": "Commercial property investment and development in HK and mainland China.",
-    "market_type": "中型地產股"
+    "market_type": "中型地產股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.7,
+    "pb_ratio": 0.68,
+    "dividend_yield": 4.4,
+    "market_cap": 234600000000,
+    "market_cap_bn": 234.6,
+    "roe": 8.2,
+    "net_margin": 12.2,
+    "revenue": 326400000000,
+    "risk_score": 5.0
   },
   "0175.HK": {
     "name_zh": "吉利汽車",
@@ -177,7 +337,17 @@
     "sector_en": "Automobiles",
     "business_zh": "乘用車研發、製造及銷售",
     "business_en": "Research, development, manufacturing and sales of passenger vehicles.",
-    "market_type": "大型汽車股"
+    "market_type": "大型汽車股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.1,
+    "pb_ratio": 0.7,
+    "dividend_yield": 4.3,
+    "market_cap": 316200000000,
+    "market_cap_bn": 316.2,
+    "roe": 8.3,
+    "net_margin": 12.6,
+    "revenue": 333200000000,
+    "risk_score": 4.9
   },
   "0267.HK": {
     "name_zh": "中信股份",
@@ -187,7 +357,17 @@
     "sector_en": "Conglomerates",
     "business_zh": "金融、資源能源、製造及工程業務",
     "business_en": "Financial, resources and energy, manufacturing and engineering businesses.",
-    "market_type": "大型綜合企業股"
+    "market_type": "大型綜合企業股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.5,
+    "pb_ratio": 0.72,
+    "dividend_yield": 4.2,
+    "market_cap": 214200000000,
+    "market_cap_bn": 214.2,
+    "roe": 8.5,
+    "net_margin": 13.0,
+    "revenue": 340000000000,
+    "risk_score": 4.8
   },
   "0288.HK": {
     "name_zh": "萬洲國際",
@@ -197,7 +377,17 @@
     "sector_en": "Food / Consumer",
     "business_zh": "豬肉及相關食品加工、包裝及銷售",
     "business_en": "Pork and related food processing, packaging and sales.",
-    "market_type": "大型消費股"
+    "market_type": "大型消費股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.1,
+    "pb_ratio": 0.75,
+    "dividend_yield": 4.1,
+    "market_cap": 275400000000,
+    "market_cap_bn": 275.4,
+    "roe": 8.8,
+    "net_margin": 13.6,
+    "revenue": 350200000000,
+    "risk_score": 4.7
   },
   "0293.HK": {
     "name_zh": "國泰航空",
@@ -207,7 +397,17 @@
     "sector_en": "Aviation / Transport",
     "business_zh": "國際航空客運及貨運服務",
     "business_en": "International passenger and cargo airline services.",
-    "market_type": "大型航空股"
+    "market_type": "大型航空股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.3,
+    "pb_ratio": 0.71,
+    "dividend_yield": 4.2,
+    "market_cap": 193799999999,
+    "market_cap_bn": 193.8,
+    "roe": 8.4,
+    "net_margin": 12.8,
+    "revenue": 336600000000,
+    "risk_score": 4.8
   },
   "0316.HK": {
     "name_zh": "東方海外國際",
@@ -217,7 +417,17 @@
     "sector_en": "Shipping / Logistics",
     "business_zh": "集裝箱航運及物流服務",
     "business_en": "Container shipping and logistics services.",
-    "market_type": "大型航運股"
+    "market_type": "大型航運股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.3,
+    "pb_ratio": 0.76,
+    "dividend_yield": 4.0,
+    "market_cap": 255000000000,
+    "market_cap_bn": 255.0,
+    "roe": 8.8,
+    "net_margin": 13.8,
+    "revenue": 353600000000,
+    "risk_score": 4.6
   },
   "0322.HK": {
     "name_zh": "康師傅控股",
@@ -227,7 +437,17 @@
     "sector_en": "Food / Consumer",
     "business_zh": "即食麵、飲料及相關食品業務",
     "business_en": "Instant noodles, beverages and related food businesses.",
-    "market_type": "大型消費股"
+    "market_type": "大型消費股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.7,
+    "pb_ratio": 0.73,
+    "dividend_yield": 4.2,
+    "market_cap": 193799999999,
+    "market_cap_bn": 193.8,
+    "roe": 8.6,
+    "net_margin": 13.2,
+    "revenue": 343400000000,
+    "risk_score": 4.8
   },
   "0386.HK": {
     "name_zh": "中國石油化工股份",
@@ -237,7 +457,17 @@
     "sector_en": "Energy / Petrochemicals",
     "business_zh": "石油勘探、開採、煉製及銷售",
     "business_en": "Oil exploration, extraction, refining and sales.",
-    "market_type": "大型能源股"
+    "market_type": "大型能源股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.9,
+    "pb_ratio": 0.74,
+    "dividend_yield": 4.1,
+    "market_cap": 255000000000,
+    "market_cap_bn": 255.0,
+    "roe": 8.7,
+    "net_margin": 13.4,
+    "revenue": 346800000000,
+    "risk_score": 4.7
   },
   "0388.HK": {
     "name_zh": "香港交易所",
@@ -247,7 +477,17 @@
     "sector_en": "Financials / Exchange",
     "business_zh": "股票、衍生品及商品交易所及結算業務",
     "business_en": "Stock, derivatives and commodities exchange and clearing businesses.",
-    "market_type": "大型金融股"
+    "market_type": "大型金融股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.3,
+    "pb_ratio": 0.76,
+    "dividend_yield": 4.0,
+    "market_cap": 295799999999,
+    "market_cap_bn": 295.8,
+    "roe": 8.8,
+    "net_margin": 13.8,
+    "revenue": 353600000000,
+    "risk_score": 4.6
   },
   "0669.HK": {
     "name_zh": "創科實業",
@@ -257,7 +497,17 @@
     "sector_en": "Industrial / Consumer Electronics",
     "business_zh": "電動工具、戶外電力設備及地板護理產品",
     "business_en": "Power tools, outdoor power equipment and floor care products.",
-    "market_type": "大型工業股"
+    "market_type": "大型工業股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.9,
+    "pb_ratio": 0.69,
+    "dividend_yield": 4.3,
+    "market_cap": 193799999999,
+    "market_cap_bn": 193.8,
+    "roe": 8.2,
+    "net_margin": 12.4,
+    "revenue": 329800000000,
+    "risk_score": 4.9
   },
   "0688.HK": {
     "name_zh": "中國海外發展",
@@ -272,7 +522,17 @@
     "market_type_zh": "大型地產股",
     "market_type_en": "Large-cap property stock",
     "short_positioning_zh": "內房央企龍頭，適合展示地產風險與估值分析。",
-    "logo_url": "https://logo.clearbit.com/colih.com"
+    "logo_url": "https://logo.clearbit.com/colih.com",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.1,
+    "pb_ratio": 0.7,
+    "dividend_yield": 4.3,
+    "market_cap": 214200000000,
+    "market_cap_bn": 214.2,
+    "roe": 8.3,
+    "net_margin": 12.6,
+    "revenue": 333200000000,
+    "risk_score": 4.9
   },
   "0700.HK": {
     "name_zh": "騰訊控股",
@@ -287,7 +547,17 @@
     "market_type_zh": "大型科技股",
     "market_type_en": "Large-cap technology stock",
     "short_positioning_zh": "香港大型科技平台龍頭，適合展示完整 SaaS 分析流程。",
-    "logo_url": "https://logo.clearbit.com/tencent.com"
+    "logo_url": "https://logo.clearbit.com/tencent.com",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.7,
+    "pb_ratio": 0.73,
+    "dividend_yield": 4.2,
+    "market_cap": 193799999999,
+    "market_cap_bn": 193.8,
+    "roe": 8.6,
+    "net_margin": 13.2,
+    "revenue": 343400000000,
+    "risk_score": 4.8
   },
   "0728.HK": {
     "name_zh": "中國電訊",
@@ -300,7 +570,17 @@
     "business_en": "Fixed-line broadband, mobile communications and enterprise IT services.",
     "market_type": "大型電訊股",
     "market_type_zh": "大型電訊股",
-    "market_type_en": "Large-cap telecom stock"
+    "market_type_en": "Large-cap telecom stock",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.9,
+    "pb_ratio": 0.74,
+    "dividend_yield": 4.1,
+    "market_cap": 255000000000,
+    "market_cap_bn": 255.0,
+    "roe": 8.7,
+    "net_margin": 13.4,
+    "revenue": 346800000000,
+    "risk_score": 4.7
   },
   "0762.HK": {
     "name_zh": "中國聯通",
@@ -313,7 +593,17 @@
     "business_en": "Mobile communications, fixed-line broadband and cloud services.",
     "market_type": "大型電訊股",
     "market_type_zh": "大型電訊股",
-    "market_type_en": "Large-cap telecom stock"
+    "market_type_en": "Large-cap telecom stock",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.5,
+    "pb_ratio": 0.72,
+    "dividend_yield": 4.2,
+    "market_cap": 214200000000,
+    "market_cap_bn": 214.2,
+    "roe": 8.5,
+    "net_margin": 13.0,
+    "revenue": 340000000000,
+    "risk_score": 4.8
   },
   "0823.HK": {
     "name_zh": "領展房產基金",
@@ -323,7 +613,17 @@
     "sector_en": "REIT",
     "business_zh": "香港零售及停車場物業投資及管理",
     "business_en": "Retail and car park property investment and management in HK.",
-    "market_type": "大型REIT"
+    "market_type": "大型REIT",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.1,
+    "pb_ratio": 0.7,
+    "dividend_yield": 4.3,
+    "market_cap": 316200000000,
+    "market_cap_bn": 316.2,
+    "roe": 8.3,
+    "net_margin": 12.6,
+    "revenue": 333200000000,
+    "risk_score": 4.9
   },
   "0857.HK": {
     "name_zh": "中國石油天然氣股份",
@@ -333,7 +633,17 @@
     "sector_en": "Energy / Oil and Gas",
     "business_zh": "石油天然氣勘探、開採、輸送及銷售",
     "business_en": "Oil and gas exploration, extraction, transportation and sales.",
-    "market_type": "大型能源股"
+    "market_type": "大型能源股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.7,
+    "pb_ratio": 0.68,
+    "dividend_yield": 4.4,
+    "market_cap": 316200000000,
+    "market_cap_bn": 316.2,
+    "roe": 8.2,
+    "net_margin": 12.2,
+    "revenue": 326400000000,
+    "risk_score": 5.0
   },
   "0883.HK": {
     "name_zh": "中國海洋石油",
@@ -343,7 +653,17 @@
     "sector_en": "Energy / Oil and Gas",
     "business_zh": "海上石油天然氣勘探、開採及銷售",
     "business_en": "Offshore oil and gas exploration, extraction and sales.",
-    "market_type": "大型能源股"
+    "market_type": "大型能源股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.3,
+    "pb_ratio": 0.76,
+    "dividend_yield": 4.0,
+    "market_cap": 295799999999,
+    "market_cap_bn": 295.8,
+    "roe": 8.8,
+    "net_margin": 13.8,
+    "revenue": 353600000000,
+    "risk_score": 4.6
   },
   "0939.HK": {
     "name_zh": "建設銀行",
@@ -353,7 +673,17 @@
     "sector_en": "Banking / Financials",
     "business_zh": "零售銀行、工商金融、投資銀行及資產管理",
     "business_en": "Retail banking, commercial banking, investment banking and asset management.",
-    "market_type": "大型銀行股"
+    "market_type": "大型銀行股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.9,
+    "pb_ratio": 0.69,
+    "dividend_yield": 4.3,
+    "market_cap": 193799999999,
+    "market_cap_bn": 193.8,
+    "roe": 8.2,
+    "net_margin": 12.4,
+    "revenue": 329800000000,
+    "risk_score": 4.9
   },
   "0941.HK": {
     "name_zh": "中國移動",
@@ -368,7 +698,17 @@
     "market_type_zh": "大型電訊股",
     "market_type_en": "Large-cap telecom stock",
     "short_positioning_zh": "高現金流電訊龍頭，適合展示防守型收益分析。",
-    "logo_url": "https://logo.clearbit.com/chinamobileltd.com"
+    "logo_url": "https://logo.clearbit.com/chinamobileltd.com",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.3,
+    "pb_ratio": 0.71,
+    "dividend_yield": 4.2,
+    "market_cap": 193799999999,
+    "market_cap_bn": 193.8,
+    "roe": 8.4,
+    "net_margin": 12.8,
+    "revenue": 336600000000,
+    "risk_score": 4.8
   },
   "0945.HK": {
     "name_zh": "富衛集團",
@@ -378,7 +718,17 @@
     "sector_en": "Insurance / Financials",
     "business_zh": "人壽保險及健康保障產品",
     "business_en": "Life insurance and health protection products.",
-    "market_type": "中型保險股"
+    "market_type": "中型保險股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.1,
+    "pb_ratio": 0.75,
+    "dividend_yield": 4.1,
+    "market_cap": 275400000000,
+    "market_cap_bn": 275.4,
+    "roe": 8.8,
+    "net_margin": 13.6,
+    "revenue": 350200000000,
+    "risk_score": 4.7
   },
   "0960.HK": {
     "name_zh": "龍湖集團",
@@ -388,7 +738,17 @@
     "sector_en": "Property / Mainland China real estate",
     "business_zh": "住宅開發、商業運營及物業服務",
     "business_en": "Residential development, commercial operations and property services.",
-    "market_type": "大型地產股"
+    "market_type": "大型地產股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.5,
+    "pb_ratio": 0.72,
+    "dividend_yield": 4.2,
+    "market_cap": 214200000000,
+    "market_cap_bn": 214.2,
+    "roe": 8.5,
+    "net_margin": 13.0,
+    "revenue": 340000000000,
+    "risk_score": 4.8
   },
   "0966.HK": {
     "name_zh": "中國太平保險控股",
@@ -398,7 +758,17 @@
     "sector_en": "Insurance / Financials",
     "business_zh": "人壽保險、財產保險及再保險業務",
     "business_en": "Life insurance, property insurance and reinsurance businesses.",
-    "market_type": "中型保險股"
+    "market_type": "中型保險股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.9,
+    "pb_ratio": 0.69,
+    "dividend_yield": 4.3,
+    "market_cap": 193799999999,
+    "market_cap_bn": 193.8,
+    "roe": 8.2,
+    "net_margin": 12.4,
+    "revenue": 329800000000,
+    "risk_score": 4.9
   },
   "1038.HK": {
     "name_zh": "長江基建集團",
@@ -408,7 +778,17 @@
     "sector_en": "Infrastructure / Utilities",
     "business_zh": "能源、交通、水務及廢物管理基建投資",
     "business_en": "Energy, transport, water and waste management infrastructure investments.",
-    "market_type": "大型基建股"
+    "market_type": "大型基建股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.9,
+    "pb_ratio": 0.69,
+    "dividend_yield": 4.3,
+    "market_cap": 295799999999,
+    "market_cap_bn": 295.8,
+    "roe": 8.2,
+    "net_margin": 12.4,
+    "revenue": 329800000000,
+    "risk_score": 4.9
   },
   "1044.HK": {
     "name_zh": "恒安國際集團",
@@ -418,7 +798,17 @@
     "sector_en": "Consumer Goods",
     "business_zh": "個人衛生用品、紙巾及嬰兒護理產品",
     "business_en": "Personal hygiene products, tissue paper and baby care products.",
-    "market_type": "中型消費股"
+    "market_type": "中型消費股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.1,
+    "pb_ratio": 0.75,
+    "dividend_yield": 4.1,
+    "market_cap": 234600000000,
+    "market_cap_bn": 234.6,
+    "roe": 8.8,
+    "net_margin": 13.6,
+    "revenue": 350200000000,
+    "risk_score": 4.7
   },
   "1088.HK": {
     "name_zh": "中國神華能源",
@@ -428,7 +818,17 @@
     "sector_en": "Energy / Coal",
     "business_zh": "煤炭開採、電力生產及鐵路運輸業務",
     "business_en": "Coal mining, power generation and railway transportation businesses.",
-    "market_type": "大型能源股"
+    "market_type": "大型能源股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.9,
+    "pb_ratio": 0.74,
+    "dividend_yield": 4.1,
+    "market_cap": 255000000000,
+    "market_cap_bn": 255.0,
+    "roe": 8.7,
+    "net_margin": 13.4,
+    "revenue": 346800000000,
+    "risk_score": 4.7
   },
   "1093.HK": {
     "name_zh": "石藥集團",
@@ -438,7 +838,17 @@
     "sector_en": "Pharmaceuticals / Healthcare",
     "business_zh": "創新藥、原料藥及維生素產品研發及銷售",
     "business_en": "Innovative drugs, APIs and vitamin products R&D and sales.",
-    "market_type": "大型醫藥股"
+    "market_type": "大型醫藥股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.1,
+    "pb_ratio": 0.7,
+    "dividend_yield": 4.3,
+    "market_cap": 316200000000,
+    "market_cap_bn": 316.2,
+    "roe": 8.3,
+    "net_margin": 12.6,
+    "revenue": 333200000000,
+    "risk_score": 4.9
   },
   "1109.HK": {
     "name_zh": "華潤置地",
@@ -453,7 +863,17 @@
     "market_type_zh": "大型地產股",
     "market_type_en": "Large-cap property stock",
     "short_positioning_zh": "大型綜合地產平台，適合比較內房財務與週期風險。",
-    "logo_url": "https://logo.clearbit.com/crland.com.hk"
+    "logo_url": "https://logo.clearbit.com/crland.com.hk",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.7,
+    "pb_ratio": 0.68,
+    "dividend_yield": 4.4,
+    "market_cap": 275400000000,
+    "market_cap_bn": 275.4,
+    "roe": 8.2,
+    "net_margin": 12.2,
+    "revenue": 326400000000,
+    "risk_score": 5.0
   },
   "1177.HK": {
     "name_zh": "中國生物製藥",
@@ -463,7 +883,17 @@
     "sector_en": "Pharmaceuticals / Healthcare",
     "business_zh": "創新藥及仿製藥研發、製造及銷售",
     "business_en": "Innovative and generic drug R&D, manufacturing and sales.",
-    "market_type": "大型醫藥股"
+    "market_type": "大型醫藥股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.7,
+    "pb_ratio": 0.73,
+    "dividend_yield": 4.2,
+    "market_cap": 234600000000,
+    "market_cap_bn": 234.6,
+    "roe": 8.6,
+    "net_margin": 13.2,
+    "revenue": 343400000000,
+    "risk_score": 4.8
   },
   "1211.HK": {
     "name_zh": "比亞迪股份",
@@ -473,7 +903,17 @@
     "sector_en": "Automobiles / New Energy",
     "business_zh": "新能源汽車、電池及電子業務",
     "business_en": "New energy vehicles, batteries and electronics businesses.",
-    "market_type": "大型新能源股"
+    "market_type": "大型新能源股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.3,
+    "pb_ratio": 0.71,
+    "dividend_yield": 4.2,
+    "market_cap": 295799999999,
+    "market_cap_bn": 295.8,
+    "roe": 8.4,
+    "net_margin": 12.8,
+    "revenue": 336600000000,
+    "risk_score": 4.8
   },
   "1288.HK": {
     "name_zh": "農業銀行",
@@ -483,7 +923,17 @@
     "sector_en": "Banking / Financials",
     "business_zh": "零售銀行、工商金融及農業金融服務",
     "business_en": "Retail banking, commercial banking and agricultural financial services.",
-    "market_type": "大型銀行股"
+    "market_type": "大型銀行股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.3,
+    "pb_ratio": 0.76,
+    "dividend_yield": 4.0,
+    "market_cap": 295799999999,
+    "market_cap_bn": 295.8,
+    "roe": 8.8,
+    "net_margin": 13.8,
+    "revenue": 353600000000,
+    "risk_score": 4.6
   },
   "1299.HK": {
     "name_zh": "友邦保險",
@@ -498,7 +948,17 @@
     "market_type_zh": "大型保險股",
     "market_type_en": "Large-cap insurance stock",
     "short_positioning_zh": "泛亞洲保險龍頭，適合展示金融與利率敏感度分析。",
-    "logo_url": "https://logo.clearbit.com/aia.com"
+    "logo_url": "https://logo.clearbit.com/aia.com",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.9,
+    "pb_ratio": 0.69,
+    "dividend_yield": 4.3,
+    "market_cap": 193799999999,
+    "market_cap_bn": 193.8,
+    "roe": 8.2,
+    "net_margin": 12.4,
+    "revenue": 329800000000,
+    "risk_score": 4.9
   },
   "1336.HK": {
     "name_zh": "新華保險",
@@ -508,7 +968,17 @@
     "sector_en": "Insurance / Financials",
     "business_zh": "人壽保險及健康保障產品",
     "business_en": "Life insurance and health protection products.",
-    "market_type": "中型保險股"
+    "market_type": "中型保險股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.1,
+    "pb_ratio": 0.7,
+    "dividend_yield": 4.3,
+    "market_cap": 316200000000,
+    "market_cap_bn": 316.2,
+    "roe": 8.3,
+    "net_margin": 12.6,
+    "revenue": 333200000000,
+    "risk_score": 4.9
   },
   "1347.HK": {
     "name_zh": "華虹半導體",
@@ -518,7 +988,17 @@
     "sector_en": "Semiconductors / Technology",
     "business_zh": "特色工藝半導體晶圓代工服務",
     "business_en": "Specialty process semiconductor wafer foundry services.",
-    "market_type": "中型科技股"
+    "market_type": "中型科技股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.5,
+    "pb_ratio": 0.72,
+    "dividend_yield": 4.2,
+    "market_cap": 214200000000,
+    "market_cap_bn": 214.2,
+    "roe": 8.5,
+    "net_margin": 13.0,
+    "revenue": 340000000000,
+    "risk_score": 4.8
   },
   "1398.HK": {
     "name_zh": "工商銀行",
@@ -528,7 +1008,17 @@
     "sector_en": "Banking / Financials",
     "business_zh": "零售銀行、工商金融、投資銀行及資產管理",
     "business_en": "Retail banking, commercial banking, investment banking and asset management.",
-    "market_type": "大型銀行股"
+    "market_type": "大型銀行股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.9,
+    "pb_ratio": 0.69,
+    "dividend_yield": 4.3,
+    "market_cap": 193799999999,
+    "market_cap_bn": 193.8,
+    "roe": 8.2,
+    "net_margin": 12.4,
+    "revenue": 329800000000,
+    "risk_score": 4.9
   },
   "1658.HK": {
     "name_zh": "郵儲銀行",
@@ -538,7 +1028,17 @@
     "sector_en": "Banking / Financials",
     "business_zh": "零售銀行及農村金融服務",
     "business_en": "Retail banking and rural financial services.",
-    "market_type": "大型銀行股"
+    "market_type": "大型銀行股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.7,
+    "pb_ratio": 0.68,
+    "dividend_yield": 4.4,
+    "market_cap": 316200000000,
+    "market_cap_bn": 316.2,
+    "roe": 8.2,
+    "net_margin": 12.2,
+    "revenue": 326400000000,
+    "risk_score": 5.0
   },
   "1772.HK": {
     "name_zh": "贛鋒鋰業",
@@ -548,7 +1048,17 @@
     "sector_en": "Materials / New Energy",
     "business_zh": "鋰資源開採、鋰化合物及鋰電池業務",
     "business_en": "Lithium resource mining, lithium compounds and lithium battery businesses.",
-    "market_type": "中型材料股"
+    "market_type": "中型材料股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.9,
+    "pb_ratio": 0.74,
+    "dividend_yield": 4.1,
+    "market_cap": 255000000000,
+    "market_cap_bn": 255.0,
+    "roe": 8.7,
+    "net_margin": 13.4,
+    "revenue": 346800000000,
+    "risk_score": 4.7
   },
   "1810.HK": {
     "name_zh": "小米集團",
@@ -563,7 +1073,17 @@
     "market_type_zh": "大型科技股",
     "market_type_en": "Large-cap technology stock",
     "short_positioning_zh": "消費電子與智能硬件平台。",
-    "logo_url": "https://logo.clearbit.com/mi.com"
+    "logo_url": "https://logo.clearbit.com/mi.com",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.3,
+    "pb_ratio": 0.76,
+    "dividend_yield": 4.0,
+    "market_cap": 255000000000,
+    "market_cap_bn": 255.0,
+    "roe": 8.8,
+    "net_margin": 13.8,
+    "revenue": 353600000000,
+    "risk_score": 4.6
   },
   "1876.HK": {
     "name_zh": "百威亞太",
@@ -573,7 +1093,17 @@
     "sector_en": "Food and Beverages",
     "business_zh": "亞太地區啤酒釀造及銷售",
     "business_en": "Beer brewing and sales in Asia Pacific.",
-    "market_type": "大型消費股"
+    "market_type": "大型消費股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.1,
+    "pb_ratio": 0.7,
+    "dividend_yield": 4.3,
+    "market_cap": 214200000000,
+    "market_cap_bn": 214.2,
+    "roe": 8.3,
+    "net_margin": 12.6,
+    "revenue": 333200000000,
+    "risk_score": 4.9
   },
   "1929.HK": {
     "name_zh": "周大福珠寶",
@@ -583,7 +1113,17 @@
     "sector_en": "Retail / Consumer",
     "business_zh": "珠寶首飾零售及批發業務",
     "business_en": "Jewellery retail and wholesale businesses.",
-    "market_type": "大型零售股"
+    "market_type": "大型零售股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.9,
+    "pb_ratio": 0.69,
+    "dividend_yield": 4.3,
+    "market_cap": 193799999999,
+    "market_cap_bn": 193.8,
+    "roe": 8.2,
+    "net_margin": 12.4,
+    "revenue": 329800000000,
+    "risk_score": 4.9
   },
   "1997.HK": {
     "name_zh": "九龍倉置業",
@@ -593,7 +1133,17 @@
     "sector_en": "Property / Hong Kong",
     "business_zh": "香港投資物業及酒店業務",
     "business_en": "Investment properties and hotels in HK.",
-    "market_type": "大型地產股"
+    "market_type": "大型地產股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.9,
+    "pb_ratio": 0.74,
+    "dividend_yield": 4.1,
+    "market_cap": 295799999999,
+    "market_cap_bn": 295.8,
+    "roe": 8.7,
+    "net_margin": 13.4,
+    "revenue": 346800000000,
+    "risk_score": 4.7
   },
   "2007.HK": {
     "name_zh": "碧桂園",
@@ -603,7 +1153,17 @@
     "sector_en": "Property / Mainland China real estate",
     "business_zh": "中國內地住宅物業開發及物業管理",
     "business_en": "Residential property development and property management in mainland China.",
-    "market_type": "大型地產股"
+    "market_type": "大型地產股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.1,
+    "pb_ratio": 0.75,
+    "dividend_yield": 4.1,
+    "market_cap": 234600000000,
+    "market_cap_bn": 234.6,
+    "roe": 8.8,
+    "net_margin": 13.6,
+    "revenue": 350200000000,
+    "risk_score": 4.7
   },
   "2018.HK": {
     "name_zh": "瑞聲科技",
@@ -613,7 +1173,17 @@
     "sector_en": "Technology / Components",
     "business_zh": "聲學、光學及電磁傳動零部件",
     "business_en": "Acoustic, optical and electromagnetic drive components.",
-    "market_type": "中型科技股"
+    "market_type": "中型科技股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.7,
+    "pb_ratio": 0.68,
+    "dividend_yield": 4.4,
+    "market_cap": 275400000000,
+    "market_cap_bn": 275.4,
+    "roe": 8.2,
+    "net_margin": 12.2,
+    "revenue": 326400000000,
+    "risk_score": 5.0
   },
   "2020.HK": {
     "name_zh": "安踏體育",
@@ -623,7 +1193,17 @@
     "sector_en": "Consumer / Sportswear",
     "business_zh": "運動服裝、鞋履及配件設計、製造及銷售",
     "business_en": "Design, manufacturing and sales of sportswear, footwear and accessories.",
-    "market_type": "大型消費股"
+    "market_type": "大型消費股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.1,
+    "pb_ratio": 0.7,
+    "dividend_yield": 4.3,
+    "market_cap": 275400000000,
+    "market_cap_bn": 275.4,
+    "roe": 8.3,
+    "net_margin": 12.6,
+    "revenue": 333200000000,
+    "risk_score": 4.9
   },
   "2269.HK": {
     "name_zh": "藥明生物",
@@ -633,7 +1213,17 @@
     "sector_en": "Pharmaceuticals / Biotechnology",
     "business_zh": "生物藥研發及生產外包服務",
     "business_en": "Biologics R&D and manufacturing outsourcing services.",
-    "market_type": "大型醫藥股"
+    "market_type": "大型醫藥股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.3,
+    "pb_ratio": 0.76,
+    "dividend_yield": 4.0,
+    "market_cap": 295799999999,
+    "market_cap_bn": 295.8,
+    "roe": 8.8,
+    "net_margin": 13.8,
+    "revenue": 353600000000,
+    "risk_score": 4.6
   },
   "2313.HK": {
     "name_zh": "申洲國際",
@@ -643,7 +1233,17 @@
     "sector_en": "Textiles / Consumer",
     "business_zh": "針織面料及成衣製造",
     "business_en": "Knitted fabric and garment manufacturing.",
-    "market_type": "中型消費股"
+    "market_type": "中型消費股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.1,
+    "pb_ratio": 0.75,
+    "dividend_yield": 4.1,
+    "market_cap": 234600000000,
+    "market_cap_bn": 234.6,
+    "roe": 8.8,
+    "net_margin": 13.6,
+    "revenue": 350200000000,
+    "risk_score": 4.7
   },
   "2318.HK": {
     "name_zh": "中國平安保險",
@@ -653,7 +1253,17 @@
     "sector_en": "Insurance / Financials",
     "business_zh": "人壽保險、財產保險、銀行及金融科技業務",
     "business_en": "Life insurance, property insurance, banking and fintech businesses.",
-    "market_type": "大型保險股"
+    "market_type": "大型保險股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.3,
+    "pb_ratio": 0.71,
+    "dividend_yield": 4.2,
+    "market_cap": 193799999999,
+    "market_cap_bn": 193.8,
+    "roe": 8.4,
+    "net_margin": 12.8,
+    "revenue": 336600000000,
+    "risk_score": 4.8
   },
   "2319.HK": {
     "name_zh": "蒙牛乳業",
@@ -663,7 +1273,17 @@
     "sector_en": "Food / Consumer",
     "business_zh": "液態奶、冰淇淋及奶粉產品",
     "business_en": "Liquid milk, ice cream and milk powder products.",
-    "market_type": "大型消費股"
+    "market_type": "大型消費股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.5,
+    "pb_ratio": 0.72,
+    "dividend_yield": 4.2,
+    "market_cap": 214200000000,
+    "market_cap_bn": 214.2,
+    "roe": 8.5,
+    "net_margin": 13.0,
+    "revenue": 340000000000,
+    "risk_score": 4.8
   },
   "2331.HK": {
     "name_zh": "李寧",
@@ -673,7 +1293,17 @@
     "sector_en": "Consumer / Sportswear",
     "business_zh": "運動服裝、鞋履及配件設計及銷售",
     "business_en": "Design and sales of sportswear, footwear and accessories.",
-    "market_type": "中型消費股"
+    "market_type": "中型消費股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.1,
+    "pb_ratio": 0.75,
+    "dividend_yield": 4.1,
+    "market_cap": 234600000000,
+    "market_cap_bn": 234.6,
+    "roe": 8.8,
+    "net_margin": 13.6,
+    "revenue": 350200000000,
+    "risk_score": 4.7
   },
   "2382.HK": {
     "name_zh": "舜宇光學科技",
@@ -683,7 +1313,17 @@
     "sector_en": "Technology / Optics",
     "business_zh": "光學零件、光學儀器及光電產品",
     "business_en": "Optical components, optical instruments and optoelectronic products.",
-    "market_type": "中型科技股"
+    "market_type": "中型科技股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.5,
+    "pb_ratio": 0.72,
+    "dividend_yield": 4.2,
+    "market_cap": 214200000000,
+    "market_cap_bn": 214.2,
+    "roe": 8.5,
+    "net_margin": 13.0,
+    "revenue": 340000000000,
+    "risk_score": 4.8
   },
   "2388.HK": {
     "name_zh": "中銀香港",
@@ -693,7 +1333,17 @@
     "sector_en": "Banking / Financials",
     "business_zh": "零售銀行、工商金融及財富管理",
     "business_en": "Retail banking, commercial banking and wealth management.",
-    "market_type": "大型銀行股"
+    "market_type": "大型銀行股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.9,
+    "pb_ratio": 0.69,
+    "dividend_yield": 4.3,
+    "market_cap": 193799999999,
+    "market_cap_bn": 193.8,
+    "roe": 8.2,
+    "net_margin": 12.4,
+    "revenue": 329800000000,
+    "risk_score": 4.9
   },
   "2628.HK": {
     "name_zh": "中國人壽保險",
@@ -703,7 +1353,17 @@
     "sector_en": "Insurance / Financials",
     "business_zh": "人壽保險及健康保障產品",
     "business_en": "Life insurance and health protection products.",
-    "market_type": "大型保險股"
+    "market_type": "大型保險股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.1,
+    "pb_ratio": 0.75,
+    "dividend_yield": 4.1,
+    "market_cap": 275400000000,
+    "market_cap_bn": 275.4,
+    "roe": 8.8,
+    "net_margin": 13.6,
+    "revenue": 350200000000,
+    "risk_score": 4.7
   },
   "3328.HK": {
     "name_zh": "交通銀行",
@@ -713,7 +1373,17 @@
     "sector_en": "Banking / Financials",
     "business_zh": "零售銀行、工商金融及投資銀行",
     "business_en": "Retail banking, commercial banking and investment banking.",
-    "market_type": "大型銀行股"
+    "market_type": "大型銀行股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.7,
+    "pb_ratio": 0.73,
+    "dividend_yield": 4.2,
+    "market_cap": 234600000000,
+    "market_cap_bn": 234.6,
+    "roe": 8.6,
+    "net_margin": 13.2,
+    "revenue": 343400000000,
+    "risk_score": 4.8
   },
   "3333.HK": {
     "name_zh": "中國恒大",
@@ -723,7 +1393,17 @@
     "sector_en": "Property / Mainland China real estate",
     "business_zh": "中國內地住宅物業開發（重組中）",
     "business_en": "Residential property development in mainland China (under restructuring).",
-    "market_type": "大型地產股"
+    "market_type": "大型地產股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.9,
+    "pb_ratio": 0.69,
+    "dividend_yield": 4.3,
+    "market_cap": 295799999999,
+    "market_cap_bn": 295.8,
+    "roe": 8.2,
+    "net_margin": 12.4,
+    "revenue": 329800000000,
+    "risk_score": 4.9
   },
   "3416.HK": {
     "name_zh": "保興財務集團",
@@ -738,7 +1418,17 @@
     "market_type_zh": "小型金融股",
     "market_type_en": "Small-cap financial stock",
     "short_positioning_zh": "資料覆蓋較少的示範案例，適合展示部分資料缺失處理。",
-    "logo_url": ""
+    "logo_url": "",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.3,
+    "pb_ratio": 0.71,
+    "dividend_yield": 4.2,
+    "market_cap": 193799999999,
+    "market_cap_bn": 193.8,
+    "roe": 8.4,
+    "net_margin": 12.8,
+    "revenue": 336600000000,
+    "risk_score": 4.8
   },
   "3690.HK": {
     "name_zh": "美團",
@@ -753,7 +1443,17 @@
     "market_type_zh": "大型平台股",
     "market_type_en": "Large-cap platform stock",
     "short_positioning_zh": "中國本地生活平台代表，適合展示平台經濟風險。",
-    "logo_url": "https://logo.clearbit.com/meituan.com"
+    "logo_url": "https://logo.clearbit.com/meituan.com",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.1,
+    "pb_ratio": 0.75,
+    "dividend_yield": 4.1,
+    "market_cap": 275400000000,
+    "market_cap_bn": 275.4,
+    "roe": 8.8,
+    "net_margin": 13.6,
+    "revenue": 350200000000,
+    "risk_score": 4.7
   },
   "3968.HK": {
     "name_zh": "招商銀行",
@@ -763,7 +1463,17 @@
     "sector_en": "Banking / Financials",
     "business_zh": "零售銀行、工商金融及財富管理",
     "business_en": "Retail banking, commercial banking and wealth management.",
-    "market_type": "大型銀行股"
+    "market_type": "大型銀行股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.9,
+    "pb_ratio": 0.74,
+    "dividend_yield": 4.1,
+    "market_cap": 295799999999,
+    "market_cap_bn": 295.8,
+    "roe": 8.7,
+    "net_margin": 13.4,
+    "revenue": 346800000000,
+    "risk_score": 4.7
   },
   "6098.HK": {
     "name_zh": "碧桂園服務",
@@ -773,7 +1483,17 @@
     "sector_en": "Property Management",
     "business_zh": "住宅及商業物業管理服務",
     "business_en": "Residential and commercial property management services.",
-    "market_type": "中型物業管理股"
+    "market_type": "中型物業管理股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.3,
+    "pb_ratio": 0.71,
+    "dividend_yield": 4.2,
+    "market_cap": 234600000000,
+    "market_cap_bn": 234.6,
+    "roe": 8.4,
+    "net_margin": 12.8,
+    "revenue": 336600000000,
+    "risk_score": 4.8
   },
   "6618.HK": {
     "name_zh": "京東健康",
@@ -783,7 +1503,17 @@
     "sector_en": "Pharmaceuticals / Health Technology",
     "business_zh": "線上醫療健康服務及藥品零售",
     "business_en": "Online healthcare services and pharmaceutical retail.",
-    "market_type": "中型醫藥股"
+    "market_type": "中型醫藥股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.9,
+    "pb_ratio": 0.69,
+    "dividend_yield": 4.3,
+    "market_cap": 193799999999,
+    "market_cap_bn": 193.8,
+    "roe": 8.2,
+    "net_margin": 12.4,
+    "revenue": 329800000000,
+    "risk_score": 4.9
   },
   "6690.HK": {
     "name_zh": "海爾智家",
@@ -793,7 +1523,17 @@
     "sector_en": "Consumer Electronics / Home Appliances",
     "business_zh": "智能家電及家居解決方案",
     "business_en": "Smart home appliances and home solutions.",
-    "market_type": "大型消費股"
+    "market_type": "大型消費股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 8.9,
+    "pb_ratio": 0.69,
+    "dividend_yield": 4.3,
+    "market_cap": 193799999999,
+    "market_cap_bn": 193.8,
+    "roe": 8.2,
+    "net_margin": 12.4,
+    "revenue": 329800000000,
+    "risk_score": 4.9
   },
   "6862.HK": {
     "name_zh": "海底撈",
@@ -803,7 +1543,17 @@
     "sector_en": "Catering / Consumer",
     "business_zh": "火鍋餐廳連鎖業務",
     "business_en": "Hot pot restaurant chain businesses.",
-    "market_type": "大型消費股"
+    "market_type": "大型消費股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.1,
+    "pb_ratio": 0.7,
+    "dividend_yield": 4.3,
+    "market_cap": 214200000000,
+    "market_cap_bn": 214.2,
+    "roe": 8.3,
+    "net_margin": 12.6,
+    "revenue": 333200000000,
+    "risk_score": 4.9
   },
   "9618.HK": {
     "name_zh": "京東集團",
@@ -818,7 +1568,17 @@
     "market_type_zh": "大型平台股",
     "market_type_en": "Large-cap platform stock",
     "short_positioning_zh": "供應鏈與自營電商平台，適合展示營運效率分析。",
-    "logo_url": "https://logo.clearbit.com/jd.com"
+    "logo_url": "https://logo.clearbit.com/jd.com",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.5,
+    "pb_ratio": 0.72,
+    "dividend_yield": 4.2,
+    "market_cap": 255000000000,
+    "market_cap_bn": 255.0,
+    "roe": 8.5,
+    "net_margin": 13.0,
+    "revenue": 340000000000,
+    "risk_score": 4.8
   },
   "9888.HK": {
     "name_zh": "百度集團",
@@ -828,7 +1588,17 @@
     "sector_en": "Technology / Internet",
     "business_zh": "搜索引擎、人工智能及自動駕駛業務",
     "business_en": "Search engine, artificial intelligence and autonomous driving businesses.",
-    "market_type": "大型科技股"
+    "market_type": "大型科技股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.5,
+    "pb_ratio": 0.72,
+    "dividend_yield": 4.2,
+    "market_cap": 295799999999,
+    "market_cap_bn": 295.8,
+    "roe": 8.5,
+    "net_margin": 13.0,
+    "revenue": 340000000000,
+    "risk_score": 4.8
   },
   "9961.HK": {
     "name_zh": "攜程集團",
@@ -838,7 +1608,17 @@
     "sector_en": "Technology / Travel",
     "business_zh": "線上旅遊服務平台",
     "business_en": "Online travel services platform.",
-    "market_type": "大型科技股"
+    "market_type": "大型科技股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.7,
+    "pb_ratio": 0.73,
+    "dividend_yield": 4.2,
+    "market_cap": 275400000000,
+    "market_cap_bn": 275.4,
+    "roe": 8.6,
+    "net_margin": 13.2,
+    "revenue": 343400000000,
+    "risk_score": 4.8
   },
   "9988.HK": {
     "name_zh": "阿里巴巴集團",
@@ -853,7 +1633,17 @@
     "market_type_zh": "大型科技股",
     "market_type_en": "Large-cap technology stock",
     "short_positioning_zh": "大型電商與雲服務平台，適合展示平台估值與重組分析。",
-    "logo_url": "https://logo.clearbit.com/alibabagroup.com"
+    "logo_url": "https://logo.clearbit.com/alibabagroup.com",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 9.7,
+    "pb_ratio": 0.73,
+    "dividend_yield": 4.2,
+    "market_cap": 316200000000,
+    "market_cap_bn": 316.2,
+    "roe": 8.6,
+    "net_margin": 13.2,
+    "revenue": 343400000000,
+    "risk_score": 4.8
   },
   "9999.HK": {
     "name_zh": "網易",
@@ -863,6 +1653,16 @@
     "sector_en": "Technology / Internet",
     "business_zh": "遊戲、音樂、教育及電商業務",
     "business_en": "Games, music, education and ecommerce businesses.",
-    "market_type": "大型科技股"
+    "market_type": "大型科技股",
+    "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+    "pe_ratio": 10.1,
+    "pb_ratio": 0.75,
+    "dividend_yield": 4.1,
+    "market_cap": 214200000000,
+    "market_cap_bn": 214.2,
+    "roe": 8.8,
+    "net_margin": 13.6,
+    "revenue": 350200000000,
+    "risk_score": 4.7
   }
 }

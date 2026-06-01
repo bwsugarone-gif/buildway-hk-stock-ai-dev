@@ -1442,6 +1442,16 @@ if analysis_requested:
 
             builder = ReportBuilder()
             report_sections = builder.build(report_package)
+            for _key in (
+                "competitive_landscape",
+                "risk_assessment_v2",
+                "source_transparency",
+                "source_registry",
+                "agent_opinions_v2",
+                "investment_conclusion",
+            ):
+                if _key in report_sections:
+                    report_package[_key] = report_sections[_key]
             print(f"[Report Builder] Final stock_code = {report_sections.get('cover', {}).get('ticker')}")
             st.session_state.llm_warning = report_sections.get("metadata", {}).get("llm_warning", "")
             st.session_state.report_package = report_package
@@ -1615,6 +1625,7 @@ if st.session_state.report_sections:
     if confidence_level in {"HIGH", "MEDIUM"}:
         render_competitive_landscape({
             "cover": cover,
+            "competitive_landscape": report_package.get("competitive_landscape", {}),
             "peer_comparison": report_package.get("peer_comparison", {}),
             "competitive_analysis": report_package.get("competitive_analysis", {}),
         })

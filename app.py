@@ -1696,16 +1696,11 @@ if st.session_state.report_sections:
     # ── 4. 市場分析 ───────────────────────────────────────────────────────────
     if confidence_level in {"HIGH", "MEDIUM"}:
         _section_title("市場分析", "市場分析", "")
+        # v4.2.0: single canonical render — _render_market_snapshot_section uses
+        # report_builder sections which already includes market_data from yfinance.
+        # render_market_snapshot (fos_components) is the same widget called inside
+        # _render_market_snapshot_section, so we do NOT call it again here.
         _render_market_snapshot_section(sections.get("market_snapshot", {}))
-        mkt = report_package.get("market_data", {}) or {}
-        render_market_snapshot({
-            "market_data": {
-                "current_price": mkt.get("current_price"),
-                "week_52_high": mkt.get("week_52_high"),
-                "week_52_low": mkt.get("week_52_low"),
-                "volume": mkt.get("volume"),
-            }
-        })
 
     # ── 5. 財務分析 ───────────────────────────────────────────────────────────
     if confidence_level in {"HIGH", "MEDIUM"}:

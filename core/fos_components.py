@@ -119,8 +119,8 @@ def render_competitive_landscape(report_data: Dict[str, Any]) -> None:
 
         def _lines(value: Any) -> str:
             if isinstance(value, list):
-                return "<br>".join(f"? {item}" for item in value if item)
-            return str(value)
+                return "<br>".join(f"• {item}" for item in value if item)
+            return str(value) if value else "資料未收錄"
 
         for label, val in [
             ("📦 產品線", products),

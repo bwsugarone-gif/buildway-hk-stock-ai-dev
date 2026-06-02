@@ -1727,19 +1727,15 @@ if st.session_state.report_sections:
             }
         })
 
-    # ── 6. 風險分析 ───────────────────────────────────────────────────────────
+    # ── 6. 風險儀表板 (v4.2.0: removed risk event cards) ───────────────────────
     if confidence_level != "INVALID":
-        _section_title("風險分析", "風險分析", "")
-        risk_sec = sections.get("risk_analysis", {}) or {}
-        risk_v2_sec = (report_package or {}).get("risk_assessment_v2", {}) or {}
-        render_risk_event_cards({
-            "risk_assessment_v2": risk_v2_sec,
-            "risk_analysis": risk_sec,
-        })
-        # Risk Dashboard v3.5
-        _rv2 = report_package.get("risk_assessment_v2", {}) or {}
+        _section_title("風險儀表板", "風險儀表板", "")
+        # v4.2.0: Only use Risk Dashboard, removed render_risk_event_cards
+        _rv2 = (report_package or {}).get("risk_assessment_v2", {}) or {}
         if _rv2:
             render_risk_dashboard({"risk_assessment_v2": _rv2})
+        else:
+            st.info("風險儀表板資料待分析")
 
     # ── 7. 新聞與事件催化 ─────────────────────────────────────────────────────
     if confidence_level in {"HIGH", "MEDIUM"}:

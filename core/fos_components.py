@@ -134,17 +134,57 @@ def render_competitive_landscape(report_data: Dict[str, Any]) -> None:
     with col2:
         st.markdown("#### 競爭對手摘要")
         peers = cl.get("peers", []) or peer.get("peers", []) or comp.get("competitors", []) or []
+
+        # RC-1 v4.2.1: Build readable peer summaries from profile data
+        def _build_peer_summary(p: dict) -> str:
+            """Build a readable summary from peer profile data."""
+            # Priority 1: explicit summary/description field
+            raw = p.get("summary") or p.get("description") or ""
+            # Filter out blank / placeholder values
+            _bad = {"—", "-", "N/A", "", "待補充", "暫無競爭摘要資料"}
+            if raw and raw not in _bad:
+                return raw
+
+            # Priority 2: build from product_lines (up to 3 bullets)
+            products = p.get("product_lines") or []
+            if isinstance(products, list) and products:
+                # Remove generic English filler lines
+                clean = [
+                    item for item in products
+                    if item
+                    and "core services" not in str(item).lower()
+                    and "enterprise and retail" not in str(item).lower()
+                ]
+                if clean:
+                    return "・".join(clean[:3])
+
+            # Priority 3: sector + positioning
+            sector = p.get("sector") or ""
+            positioning = p.get("market_positioning") or ""
+            if positioning and "is covered as" not in positioning and len(positioning) < 80:
+                return positioning
+            if sector:
+                return sector
+
+            return "暫無競爭摘要資料"
+
         if peers:
             for p in peers[:4]:
                 if isinstance(p, dict):
-                    pname = p.get("name", p.get("ticker", "—"))
-                    pdesc = p.get("summary", p.get("description", "—"))
-                    st.markdown(f"**{pname}**  \n{pdesc}")
+                    pname = p.get("name") or p.get("company_name") or p.get("ticker", "—")
+                    pdesc = _build_peer_summary(p)
+                    st.markdown(
+                        f'<div style="margin-bottom:12px;">'
+                        f'<strong>{pname}</strong><br>'
+                        f'<span style="color:#5f6368;font-size:0.88rem;">{pdesc}</span>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
                     st.markdown("---")
                 else:
                     st.markdown(f"- {p}")
         else:
-            st.info("競爭對手資料待補充")
+            st.info("暫無競爭摘要資料")
 
 
 # ─── 3. Confidence Score Breakdown ────────────────────────────────────────────
@@ -602,7 +642,7 @@ def render_peer_comparison(report_data: Dict[str, Any]) -> None:
     st.markdown("## 🏆 同行比較")
 
     if not peers and not subject:
-        st.info("同行比較資料待補充")
+        st.info("暫無同行比較資料")
         return
 
     # Build rows: subject first, then peers
@@ -617,7 +657,7 @@ def render_peer_comparison(report_data: Dict[str, Any]) -> None:
             all_rows.append({**p, "_is_subject": False})
 
     if not all_rows:
-        st.info("同行比較資料待補充")
+        st.info("暫無同行比較資料")
         return
 
     # Header

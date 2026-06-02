@@ -114,10 +114,16 @@ def _load_master_data() -> Dict[str, Any]:
 
 
 def _load_competitive_profile() -> Dict[str, Any]:
-    """Load competitive_profile.json — v4.0 source for product_lines, strengths, etc."""
+    """Load competitive_profile.json — v4.0 source for product_lines, strengths, etc.
+    Handles both flat {ticker: {...}} and nested {"stocks": {ticker: {...}}} formats.
+    """
     try:
         with open(_COMPETITIVE_PROFILE_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+        # Unwrap nested {"stocks": {...}} format
+        if "stocks" in data and isinstance(data["stocks"], dict):
+            return data["stocks"]
+        return data
     except Exception:
         return {}
 
@@ -224,18 +230,35 @@ def _build_peer_record(ticker: str, master: Dict[str, Any], report_data: Dict[st
         or {}
     )
 
+    # Load competitive profile data for this peer
+    cp_data = get_competitive_profile(ticker)
+    cp_product_lines = cp_data.get("product_lines", [])
+    # Filter out placeholder-only product_lines
+    _placeholders = {"資料未收錄", "N/A", ""}
+    cp_product_lines = [p for p in cp_product_lines if p.strip() not in _placeholders]
+    cp_summary = cp_data.get("market_positioning", "")
+    if cp_summary in ("資料未收錄", "N/A", None):
+        cp_summary = ""
+    # Build a readable summary from product_lines if market_positioning is empty
+    if not cp_summary and cp_product_lines:
+        cp_summary = "、".join(cp_product_lines[:3])
+
+    company_name = (
+        stock_info.get("name_zh")
+        or stock_info.get("name_en")
+        or stock_info.get("name")
+        or stock_info.get("company_name")
+        or cp_data.get("ticker", f"{ticker}.HK")
+    )
+
     record: Dict[str, Any] = {
         "ticker": ticker,
-        "company_name": (
-            stock_info.get("name_zh")
-            or stock_info.get("name_en")
-            or stock_info.get("name")
-            or stock_info.get("company_name")
-            or f"{ticker}.HK"
-        ),
+        "company_name": company_name,
         "source": "公司基本資料",
         "metrics": {},
         "data_quality": "partial",
+        "product_lines": cp_product_lines,
+        "summary": cp_summary,
     }
     record["name"] = record["company_name"]
     if stock_info.get("peer_data_source"):

@@ -1,10 +1,12 @@
 """
 core/investment_conclusion_engine.py
-Investment Conclusion Engine — v4.0 Hardening Layer
+Investment Conclusion Engine — v4.2.1 RC (IC 2.0)
 
-Integrates all analysis modules to produce a structured investment conclusion.
-Never outputs '—', '分析中', or blank fields.
-If data is insufficient, outputs conservative defaults with explanation.
+RC-2: Restructured to produce fund-research-grade conclusions even without DCF.
+Output: investment_view, core_thesis, key_catalysts, key_risks,
+        suitable_investor, allocation_suggestion + rating/horizon/summary.
+Never outputs blank or placeholder conclusions.
+禁止輸出：「數據不足採用中性評分」作為主要結論。
 """
 
 from core.safe_math import safe_float

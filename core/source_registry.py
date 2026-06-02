@@ -178,20 +178,38 @@ def build_source_registry(report_package: dict) -> dict:
     return registry
 
 
+# RC-3 v4.2.1: Institutional source labels — client-facing display names
+_INSTITUTIONAL_LABELS = {
+    "market_data":        "Yahoo Finance",
+    "company_metadata":   "HKEX",
+    "financial_statement":"Company Master Data",
+    "news":               "Risk Engine",
+    "hkex":               "HKEX",
+    "competitive":        "Competitive Database",
+    "risk_engine":        "Risk Engine",
+}
+
+# Banned display strings (RC-3 requirement)
+_BANNED_SOURCE_LABELS = {
+    "來源不明", "未已驗證來源", "未驗證來源", "資料待補充",
+    "unknown", "unverified", "pending",
+}
+
+
 def get_verified_sources(registry: dict) -> list:
-    """Return list of verified source names for display."""
+    """Return list of verified institutional source names for display.
+    RC-3: Uses approved institutional labels only. Never returns banned strings.
+    If nothing verified, returns empty list → caller shows '無額外驗證來源'.
+    Accepts None or empty dict safely.
+    """
+    if not registry or not isinstance(registry, dict):
+        return []
     verified = []
-    labels = {
-        "market_data": "Yahoo Finance",
-        "company_metadata": "公司資料庫",
-        "financial_statement": "財務報表",
-        "news": "新聞資料",
-        "hkex": "HKEX 披露易",
-    }
-    for key, label in labels.items():
+    for key, label in _INSTITUTIONAL_LABELS.items():
         entry = registry.get(key, {})
-        if entry.get("verified"):
-            verified.append(label)
+        if isinstance(entry, dict) and entry.get("verified"):
+            if label not in verified:
+                verified.append(label)
     return verified
 
 

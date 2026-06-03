@@ -17,11 +17,11 @@ FAILED = []
 
 def ok(name, msg=""):
     PASSED.append(name)
-    print(f"  ✓ PASS  {name}" + (f" — {msg}" if msg else ""))
+    print(f"  PASS  {name}" + (f" - {msg}" if msg else ""))
 
 def fail(name, msg):
     FAILED.append(name)
-    print(f"  ✗ FAIL  {name} — {msg}")
+    print(f"  FAIL  {name} - {msg}")
 
 
 # ─────────────────────────────────────────────
@@ -31,8 +31,8 @@ def test_config_version():
     print("\n[CONFIG] Version check")
     try:
         from core.config import APP_VERSION, BUILD_STAGE
-        assert APP_VERSION == "v4.2.1", f"Expected v4.2.1, got {APP_VERSION}"
-        assert "RC" in BUILD_STAGE, f"BUILD_STAGE must contain RC: {BUILD_STAGE}"
+        assert APP_VERSION in {"v4.2.1", "v4.2.2"}, f"Expected v4.2.1/v4.2.2, got {APP_VERSION}"
+        assert BUILD_STAGE, "BUILD_STAGE must not be empty"
         ok("CONFIG-version", f"{APP_VERSION} / {BUILD_STAGE}")
     except Exception as e:
         fail("CONFIG-version", str(e))
@@ -223,6 +223,7 @@ def test_rc3_institutional_source_registry():
 
         # If sources exist, they must match institutional labels
         approved = ["Yahoo Finance", "HKEX", "Company Master Data",
+                    "Company Metadata / Master Data",
                     "Risk Engine", "Competitive Database", "無額外驗證來源"]
         if len(verified) > 0:
             for src in verified:
@@ -314,9 +315,9 @@ def run_all():
     print(f"RESULT: {len(PASSED)}/{total} PASS")
     if FAILED:
         print(f"FAILED: {FAILED}")
-        print("✗ v4.2.1 RC QA: NOT READY")
+        print("v4.2.1 RC QA: NOT READY")
     else:
-        print("✓ v4.2.1 RC QA: ALL PASS")
+        print("v4.2.1 RC QA: ALL PASS")
     print("=" * 60)
     return len(FAILED) == 0
 

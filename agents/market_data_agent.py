@@ -6,6 +6,8 @@ DEV version uses yfinance with graceful fallback to demo data
 """
 
 import json
+import os
+import tempfile
 from pathlib import Path
 from typing import Dict, Any, Optional
 from core.data_confidence import (
@@ -17,6 +19,7 @@ from core.data_confidence import (
     assess_market_data_confidence,
     confidence_label,
     invalid_market_data,
+    valid_ticker_price_unavailable_data,
 )
 from core.data_normalizer import normalize_market_data
 from core.data_coverage_engine import DataCoverageEngine
@@ -26,6 +29,7 @@ from core.utils import normalize_hk_ticker, format_currency_hkd, format_percenta
 
 
 MASTER_DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "hk_stock_master_data.json"
+YFINANCE_CACHE_DIR = Path(os.getenv("YFINANCE_CACHE_DIR", Path(tempfile.gettempdir()) / "yfinance_cache"))
 
 
 class MarketDataAgent:
@@ -46,7 +50,12 @@ class MarketDataAgent:
     def _check_yfinance(self) -> bool:
         """Check if yfinance is available."""
         try:
-            import yfinance  # noqa: F401
+            import yfinance
+            try:
+                YFINANCE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+                yfinance.cache.set_cache_location(str(YFINANCE_CACHE_DIR))
+            except Exception as exc:
+                print(f"[Market Data Agent] yfinance cache setup warning: {exc}")
             return True
         except ImportError:
             return False
@@ -76,7 +85,17 @@ class MarketDataAgent:
         data["company_name_zh"] = metadata.get("name_zh", data.get("company_name_zh", ""))
         data["company_name_en"] = metadata.get("name_en", data.get("company_name_en", ""))
         data["sector"] = data.get("sector") or metadata.get("sector", "")
-        data["business"] = metadata.get("business", data.get("business", ""))
+        business = (
+            metadata.get("business_summary")
+            or metadata.get("business")
+            or metadata.get("business_zh")
+            or metadata.get("business_en")
+            or data.get("business")
+            or data.get("business_summary")
+            or ""
+        )
+        data["business"] = business
+        data["business_summary"] = business
         data["market_type"] = metadata.get("market_type", data.get("market_type", ""))
         data["metadata_source"] = "hk_stock_master_data"
         return data
@@ -91,15 +110,29 @@ class MarketDataAgent:
         data = {
             "ticker": ticker,
             "data_source": "HK stock master metadata fallback",
+            "data_status": "VALID_TICKER_PRICE_UNAVAILABLE",
+            "valid_ticker_price_unavailable": True,
+            "price_unavailable": True,
+            "market_data_status": "price_unavailable",
             "is_demo": True,
+            "is_live": False,
             "currency": "HKD",
             "exchange": "HKEX",
             "company_name": company_name or metadata.get("name_zh", ""),
             "sector": metadata.get("sector", ""),
+            "business_summary": (
+                metadata.get("business_summary")
+                or metadata.get("business")
+                or metadata.get("business_zh")
+                or metadata.get("business_en")
+                or ""
+            ),
             "fallback_reason": reason,
             "missing_data_flags": ["market_price_unavailable", "market_cap_unavailable"],
         }
-        return self._apply_company_metadata(data, metadata, company_name)
+        if metadata:
+            return self._apply_company_metadata(data, metadata, company_name)
+        return data
 
     def fetch(
         self,
@@ -135,7 +168,18 @@ class MarketDataAgent:
                     return invalid_market_data(normalized, str(e))
                 sample_candidate = get_sample_market_data(normalized)
                 sample_has_market_data = safe_number(sample_candidate.get("current_price"), 0.0) > 0 or safe_number(sample_candidate.get("market_cap"), 0.0) > 0
-                result = sample_candidate if sample_has_market_data else self._metadata_only_market_data(normalized, company_name, str(e))
+                if sample_has_market_data:
+                    result = sample_candidate
+                    if metadata:
+                        result["valid_ticker_price_unavailable"] = True
+                        result["price_unavailable"] = True
+                        result["market_data_status"] = "sample_fallback_price_stale"
+                        result["is_live"] = False
+                        result["data_source"] = "SAMPLE FALLBACK DATA - not live market data"
+                elif metadata:
+                    result = valid_ticker_price_unavailable_data(normalized, metadata, str(e))
+                else:
+                    result = self._metadata_only_market_data(normalized, company_name, str(e))
                 result["fallback_reason"] = str(e)
                 result["ticker"] = normalized
                 result = self._apply_company_metadata(result, metadata, company_name)
@@ -146,7 +190,18 @@ class MarketDataAgent:
             return invalid_market_data(normalized, "yfinance unavailable and ticker is outside validated sample universe.")
         sample_candidate = get_sample_market_data(normalized)
         sample_has_market_data = safe_number(sample_candidate.get("current_price"), 0.0) > 0 or safe_number(sample_candidate.get("market_cap"), 0.0) > 0
-        result = sample_candidate if sample_has_market_data else self._metadata_only_market_data(normalized, company_name, "yfinance unavailable")
+        if sample_has_market_data:
+            result = sample_candidate
+            if metadata:
+                result["valid_ticker_price_unavailable"] = True
+                result["price_unavailable"] = True
+                result["market_data_status"] = "sample_fallback_price_stale"
+                result["is_live"] = False
+                result["data_source"] = "SAMPLE FALLBACK DATA - not live market data"
+        elif metadata:
+            result = valid_ticker_price_unavailable_data(normalized, metadata, "yfinance unavailable")
+        else:
+            result = self._metadata_only_market_data(normalized, company_name, "yfinance unavailable")
         result["ticker"] = normalized
         result = self._apply_company_metadata(result, metadata, company_name)
         result["company_name"] = company_name or result.get("company_name") or metadata.get("name_zh", "")
@@ -179,9 +234,21 @@ class MarketDataAgent:
         confidence = assess_market_data_confidence(sanitized)
         coverage = sanitized.get("coverage_score") or confidence
         sanitized["data_confidence"] = coverage
-        sanitized["data_confidence_label"] = confidence_label(coverage)
+        if sanitized.get("valid_ticker_price_unavailable") or sanitized.get("price_unavailable"):
+            sanitized["data_confidence_label"] = confidence_label("VALID_TICKER_PRICE_UNAVAILABLE")
+            sanitized["data_warning"] = "公司資料已驗證，市場價格暫時未能取得"
+        else:
+            sanitized["data_confidence_label"] = confidence_label(coverage)
 
         if coverage == INVALID:
+            if sanitized.get("company_metadata") or sanitized.get("company_name"):
+                sanitized["data_confidence"] = LOW
+                sanitized["data_confidence_label"] = confidence_label("VALID_TICKER_PRICE_UNAVAILABLE")
+                sanitized["valid_ticker_price_unavailable"] = True
+                sanitized["price_unavailable"] = True
+                sanitized["market_data_status"] = "price_unavailable"
+                sanitized["data_warning"] = "公司資料已驗證，市場價格暫時未能取得"
+                return sanitized
             return invalid_market_data(
                 sanitized.get("ticker", "N/A"),
                 "Missing company name, current price, market cap, and ticker metadata.",

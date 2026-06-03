@@ -79,6 +79,17 @@ class DataCoverageEngine:
     def coverage_score(self, data: dict[str, Any]) -> str:
         if data.get("invalid_symbol") or data.get("data_confidence") == INVALID:
             return INVALID
+        if data.get("valid_ticker_price_unavailable") or data.get("price_unavailable"):
+            has_identity = bool(str(data.get("ticker") or "").strip())
+            has_company = bool(
+                str(
+                    data.get("company_name")
+                    or data.get("company_name_zh")
+                    or data.get("company_name_en")
+                    or ""
+                ).strip()
+            )
+            return LOW if has_identity and has_company else INVALID
         has_identity = bool(str(data.get("ticker") or "").strip())
         has_price_or_cap = self._positive(data.get("current_price")) or self._positive(data.get("market_cap"))
         if not has_identity or not has_price_or_cap:

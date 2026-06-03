@@ -1676,7 +1676,12 @@ if st.session_state.report_sections:
                  "verified": confidence_level == "HIGH"},
             ],
         }
-    render_source_transparency({"source_transparency": _st_data, "cover": cover})
+    render_source_transparency({
+        "source_transparency": _st_data,
+        "source_registry": report_package.get("source_registry", {}),
+        "market_data": report_package.get("market_data", {}),
+        "cover": cover,
+    })
 
     # ── 3. 資料可信度評分 ─────────────────────────────────────────────────────
     render_confidence_breakdown({

@@ -781,6 +781,15 @@ def render_source_transparency(report_data: Dict[str, Any]) -> None:
         verified_source_names = []
 
     reason = (report_data.get("source_transparency", {}) or {}).get("confidence_reason", "")
+    market_data = report_data.get("market_data", {}) or {}
+    price_unavailable = bool(
+        market_data.get("valid_ticker_price_unavailable")
+        or market_data.get("price_unavailable")
+        or market_data.get("market_data_status") == "price_unavailable"
+    )
+    if registry:
+        market_entry = registry.get("market_data", {}) or {}
+        price_unavailable = price_unavailable or "價格暫時未能取得" in str(market_entry.get("note", ""))
 
     LEVEL_COLOR = {
         "HIGH": "#1e8e3e",
@@ -810,6 +819,8 @@ def render_source_transparency(report_data: Dict[str, Any]) -> None:
             if reason:
                 st.markdown(f"**為何 {level_upper}？**")
                 st.markdown(reason)
+            if price_unavailable:
+                st.warning("市場價格暫時未能取得，以下公司資料來自已驗證公司資料庫。")
             if verified_source_names:
                 st.markdown("**已驗證來源**")
                 for name in verified_source_names:

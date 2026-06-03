@@ -34,6 +34,7 @@ def build_source_registry(report_package: dict) -> dict:
     company = (
         report_package.get("company_metadata")
         or report_package.get("company_data")
+        or market.get("company_metadata")
         or {}
     )
     # If company_metadata is empty, fall back to market_data fields
@@ -42,8 +43,8 @@ def build_source_registry(report_package: dict) -> dict:
             "name_zh": market.get("company_name_zh") or market.get("company_name", ""),
             "name_en": market.get("company_name_en") or market.get("company_name", ""),
             "sector": market.get("sector", ""),
-            "business_profile": market.get("business_summary", ""),
-            "market_category": market.get("market_category", ""),
+            "business_profile": market.get("business_summary") or market.get("business", ""),
+            "market_category": market.get("market_category") or market.get("market_type", ""),
         }
     # Support both key names: financial_data (legacy) and financial_analysis (v4)
     fin_raw = (
@@ -70,7 +71,13 @@ def build_source_registry(report_package: dict) -> dict:
     now = datetime.now().strftime("%Y-%m-%d")
 
     # ── Market Data (Yahoo Finance / yfinance) ────────────────────────────────
-    market_verified = bool(market.get("current_price") or market.get("price"))
+    price_unavailable = bool(
+        market.get("valid_ticker_price_unavailable")
+        or market.get("price_unavailable")
+        or market.get("market_data_status") == "price_unavailable"
+    )
+    sample_or_fallback = bool(market.get("is_demo") or market.get("fallback_reason"))
+    market_verified = bool(market.get("current_price") or market.get("price")) and not price_unavailable
     market_fields = []
     market_missing = []
     for field, label in [
@@ -84,13 +91,30 @@ def build_source_registry(report_package: dict) -> dict:
         ("volume", "成交量"),
         ("beta", "Beta"),
     ]:
-        val = market.get(field) or market.get(field.replace("_", ""))
+        val = (
+            market.get(field)
+            or market.get(field.replace("_", ""))
+            or (market.get("52w_high") if field == "fifty_two_week_high" else None)
+            or (market.get("52w_low") if field == "fifty_two_week_low" else None)
+        )
         if val and str(val) not in ("0", "0.0", "None", ""):
             market_fields.append(label)
         else:
             market_missing.append(label)
 
     # ── Company Metadata ──────────────────────────────────────────────────────
+    if company and not company.get("business_profile"):
+        company = {
+            **company,
+            "business_profile": (
+                company.get("business_summary")
+                or company.get("business")
+                or company.get("business_zh")
+                or company.get("business_en")
+                or ""
+            ),
+            "market_category": company.get("market_category") or company.get("market_type", ""),
+        }
     meta_verified = bool(company.get("name_zh") or company.get("name_en"))
     meta_fields = []
     meta_missing = []
@@ -139,16 +163,26 @@ def build_source_registry(report_package: dict) -> dict:
         "market_data": {
             "enabled": True,
             "verified": market_verified,
-            "source": "Yahoo Finance / yfinance",
+            "source": (
+                "HK Stock Master Data (price unavailable)"
+                if price_unavailable
+                else "Sample fallback data" if sample_or_fallback else "Yahoo Finance / yfinance"
+            ),
             "last_updated": now,
             "verified_fields": market_fields,
             "missing_fields": market_missing,
-            "note": "" if market_verified else "市場數據未能取得，使用本地參考數據。",
+            "note": (
+                ""
+                if market_verified
+                else "公司資料已驗證，市場價格暫時未能取得。"
+                if price_unavailable
+                else "市場數據未能取得，使用本地參考數據。"
+            ),
         },
         "company_metadata": {
             "enabled": True,
             "verified": meta_verified,
-            "source": "本地公司資料庫 / HK Stock Master Data",
+            "source": "Company Metadata / HK Stock Master Data",
             "last_updated": now,
             "verified_fields": meta_fields,
             "missing_fields": meta_missing,
@@ -181,7 +215,7 @@ def build_source_registry(report_package: dict) -> dict:
 # RC-3 v4.2.1: Institutional source labels — client-facing display names
 _INSTITUTIONAL_LABELS = {
     "market_data":        "Yahoo Finance",
-    "company_metadata":   "HKEX",
+    "company_metadata":   "Company Metadata / Master Data",
     "financial_statement":"Company Master Data",
     "news":               "Risk Engine",
     "hkex":               "HKEX",

@@ -5,8 +5,7 @@ Investment Conclusion Engine — v4.2.1 RC (IC 2.0)
 RC-2: Restructured to produce fund-research-grade conclusions even without DCF.
 Output: investment_view, core_thesis, key_catalysts, key_risks,
         suitable_investor, allocation_suggestion + rating/horizon/summary.
-Never outputs blank or placeholder conclusions.
-禁止輸出：「數據不足採用中性評分」作為主要結論。
+Never outputs blank, placeholder conclusions, or legacy neutral fallback wording.
 """
 
 from core.safe_math import safe_float
@@ -29,6 +28,8 @@ DECISION_FACTORS = [
 INSUFFICIENT_DATA_RATING = "資料不足"
 INSUFFICIENT_DATA_VIEW = "資料不足，暫不評級"
 INSUFFICIENT_DATA_SUMMARY = "公司資料已驗證，但市場價格、財務數據或新聞資料不足，暫不形成投資評級。"
+PARTIAL_DATA_LABEL = "部分資料覆蓋"
+FULL_DATA_LABEL = "完整資料覆蓋"
 
 
 def _has_positive(value) -> bool:
@@ -76,13 +77,13 @@ def _source_verified(source_registry: dict, key: str) -> bool:
     return isinstance(entry, dict) and bool(entry.get("verified"))
 
 
-def _data_sufficiency_issues(
+def _coverage_flags(
     market_snapshot: dict,
     financial_data: dict,
     risk_assessment: dict,
     agent_opinions,
     source_registry: dict,
-) -> list[dict]:
+) -> dict:
     raw = _raw_market(market_snapshot)
     financial_data = financial_data or {}
     risk_assessment = risk_assessment or {}
@@ -138,17 +139,62 @@ def _data_sufficiency_issues(
         or risk_assessment.get("composite_risk_score")
     )
     news_available = _news_available(agent_opinions, source_registry)
+    metadata_available = any(
+        str(v or "").strip()
+        for v in (
+            raw.get("ticker"),
+            raw.get("company_name"),
+            raw.get("company_name_zh"),
+            raw.get("sector"),
+            financial_data.get("ticker"),
+            financial_data.get("company_name"),
+            financial_data.get("sector"),
+        )
+    ) or _source_verified(source_registry, "company_metadata")
+
+    return {
+        "metadata_available": metadata_available,
+        "price_available": price_available and not price_unavailable_flag,
+        "price_unavailable_flag": price_unavailable_flag,
+        "valuation_available": valuation_available,
+        "financial_available": financial_available,
+        "risk_available": risk_available,
+        "news_available": news_available,
+    }
+
+
+def _coverage_state(flags: dict) -> str:
+    if not flags["price_available"]:
+        return "INSUFFICIENT"
+    if not flags["risk_available"]:
+        return "INSUFFICIENT"
+    if not (flags["valuation_available"] or flags["financial_available"]):
+        return "INSUFFICIENT"
+    if flags["financial_available"] and flags["risk_available"] and flags["news_available"]:
+        return "FULL"
+    return "PARTIAL"
+
+
+def _data_sufficiency_issues(
+    market_snapshot: dict,
+    financial_data: dict,
+    risk_assessment: dict,
+    agent_opinions,
+    source_registry: dict,
+) -> list[dict]:
+    source_registry = source_registry or {}
+    flags = _coverage_flags(market_snapshot, financial_data, risk_assessment, agent_opinions, source_registry)
 
     issues = []
-    if price_unavailable_flag or not price_available:
+    if flags["price_unavailable_flag"] or not flags["price_available"]:
         issues.append({"factor": "市場價格", "weight": "必要", "score": "N/A", "summary": "市場價格暫時未能取得"})
-    if not valuation_available:
+    if not flags["valuation_available"]:
         issues.append({"factor": "估值資料", "weight": "必要", "score": "N/A", "summary": "缺少 P/E、P/B 或其他估值輸入"})
-    if not financial_available:
+    if not flags["financial_available"]:
         issues.append({"factor": "財務資料", "weight": "必要", "score": "N/A", "summary": "缺少收入、盈利、ROE、利潤率或 EBITDA 等財務資料"})
-    if not news_available:
+    if not flags["news_available"]:
         issues.append({"factor": "新聞情緒", "weight": "必要", "score": "N/A", "summary": "缺少已驗證新聞或情緒資料"})
-    if not risk_available:
+    if not flags["risk_available"]:
         issues.append({"factor": "風險評估", "weight": "必要", "score": "N/A", "summary": "缺少有效風險評估輸入"})
 
     if source_registry:
@@ -207,6 +253,8 @@ def _insufficient_data_result(decision_basis: list[dict]) -> dict:
         "news_score": None,
         "market_score": None,
         "data_sufficient": False,
+        "data_coverage": "INSUFFICIENT",
+        "data_coverage_label": "資料不足",
     }
 
 
@@ -236,6 +284,8 @@ def _invalid_result(reason: str = "股票代號或市場資料無法驗證") -> 
         "news_score": None,
         "market_score": None,
         "data_sufficient": False,
+        "data_coverage": "INVALID",
+        "data_coverage_label": "無法驗證",
         "invalid_symbol": True,
     }
 
@@ -362,8 +412,8 @@ def _extract_risk_score(risk_assessment: dict) -> tuple:
 
 def _extract_financial_score(financial_data: dict) -> tuple:
     """Extract financial health score and summary."""
-    revenue = safe_float(financial_data.get("revenue"))
-    net_profit = safe_float(financial_data.get("net_profit"))
+    revenue = safe_float(financial_data.get("revenue") or financial_data.get("revenue_ttm") or financial_data.get("totalRevenue"))
+    net_profit = safe_float(financial_data.get("net_profit") or financial_data.get("net_income") or financial_data.get("net_income_ttm"))
     roe = safe_float(financial_data.get("roe"))
     net_margin = safe_float(financial_data.get("net_margin"))
 
@@ -487,6 +537,14 @@ def build_investment_conclusion(
             or "股票代號或市場資料無法驗證"
         )
 
+    coverage_flags = _coverage_flags(
+        market_snapshot,
+        financial_data,
+        risk_assessment,
+        agent_opinions,
+        source_registry,
+    )
+    coverage_state = _coverage_state(coverage_flags)
     insufficiency_issues = _data_sufficiency_issues(
         market_snapshot,
         financial_data,
@@ -494,7 +552,7 @@ def build_investment_conclusion(
         agent_opinions,
         source_registry,
     )
-    if insufficiency_issues:
+    if coverage_state == "INSUFFICIENT":
         return _insufficient_data_result(insufficiency_issues)
 
     val_score, val_summary   = _extract_valuation_score(market_snapshot, financial_data)
@@ -502,26 +560,39 @@ def build_investment_conclusion(
     fin_score, fin_summary   = _extract_financial_score(financial_data)
     news_score, news_summary = _extract_news_score(agent_opinions)
     mkt_score, mkt_summary   = _extract_market_score(market_snapshot)
-    if any(value is None for value in (val_score, risk_inv, raw_risk, fin_score, news_score, mkt_score)):
+    if risk_inv is None or raw_risk is None:
         return _insufficient_data_result([
-            {"factor": "投資結論輸入", "weight": "必要", "score": "N/A", "summary": "部分核心評分因資料不足未能計算"}
+            {"factor": "風險評估", "weight": "必要", "score": "N/A", "summary": "缺少有效風險評估輸入"}
         ])
+    if val_score is None and fin_score is None:
+        return _insufficient_data_result([
+            {"factor": "估值或財務資料", "weight": "必要", "score": "N/A", "summary": "缺少估值及財務輸入"}
+        ])
+    if mkt_score is None:
+        mkt_score = 5.0
+        mkt_summary = "市場價格已取得，52週區間資料有限"
 
     # ── Weighted composite score ──────────────────────────────────────────────
-    composite = (
-        val_score  * 0.25 +
-        risk_inv   * 0.25 +
-        fin_score  * 0.20 +
-        news_score * 0.15 +
-        mkt_score  * 0.15
-    )
+    score_components = [
+        ("估值", val_score, 0.25, val_summary),
+        ("風險", risk_inv, 0.25, risk_summary),
+        ("財務", fin_score, 0.20, fin_summary),
+        ("新聞", news_score, 0.15, news_summary),
+        ("市場", mkt_score, 0.15, mkt_summary),
+    ]
+    usable_components = [(name, score, weight, summary) for name, score, weight, summary in score_components if score is not None]
+    weight_total = sum(weight for _, _, weight, _ in usable_components) or 1.0
+    composite = sum(score * weight for _, score, weight, _ in usable_components) / weight_total
     composite = round(composite, 1)
 
     # ── Derive outputs ────────────────────────────────────────────────────────
     rating          = _score_to_rating(composite)
+    if coverage_state == "PARTIAL" and rating == "買入":
+        rating = "觀察"
     horizon         = _score_to_horizon(composite, raw_risk)
     investor_type   = _score_to_investor_type(composite, raw_risk)
-    confidence_pct  = int(min(95, max(30, composite * 10)))
+    confidence_cap  = 80 if coverage_state == "PARTIAL" else 95
+    confidence_pct  = int(min(confidence_cap, max(30, composite * 10)))
 
     # ── Target price ─────────────────────────────────────────────────────────
     # Cannot reliably estimate without DCF/analyst consensus — say so clearly
@@ -534,13 +605,22 @@ def build_investment_conclusion(
         potential_upside   = "升幅未能可靠估算"
 
     # ── Decision basis ────────────────────────────────────────────────────────
-    decision_basis = [
-        {"factor": "估值",  "weight": "25%", "score": f"{val_score:.1f}/10",  "summary": val_summary},
-        {"factor": "風險",  "weight": "25%", "score": f"{risk_inv:.1f}/10",   "summary": risk_summary},
-        {"factor": "財務",  "weight": "20%", "score": f"{fin_score:.1f}/10",  "summary": fin_summary},
-        {"factor": "新聞",  "weight": "15%", "score": f"{news_score:.1f}/10", "summary": news_summary},
-        {"factor": "市場",  "weight": "15%", "score": f"{mkt_score:.1f}/10",  "summary": mkt_summary},
-    ]
+    decision_basis = []
+    factor_weights = {"估值": "25%", "風險": "25%", "財務": "20%", "新聞": "15%", "市場": "15%"}
+    for name, score, _weight, summary in score_components:
+        decision_basis.append({
+            "factor": name,
+            "weight": factor_weights[name],
+            "score": f"{score:.1f}/10" if score is not None else "N/A",
+            "summary": summary,
+        })
+    if coverage_state == "PARTIAL":
+        decision_basis.append({
+            "factor": "資料覆蓋",
+            "weight": "提示",
+            "score": PARTIAL_DATA_LABEL,
+            "summary": "本次有市場價格、風險評估，以及估值或財務資料；缺失項目已降低信心度，不等同整體資料不足。",
+        })
 
     # ── Final summary ─────────────────────────────────────────────────────────
     rating_desc = {
@@ -555,6 +635,8 @@ def build_investment_conclusion(
         f"{rating_desc.get(rating, '')} "
         f"適合{investor_type}投資者，建議投資週期：{horizon}。"
     )
+    if coverage_state == "PARTIAL":
+        final_summary = f"{PARTIAL_DATA_LABEL}：{final_summary}"
 
     return {
         "rating":             rating,
@@ -563,13 +645,22 @@ def build_investment_conclusion(
         "suitable_investor":  investor_type,
         "target_price":       target_price_note,
         "potential_upside":   potential_upside,
+        "upside":             potential_upside,
+        "recommendation":     rating,
+        "investment_view":    f"{rating}（{PARTIAL_DATA_LABEL}）" if coverage_state == "PARTIAL" else rating,
+        "allocation_suggestion": "以小注觀察或等待資料補齊後再提高倉位" if coverage_state == "PARTIAL" else "按投資者風險承受能力分段配置",
         "confidence":         confidence_pct,
         "decision_basis":     decision_basis,
         "final_summary":      final_summary,
+        "conclusion_summary":  final_summary,
+        "summary":            final_summary,
         # Individual scores for display
-        "valuation_score":    f"{val_score:.1f}/10",
+        "valuation_score":    f"{val_score:.1f}/10" if val_score is not None else None,
         "risk_score":         f"{raw_risk:.1f}/10",
-        "financial_score":    f"{fin_score:.1f}/10",
-        "news_score":         f"{news_score:.1f}/10",
+        "financial_score":    f"{fin_score:.1f}/10" if fin_score is not None else None,
+        "news_score":         f"{news_score:.1f}/10" if news_score is not None else None,
         "market_score":       f"{mkt_score:.1f}/10",
+        "data_sufficient":    True,
+        "data_coverage":      coverage_state,
+        "data_coverage_label": FULL_DATA_LABEL if coverage_state == "FULL" else PARTIAL_DATA_LABEL,
     }

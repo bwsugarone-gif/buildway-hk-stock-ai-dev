@@ -1,0 +1,319 @@
+{
+  "audit_timestamp": "2026-06-04T00:35:35",
+  "raw_input": "1810.HK",
+  "normalized_ticker": "1810.HK",
+  "ticker_normalize_ok": true,
+  "master_data": {
+    "path": "C:\\Users\\user\\Desktop\\股票分析AGENT VER.1\\buildway-hk-stock-ai\\data\\hk_stock_master_data.json",
+    "contains": true,
+    "entry": {
+      "name_zh": "小米集團",
+      "name_en": "Xiaomi Corporation",
+      "sector": "科技 / 消費電子",
+      "sector_zh": "科技 / 消費電子",
+      "sector_en": "Technology / Consumer electronics",
+      "business": "智能手機、IoT與生活消費產品、互聯網服務及智能電動車相關業務",
+      "business_zh": "智能手機、IoT與生活消費產品、互聯網服務及智能電動車相關業務",
+      "business_en": "Smartphones, IoT and lifestyle products, internet services and smart EV-related businesses.",
+      "market_type": "大型科技股",
+      "market_type_zh": "大型科技股",
+      "market_type_en": "Large-cap technology stock",
+      "short_positioning_zh": "消費電子與智能硬件平台。",
+      "logo_url": "https://logo.clearbit.com/mi.com",
+      "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+      "pe_ratio": 10.3,
+      "pb_ratio": 0.76,
+      "dividend_yield": 4.0,
+      "market_cap": 255000000000,
+      "market_cap_bn": 255.0,
+      "roe": 8.8,
+      "net_margin": 13.8,
+      "revenue": 353600000000,
+      "risk_score": 4.6
+    },
+    "has_name_zh": true,
+    "has_name_en": true,
+    "has_sector": true
+  },
+  "sample_data": {
+    "in_SAMPLE_HK_STOCKS": false,
+    "sample_name": null,
+    "sample_market_data_current_price": null,
+    "sample_market_data_market_cap": null,
+    "sample_has_market_data": false,
+    "sample_missing_data_flags": [
+      "sample_market_data_unavailable"
+    ]
+  },
+  "config_flags": {
+    "DEPLOY_ENV": "local",
+    "USE_LIVE_MARKET_DATA": false,
+    "USE_AI_ANALYSIS": false,
+    "active_llm_provider": "deepseek",
+    "note": "USE_LIVE_MARKET_DATA is defined in config but MarketDataAgent.fetch does not read it; yfinance path depends on import availability."
+  },
+  "keys_present": {
+    "DEEPSEEK_API_KEY": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "GEMINI_API_KEY": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "OPENAI_API_KEY": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "CLAUDE_API_KEY": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "ALPHA_VANTAGE_KEY": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "FINNHUB_API_KEY": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "NEWS_API_KEY": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "NEWS_API_PROVIDER": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "USE_LIVE_MARKET_DATA": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "USE_AI_ANALYSIS": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "LLM_PROVIDER": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    }
+  },
+  "market_data_agent_normal_yfinance_access": {
+    "exception": null,
+    "yfinance_available_import": true,
+    "data": {
+      "ticker": "1810.HK",
+      "data_source": "Yahoo Finance (實時數據)",
+      "is_demo": false,
+      "data_confidence": "HIGH",
+      "data_confidence_label": "🟢 高可信度",
+      "invalid_symbol": null,
+      "validation_reason": null,
+      "fallback_reason": null,
+      "company_name": "Xiaomi Corporation",
+      "company_name_zh": "小米集團",
+      "company_name_en": "Xiaomi Corporation",
+      "sector": "Technology",
+      "currency": "HKD",
+      "exchange": "HKG",
+      "current_price": 28.58,
+      "market_cap": 737447247872.0,
+      "volume": 142387827.0,
+      "pe_ratio": 15.790055,
+      "pb_ratio": 2.3913038,
+      "dividend_yield": null,
+      "52w_high": 61.45,
+      "52w_low": 27.5,
+      "revenue_ttm": 445134962688.0,
+      "ebitda": 33688143872.0,
+      "beta": 0.725,
+      "coverage_score": "HIGH",
+      "missing_data_flags": [
+        "dividend_yield unavailable"
+      ],
+      "metadata_source": "hk_stock_master_data"
+    },
+    "company_metadata_embedded": {
+      "name_zh": "小米集團",
+      "name_en": "Xiaomi Corporation",
+      "sector": "科技 / 消費電子",
+      "sector_zh": "科技 / 消費電子",
+      "sector_en": "Technology / Consumer electronics",
+      "business": "智能手機、IoT與生活消費產品、互聯網服務及智能電動車相關業務",
+      "business_zh": "智能手機、IoT與生活消費產品、互聯網服務及智能電動車相關業務",
+      "business_en": "Smartphones, IoT and lifestyle products, internet services and smart EV-related businesses.",
+      "market_type": "大型科技股",
+      "market_type_zh": "大型科技股",
+      "market_type_en": "Large-cap technology stock",
+      "short_positioning_zh": "消費電子與智能硬件平台。",
+      "logo_url": "https://logo.clearbit.com/mi.com",
+      "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+      "pe_ratio": 10.3,
+      "pb_ratio": 0.76,
+      "dividend_yield": 4.0,
+      "market_cap": 255000000000,
+      "market_cap_bn": 255.0,
+      "roe": 8.8,
+      "net_margin": 13.8,
+      "revenue": 353600000000,
+      "risk_score": 4.6
+    },
+    "financial_history_summary": {
+      "is_demo": false,
+      "years": [
+        "2025",
+        "2024",
+        "2023"
+      ],
+      "has_revenue": true,
+      "revenue_first": 457286687000.0
+    },
+    "source_registry": {
+      "market_data": {
+        "enabled": true,
+        "verified": true,
+        "source": "Yahoo Finance / yfinance",
+        "last_updated": "2026-06-04",
+        "verified_fields": [
+          "現價",
+          "市盈率",
+          "市帳率",
+          "市值",
+          "成交量",
+          "Beta"
+        ],
+        "missing_fields": [
+          "股息率",
+          "52週高位",
+          "52週低位"
+        ],
+        "note": ""
+      },
+      "company_metadata": {
+        "enabled": true,
+        "verified": true,
+        "source": "本地公司資料庫 / HK Stock Master Data",
+        "last_updated": "2026-06-04",
+        "verified_fields": [
+          "中文名稱",
+          "英文名稱",
+          "行業板塊"
+        ],
+        "missing_fields": [
+          "業務簡介",
+          "市場類別"
+        ],
+        "note": ""
+      },
+      "financial_statement": {
+        "enabled": true,
+        "verified": true,
+        "source": "Yahoo Finance 財務報表 / yfinance",
+        "last_updated": "2026-06-04",
+        "verified_fields": [
+          "收入"
+        ],
+        "missing_fields": [
+          "淨利潤",
+          "EBITDA",
+          "自由現金流",
+          "毛利率",
+          "淨利率",
+          "ROE",
+          "總資產",
+          "總負債"
+        ],
+        "note": ""
+      },
+      "news": {
+        "enabled": true,
+        "verified": false,
+        "source": "TipRanks / Yahoo Finance News",
+        "last_updated": "2026-06-04",
+        "verified_fields": [],
+        "missing_fields": [
+          "新聞資料"
+        ],
+        "note": "新聞資料未能取得，新聞分析將顯示為不可用。"
+      },
+      "hkex": {
+        "enabled": false,
+        "verified": false,
+        "source": "未接入",
+        "status": "DISABLED",
+        "last_updated": "2026-06-04",
+        "verified_fields": [],
+        "missing_fields": [
+          "全部 HKEX 公告資料"
+        ],
+        "note": "HKEX 公告模組尚未啟用，不計入資料可信度評分。"
+      }
+    },
+    "source_registry_summary": {
+      "coverage_pct": 40.0,
+      "confidence_level": "HIGH",
+      "verified_sources": [
+        "Yahoo Finance",
+        "HKEX",
+        "Company Master Data"
+      ],
+      "market_data_verified": true,
+      "company_metadata_verified": true,
+      "financial_statement_verified": true,
+      "news_verified": false
+    }
+  },
+  "yfinance_direct_normal_access": {
+    "attempted": true,
+    "available": true,
+    "exception": null,
+    "elapsed_sec": 0.412,
+    "info_fields": {
+      "longName": "Xiaomi Corporation",
+      "shortName": "XIAOMI-W",
+      "symbol": "1810.HK",
+      "quoteType": "EQUITY",
+      "currency": "HKD",
+      "exchange": "HKG",
+      "regularMarketPrice": 28.58,
+      "currentPrice": 28.58,
+      "regularMarketPreviousClose": 29.62,
+      "marketCap": 737447247872,
+      "regularMarketVolume": 142387827,
+      "trailingPE": 15.790055,
+      "priceToBook": 2.3913038,
+      "sector": "Technology",
+      "industry": "Consumer Electronics"
+    },
+    "history": {
+      "empty": false,
+      "rows": 5,
+      "columns": [
+        "Open",
+        "High",
+        "Low",
+        "Close",
+        "Volume",
+        "Dividends",
+        "Stock Splits"
+      ]
+    },
+    "info_key_count": 160,
+    "history_elapsed_sec": 0.209
+  },
+  "sandbox_observation_from_initial_probe": {
+    "exception_message": "unable to open database file",
+    "effect": "MarketDataAgent fell through to metadata/sample handling and finalized as INVALID in sandbox because no usable price/market cap was available."
+  }
+}

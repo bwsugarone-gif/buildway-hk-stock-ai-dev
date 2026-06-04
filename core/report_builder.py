@@ -733,9 +733,9 @@ class ReportBuilder:
             return {
                 "title": "Scenario Analysis",
                 "rows": [
-                    ["Bull case", "收入增長及估值倍數改善", "盈利上修", "市場風險偏好回升"],
-                    ["Base case", "業務維持穩定", "估值接近中位", "等待業績確認"],
-                    ["Bear case", "收入或利潤率下滑", "估值收縮", "高槓桿或現金流壓力"],
+                    ["樂觀情景", "收入增長及估值倍數改善", "盈利上修", "市場風險偏好回升"],
+                    ["基準情景", "業務維持穩定", "估值接近中位", "等待業績確認"],
+                    ["保守情景", "收入或利潤率下滑", "估值收縮", "高槓桿或現金流壓力"],
                 ],
                 "triggers": ["盈利預警", "現金流惡化", "政策或融資環境轉差", "成交量急跌並跌穿重要支持位"],
             }
@@ -796,14 +796,19 @@ class ReportBuilder:
         if not monitor_next:
             monitor_next = ["持續監察估值、風險、財務、新聞及市場五項決策因子。"]
         return {
-            "title": "Investment Committee Final Conclusion",
+            "title": "投資委員會最終結論",
             "final_decision": conclusion.get("rating", ""),
             "why": conclusion.get("final_summary", ""),
             "monitor_next": monitor_next,
             "data_limitations": conclusion.get("target_price", ""),
             "data_completeness_note": "",
             "llm_warning": llm_warning,
-            "multi_agent_statement": f"Investment Conclusion Engine composite score: {conclusion.get('composite_score', '')}",
+            "multi_agent_statement": f"投資委員會綜合分：{conclusion.get('composite_score', '')}",
+            "risk_score": conclusion.get("risk_score", "N/A"),
+            "data_coverage": conclusion.get("data_coverage", "N/A"),
+            "data_coverage_label": conclusion.get("data_coverage_label", "N/A"),
+            "action_category": conclusion.get("recommendation") or conclusion.get("rating", ""),
+            "recommendation": conclusion.get("recommendation") or conclusion.get("rating", ""),
         }
 
     def _build_ic_conclusion(
@@ -817,7 +822,7 @@ class ReportBuilder:
         fin = fin or {}
         if risk.get("data_confidence") == INVALID or fin.get("data_confidence") == INVALID:
             return {
-                "title": "Investment Committee Final Conclusion",
+                "title": "投資委員會最終結論",
                 "final_decision": "無法評估",
                 "why": INVALID_MARKET_DATA_MESSAGE,
                 "monitor_next": ["核對股票代號", "確認市場資料供應商是否支援該代號", "重新提交有效香港股票代號"],
@@ -825,10 +830,15 @@ class ReportBuilder:
                 "data_completeness_note": INVALID_PDF_NOTICE,
                 "llm_warning": llm_warning,
                 "multi_agent_statement": "本系統未能取得有效市場資料，因此不生成公司或投資敘事。",
+                "risk_score": "N/A",
+                "data_coverage": "INVALID",
+                "data_coverage_label": "無法驗證",
+                "action_category": "無法評估",
+                "recommendation": "無法評估",
             }
         completeness_note = "資料完整度提示：部分市場或財務資料未能取得，系統已使用保守假設進行分析。" if fin.get("missing_data_flags") else ""
         return {
-            "title": "Investment Committee Final Conclusion",
+            "title": "投資委員會最終結論",
             "final_decision": rating,
             "why": f"最終分類主要基於加權風險分數{_num(risk.get('composite_risk_score'), 5):.1f}/10、估值區間、財務健康度及市場訊號的綜合判斷。",
             "monitor_next": [
@@ -841,11 +851,16 @@ class ReportBuilder:
             "data_completeness_note": completeness_note,
             "llm_warning": llm_warning,
             "multi_agent_statement": f"經 Multi-Agent Team 綜合討論後，本系統將該股票列為：{rating}",
+            "risk_score": f"{_num(risk.get('composite_risk_score'), 5):.1f}/10",
+            "data_coverage": "LEGACY",
+            "data_coverage_label": "標準資料覆蓋",
+            "action_category": rating,
+            "recommendation": rating,
         }
 
     def _build_disclaimer(self) -> Dict[str, str]:
         return {
-            "title": "Disclaimer",
+            "title": "免責聲明",
             "content": (
                 "本報告由 Buildway Tech (HK) Limited 的 AI Multi-Agent Financial Intelligence System 生成，"
                 "僅供教育、研究及客戶試用參考，不構成投資建議、招攬、要約或任何受規管財務意見。"
@@ -918,14 +933,14 @@ class ReportBuilder:
     def _scenario_name(self, raw: str) -> str:
         text = str(raw).lower()
         if "bull" in text or "up" in text:
-            return "Bull case"
+            return "樂觀情景"
         if "bear" in text or "down" in text:
-            return "Bear case"
+            return "保守情景"
         if "base" in text:
-            return "Base case"
+            return "基準情景"
         if not hasattr(self, "_scenario_counter"):
             self._scenario_counter = 0
-        names = ["Bull case", "Base case", "Bear case"]
+        names = ["樂觀情景", "基準情景", "保守情景"]
         name = names[self._scenario_counter % len(names)]
         self._scenario_counter += 1
         return name

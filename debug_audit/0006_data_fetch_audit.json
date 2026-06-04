@@ -1,0 +1,308 @@
+{
+  "audit_timestamp": "2026-06-04T00:35:31",
+  "raw_input": "0006.HK",
+  "normalized_ticker": "0006.HK",
+  "ticker_normalize_ok": true,
+  "master_data": {
+    "path": "C:\\Users\\user\\Desktop\\股票分析AGENT VER.1\\buildway-hk-stock-ai\\data\\hk_stock_master_data.json",
+    "contains": true,
+    "entry": {
+      "name_zh": "電能實業",
+      "name_en": "Power Assets Holdings",
+      "sector": "公用事業",
+      "sector_zh": "公用事業",
+      "sector_en": "Utilities",
+      "business_zh": "香港及海外電力及能源基建投資",
+      "business_en": "Electricity and energy infrastructure investments in HK and overseas.",
+      "market_type": "大型公用股",
+      "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+      "pe_ratio": 9.5,
+      "pb_ratio": 0.72,
+      "dividend_yield": 4.2,
+      "market_cap": 316200000000,
+      "market_cap_bn": 316.2,
+      "roe": 8.5,
+      "net_margin": 13.0,
+      "revenue": 340000000000,
+      "risk_score": 4.8
+    },
+    "has_name_zh": true,
+    "has_name_en": true,
+    "has_sector": true
+  },
+  "sample_data": {
+    "in_SAMPLE_HK_STOCKS": false,
+    "sample_name": null,
+    "sample_market_data_current_price": null,
+    "sample_market_data_market_cap": null,
+    "sample_has_market_data": false,
+    "sample_missing_data_flags": [
+      "sample_market_data_unavailable"
+    ]
+  },
+  "config_flags": {
+    "DEPLOY_ENV": "local",
+    "USE_LIVE_MARKET_DATA": false,
+    "USE_AI_ANALYSIS": false,
+    "active_llm_provider": "deepseek",
+    "note": "USE_LIVE_MARKET_DATA is defined in config but MarketDataAgent.fetch does not read it; yfinance path depends on import availability."
+  },
+  "keys_present": {
+    "DEEPSEEK_API_KEY": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "GEMINI_API_KEY": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "OPENAI_API_KEY": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "CLAUDE_API_KEY": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "ALPHA_VANTAGE_KEY": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "FINNHUB_API_KEY": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "NEWS_API_KEY": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "NEWS_API_PROVIDER": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "USE_LIVE_MARKET_DATA": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "USE_AI_ANALYSIS": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    },
+    "LLM_PROVIDER": {
+      "env_present": false,
+      "streamlit_present": false,
+      "present": false
+    }
+  },
+  "market_data_agent_normal_yfinance_access": {
+    "exception": null,
+    "yfinance_available_import": true,
+    "data": {
+      "ticker": "0006.HK",
+      "data_source": "Yahoo Finance (實時數據)",
+      "is_demo": false,
+      "data_confidence": "HIGH",
+      "data_confidence_label": "🟢 高可信度",
+      "invalid_symbol": null,
+      "validation_reason": null,
+      "fallback_reason": null,
+      "company_name": "Power Assets Holdings Limited",
+      "company_name_zh": "電能實業",
+      "company_name_en": "Power Assets Holdings",
+      "sector": "Utilities",
+      "currency": "HKD",
+      "exchange": "HKG",
+      "current_price": 56.85,
+      "market_cap": 121153323008.0,
+      "volume": 6231400.0,
+      "pe_ratio": 19.402729,
+      "pb_ratio": 1.3353847,
+      "dividend_yield": 0.0487,
+      "52w_high": 67.05,
+      "52w_low": 48.62,
+      "revenue_ttm": 771000000.0,
+      "ebitda": 420000000.0,
+      "beta": 0.632,
+      "coverage_score": "HIGH",
+      "missing_data_flags": [],
+      "metadata_source": "hk_stock_master_data"
+    },
+    "company_metadata_embedded": {
+      "name_zh": "電能實業",
+      "name_en": "Power Assets Holdings",
+      "sector": "公用事業",
+      "sector_zh": "公用事業",
+      "sector_en": "Utilities",
+      "business_zh": "香港及海外電力及能源基建投資",
+      "business_en": "Electricity and energy infrastructure investments in HK and overseas.",
+      "market_type": "大型公用股",
+      "peer_data_source": "Buildway internal sector benchmark dataset v4.1.1",
+      "pe_ratio": 9.5,
+      "pb_ratio": 0.72,
+      "dividend_yield": 4.2,
+      "market_cap": 316200000000,
+      "market_cap_bn": 316.2,
+      "roe": 8.5,
+      "net_margin": 13.0,
+      "revenue": 340000000000,
+      "risk_score": 4.8
+    },
+    "financial_history_summary": {
+      "is_demo": false,
+      "years": [
+        "2025",
+        "2024",
+        "2023"
+      ],
+      "has_revenue": true,
+      "revenue_first": 6913000000.0
+    },
+    "source_registry": {
+      "market_data": {
+        "enabled": true,
+        "verified": true,
+        "source": "Yahoo Finance / yfinance",
+        "last_updated": "2026-06-04",
+        "verified_fields": [
+          "現價",
+          "市盈率",
+          "市帳率",
+          "股息率",
+          "市值",
+          "成交量",
+          "Beta"
+        ],
+        "missing_fields": [
+          "52週高位",
+          "52週低位"
+        ],
+        "note": ""
+      },
+      "company_metadata": {
+        "enabled": true,
+        "verified": true,
+        "source": "本地公司資料庫 / HK Stock Master Data",
+        "last_updated": "2026-06-04",
+        "verified_fields": [
+          "中文名稱",
+          "英文名稱",
+          "行業板塊"
+        ],
+        "missing_fields": [
+          "業務簡介",
+          "市場類別"
+        ],
+        "note": ""
+      },
+      "financial_statement": {
+        "enabled": true,
+        "verified": true,
+        "source": "Yahoo Finance 財務報表 / yfinance",
+        "last_updated": "2026-06-04",
+        "verified_fields": [
+          "收入"
+        ],
+        "missing_fields": [
+          "淨利潤",
+          "EBITDA",
+          "自由現金流",
+          "毛利率",
+          "淨利率",
+          "ROE",
+          "總資產",
+          "總負債"
+        ],
+        "note": ""
+      },
+      "news": {
+        "enabled": true,
+        "verified": false,
+        "source": "TipRanks / Yahoo Finance News",
+        "last_updated": "2026-06-04",
+        "verified_fields": [],
+        "missing_fields": [
+          "新聞資料"
+        ],
+        "note": "新聞資料未能取得，新聞分析將顯示為不可用。"
+      },
+      "hkex": {
+        "enabled": false,
+        "verified": false,
+        "source": "未接入",
+        "status": "DISABLED",
+        "last_updated": "2026-06-04",
+        "verified_fields": [],
+        "missing_fields": [
+          "全部 HKEX 公告資料"
+        ],
+        "note": "HKEX 公告模組尚未啟用，不計入資料可信度評分。"
+      }
+    },
+    "source_registry_summary": {
+      "coverage_pct": 44.0,
+      "confidence_level": "HIGH",
+      "verified_sources": [
+        "Yahoo Finance",
+        "HKEX",
+        "Company Master Data"
+      ],
+      "market_data_verified": true,
+      "company_metadata_verified": true,
+      "financial_statement_verified": true,
+      "news_verified": false
+    }
+  },
+  "yfinance_direct_normal_access": {
+    "attempted": true,
+    "available": true,
+    "exception": null,
+    "elapsed_sec": 0.418,
+    "info_fields": {
+      "longName": "Power Assets Holdings Limited",
+      "shortName": "POWER ASSETS",
+      "symbol": "0006.HK",
+      "quoteType": "EQUITY",
+      "currency": "HKD",
+      "exchange": "HKG",
+      "regularMarketPrice": 56.85,
+      "currentPrice": 56.85,
+      "regularMarketPreviousClose": 57.85,
+      "marketCap": 121153323008,
+      "regularMarketVolume": 6231400,
+      "trailingPE": 19.402729,
+      "priceToBook": 1.3353847,
+      "dividendYield": 4.87,
+      "sector": "Utilities",
+      "industry": "Utilities - Independent Power Producers"
+    },
+    "history": {
+      "empty": false,
+      "rows": 5,
+      "columns": [
+        "Open",
+        "High",
+        "Low",
+        "Close",
+        "Volume",
+        "Dividends",
+        "Stock Splits"
+      ]
+    },
+    "info_key_count": 166,
+    "history_elapsed_sec": 0.248
+  },
+  "sandbox_observation_from_initial_probe": {
+    "exception_message": "unable to open database file",
+    "effect": "MarketDataAgent fell through to metadata/sample handling and finalized as INVALID in sandbox because no usable price/market cap was available."
+  }
+}

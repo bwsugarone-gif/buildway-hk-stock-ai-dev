@@ -3,7 +3,7 @@ core/scenario_engine.py
 
 Scenario Intelligence Layer — v1.1
 
-Generates Bull / Base / Bear case scenarios from Python-calculated inputs.
+Generates optimistic / base / conservative scenarios from Python-calculated inputs.
 All implied prices and assumptions are derived from market snapshot,
 financial ratios, and risk scores. LLM does NOT generate numerical values.
 """
@@ -45,7 +45,7 @@ def build_scenario_analysis(
     news_catalyst: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
-    Build Bull / Base / Bear scenario analysis from Python-calculated inputs.
+    Build scenario analysis from Python-calculated inputs.
 
     Implied prices are derived from:
     - current_price (market_data)
@@ -99,7 +99,7 @@ def build_scenario_analysis(
 
     scenarios = [
         {
-            "name": "Bull Case",
+            "name": "樂觀情景",
             "name_zh": "樂觀情景",
             "description": "收入增長加速，估值倍數改善，市場風險偏好回升。",
             "key_assumption": f"估值修復至模型高位，{bull_catalyst}",
@@ -109,7 +109,7 @@ def build_scenario_analysis(
             "probability_note": "需要業績超預期及市場情緒改善",
         },
         {
-            "name": "Base Case",
+            "name": "基準情景",
             "name_zh": "基準情景",
             "description": "業務維持穩定，估值接近模型中位，等待業績確認。",
             "key_assumption": "估值維持模型中位，業務無重大變化",
@@ -119,8 +119,8 @@ def build_scenario_analysis(
             "probability_note": "最可能情景，需持續監察基本面",
         },
         {
-            "name": "Bear Case",
-            "name_zh": "悲觀情景",
+            "name": "保守情景",
+            "name_zh": "保守情景",
             "description": "收入或利潤率下滑，估值收縮，高槓桿或現金流壓力。",
             "key_assumption": f"估值收縮至模型低位，{bear_catalyst}",
             "implied_price": _fmt_price(bear_price),
@@ -154,7 +154,7 @@ def build_scenario_analysis(
     ]
 
     return {
-        "title": "情景分析 Scenario Analysis",
+        "title": "情景分析",
         "is_valid": True,
         "current_price": _fmt_price(current),
         "risk_score": f"{risk_score:.1f}/10",
@@ -169,7 +169,7 @@ def build_scenario_analysis(
         # PDF-compatible rows format
         "rows": [
             [
-                s["name"],
+                s["name_zh"],
                 s["key_assumption"],
                 f"{s['implied_price']} ({s['implied_upside']})",
                 s["key_catalyst"],
@@ -181,7 +181,7 @@ def build_scenario_analysis(
 
 def _invalid_scenario() -> dict[str, Any]:
     return {
-        "title": "情景分析 Scenario Analysis",
+        "title": "情景分析",
         "is_valid": False,
         "current_price": "N/A",
         "risk_score": "N/A",

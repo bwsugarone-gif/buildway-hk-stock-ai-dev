@@ -22,7 +22,15 @@ from core.config import (
     APP_NAME, APP_VERSION, BUILD_STAGE, BUILD_VERSION, BUILD_COMMIT,
     LOGO_PATH,
 )
+from core.client_polish import (
+    TARGET_PRICE_NOT_PROVIDED,
+    UPSIDE_NOT_PROVIDED,
+    clean_client_text,
+    resolve_logo_path_or_url,
+    sanitize_decision_basis,
+)
 from core.pdf_generator import PDFGenerator
+from core.pdf_freshness import build_fresh_pdf_path, pdf_path_matches_active_report, should_regenerate_pdf
 from core.report_builder import ReportBuilder
 from core.utils import format_currency_hkd, normalize_hk_ticker, validate_hk_ticker
 
@@ -475,12 +483,22 @@ def _set_demo_ticker(ticker: str) -> None:
     st.rerun()
 
 
+def _clear_active_report_state() -> None:
+    for key in ("pdf_path", "pdf_bytes", "report_package", "report_data", "report_sections"):
+        st.session_state[key] = None
+    st.session_state["pdf_warning"] = ""
+    st.session_state["llm_warning"] = ""
+
+
 def _request_analysis(
     ticker: str,
     risk_preference: str = "銝剔?",
     portfolio_size: int = 0,
 ) -> None:
     normalized = normalize_hk_ticker(ticker)
+    current = normalize_hk_ticker(str(st.session_state.get("selected_ticker") or ""))
+    if current and current != normalized:
+        _clear_active_report_state()
     st.session_state["pending_ticker_value"] = normalized.replace(".HK", "")
     st.session_state["selected_ticker"] = normalized.replace(".HK", "")
     st.session_state["rerun_analysis_request"] = {
@@ -557,7 +575,8 @@ def _save_report_history(
 def _open_history_record(record: dict[str, Any]) -> None:
     st.session_state.report_package = record.get("report_package")
     st.session_state.report_sections = record.get("report_sections")
-    st.session_state.pdf_path = record.get("pdf_path")
+    st.session_state.pdf_path = None
+    st.session_state.pdf_bytes = None
     st.session_state.pdf_warning = record.get("pdf_warning", "")
     st.session_state.llm_warning = record.get("llm_warning", "")
     st.session_state.selected_ticker = str(record.get("ticker", "")).replace(".HK", "")
@@ -881,7 +900,7 @@ def _company_profile_panel(cover: dict[str, Any]) -> None:
 def _logo_url_for_cover(cover: dict[str, Any]) -> str:
     ticker = normalize_hk_ticker(str(cover.get("ticker", ""))) if cover.get("ticker") else ""
     metadata = _load_hk_master_data().get(ticker, {})
-    return str(cover.get("logo_url") or metadata.get("logo_url") or "").strip()
+    return resolve_logo_path_or_url({"cover": cover, "company_metadata": metadata}, ticker)
 
 
 def _render_company_logo(cover: dict[str, Any], width: int = 76) -> None:
@@ -889,10 +908,11 @@ def _render_company_logo(cover: dict[str, Any], width: int = 76) -> None:
     try:
         if logo_url:
             st.image(logo_url, width=width)
-        elif os.path.exists(LOGO_PATH):
-            st.image(str(LOGO_PATH), width=width)
     except Exception as exc:
         print(f"[APP] Company logo unavailable: {exc}")
+        fallback = resolve_logo_path_or_url({}, "")
+        if fallback:
+            st.image(fallback, width=width)
 
 
 def _render_report_summary_card(cover: dict[str, Any]) -> None:
@@ -1404,6 +1424,9 @@ if analysis_requested:
         st.session_state.is_generating = True
         st.session_state.pdf_warning = ""
         ticker = normalize_hk_ticker(request_ticker_input)
+        active_ticker = normalize_hk_ticker(str(st.session_state.get("selected_ticker") or ""))
+        if active_ticker and active_ticker != ticker:
+            _clear_active_report_state()
         st.session_state.selected_ticker = ticker.replace(".HK", "")
         print(f"[APP] User input stock_code = {ticker}")
         progress = st.progress(0)
@@ -1462,9 +1485,7 @@ if analysis_requested:
 
             status_text.text("正在生成PDF報告...")
             os.makedirs("reports", exist_ok=True)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            pdf_filename = f"Buildway_HK_Investment_Report_{ticker.replace('.', '_')}_{timestamp}.pdf"
-            pdf_path = os.path.join("reports", pdf_filename)
+            pdf_path = build_fresh_pdf_path(ticker, APP_VERSION)
 
             try:
                 pdf_gen = PDFGenerator(logo_path=str(LOGO_PATH) if os.path.exists(LOGO_PATH) else None)
@@ -1601,6 +1622,17 @@ if st.session_state.report_sections:
         st.rerun()
 
     # Download button (green)
+    if should_regenerate_pdf(st.session_state.get("pdf_path"), str(current_ticker), APP_VERSION):
+        try:
+            os.makedirs("reports", exist_ok=True)
+            fresh_pdf_path = build_fresh_pdf_path(str(current_ticker), APP_VERSION)
+            PDFGenerator(logo_path=str(LOGO_PATH) if os.path.exists(LOGO_PATH) else None).generate(sections, fresh_pdf_path)
+            st.session_state.pdf_path = fresh_pdf_path
+            st.session_state.pdf_warning = ""
+        except Exception as pdf_exc:
+            print(f"[APP] Fresh PDF regeneration failed: {pdf_exc}")
+            st.session_state.pdf_path = None
+            st.session_state.pdf_warning = "PDF regeneration failed for the active report."
     if st.session_state.pdf_path and os.path.exists(st.session_state.pdf_path):
         with open(st.session_state.pdf_path, "rb") as pdf_file:
             action_cols[2].download_button(
@@ -1676,7 +1708,12 @@ if st.session_state.report_sections:
                  "verified": confidence_level == "HIGH"},
             ],
         }
-    render_source_transparency({"source_transparency": _st_data, "cover": cover})
+    render_source_transparency({
+        "source_transparency": _st_data,
+        "source_registry": report_package.get("source_registry", {}),
+        "market_data": report_package.get("market_data", {}),
+        "cover": cover,
+    })
 
     # ── 3. 資料可信度評分 ─────────────────────────────────────────────────────
     render_confidence_breakdown({
@@ -1696,16 +1733,11 @@ if st.session_state.report_sections:
     # ── 4. 市場分析 ───────────────────────────────────────────────────────────
     if confidence_level in {"HIGH", "MEDIUM"}:
         _section_title("市場分析", "市場分析", "")
+        # v4.2.0: single canonical render — _render_market_snapshot_section uses
+        # report_builder sections which already includes market_data from yfinance.
+        # render_market_snapshot (fos_components) is the same widget called inside
+        # _render_market_snapshot_section, so we do NOT call it again here.
         _render_market_snapshot_section(sections.get("market_snapshot", {}))
-        mkt = report_package.get("market_data", {}) or {}
-        render_market_snapshot({
-            "market_data": {
-                "current_price": mkt.get("current_price"),
-                "week_52_high": mkt.get("week_52_high"),
-                "week_52_low": mkt.get("week_52_low"),
-                "volume": mkt.get("volume"),
-            }
-        })
 
     # ── 5. 財務分析 ───────────────────────────────────────────────────────────
     if confidence_level in {"HIGH", "MEDIUM"}:
@@ -1727,19 +1759,15 @@ if st.session_state.report_sections:
             }
         })
 
-    # ── 6. 風險分析 ───────────────────────────────────────────────────────────
+    # ── 6. 風險儀表板 (v4.2.0: removed risk event cards) ───────────────────────
     if confidence_level != "INVALID":
-        _section_title("風險分析", "風險分析", "")
-        risk_sec = sections.get("risk_analysis", {}) or {}
-        risk_v2_sec = (report_package or {}).get("risk_assessment_v2", {}) or {}
-        render_risk_event_cards({
-            "risk_assessment_v2": risk_v2_sec,
-            "risk_analysis": risk_sec,
-        })
-        # Risk Dashboard v3.5
-        _rv2 = report_package.get("risk_assessment_v2", {}) or {}
+        _section_title("風險儀表板", "風險儀表板", "")
+        # v4.2.0: Only use Risk Dashboard, removed render_risk_event_cards
+        _rv2 = (report_package or {}).get("risk_assessment_v2", {}) or {}
         if _rv2:
             render_risk_dashboard({"risk_assessment_v2": _rv2})
+        else:
+            st.info("風險儀表板資料待分析")
 
     # ── 7. 新聞與事件催化 ─────────────────────────────────────────────────────
     if confidence_level in {"HIGH", "MEDIUM"}:
@@ -1826,7 +1854,7 @@ if st.session_state.report_sections:
     # ── 9. 最終投資結論 ───────────────────────────────────────────────────────
     _section_title("最終投資結論", "最終投資結論", "")
     rating_raw = cover.get("final_rating", "觀察")
-    rating_map = {"買入": "買入", "增持": "買入", "中性": "中性", "減持": "減持", "賣出": "避免", "避免": "避免"}
+    rating_map = {"買入": "買入", "增持": "買入", "中性": "中性", "減持": "減持", "賣出": "避免", "避免": "避免", "資料不足": "資料不足"}
     mapped_rating = rating_map.get(rating_raw, "觀察")
 
     # v4.1 wiring fix: use investment_conclusion engine output when available
@@ -1835,16 +1863,16 @@ if st.session_state.report_sections:
     _ic_horizon = _ic_engine.get("investment_horizon") or _ic_engine.get("horizon") or report_package.get("investment_horizon", "中線")
     _ic_investor = _ic_engine.get("suitable_investor") or _ic_engine.get("investor_type") or (request_risk_preference if request_risk_preference in ("保守", "平衡", "進取") else "平衡")
     _ic_summary = _ic_engine.get("final_summary") or _ic_engine.get("summary") or cover.get("executive_summary", cover.get("summary", "綜合分析後，請參閱完整報告。"))
-    _ic_target = _ic_engine.get("target_price") or "目標價未能可靠估算"
-    _ic_upside = _ic_engine.get("potential_upside") or "升幅未能可靠估算"
-    _ic_decision_basis = _ic_engine.get("decision_basis") or []
+    _ic_target = _ic_engine.get("target_price") or TARGET_PRICE_NOT_PROVIDED
+    _ic_upside = _ic_engine.get("potential_upside") or UPSIDE_NOT_PROVIDED
+    _ic_decision_basis = sanitize_decision_basis(_ic_engine.get("decision_basis") or [])
 
     render_investment_conclusion({
         "investment_conclusion": {
             "rating": _ic_rating,
             "horizon": _ic_horizon,
             "investor_type": _ic_investor,
-            "summary": _ic_summary,
+            "summary": clean_client_text(_ic_summary, _ic_summary),
             "target_price": _ic_target,
             "upside": _ic_upside,
             "decision_basis": _ic_decision_basis,
@@ -1852,7 +1880,7 @@ if st.session_state.report_sections:
     })
 
     # ── 10. 情景分析 + 組合倉位（保留）──────────────────────────────────────
-    if confidence_level in {"HIGH", "MEDIUM"}:
+    if confidence_level in {"HIGH", "MEDIUM"} and _ic_rating != "資料不足":
         _render_scenario_section(sections.get("scenario_analysis", {}))
         _render_allocation_section(
             request_portfolio_size,

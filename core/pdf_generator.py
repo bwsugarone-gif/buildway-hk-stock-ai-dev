@@ -14,6 +14,7 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
+from reportlab.graphics.shapes import Drawing, Rect
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
@@ -27,18 +28,60 @@ from reportlab.platypus import (
     TableStyle,
 )
 
+from core.client_polish import resolve_logo_path_or_url, sanitize_report_payload
 
-NAVY = colors.HexColor("#102A43")
+
+NAVY = colors.HexColor("#0B1F33")
 NAVY_2 = colors.HexColor("#173A5E")
 LIGHT_GREY = colors.HexColor("#F3F6F8")
 MID_GREY = colors.HexColor("#D9E2EC")
-TEXT = colors.HexColor("#1F2933")
-MUTED = colors.HexColor("#52616B")
+TEXT = colors.HexColor("#111827")
+MUTED = colors.HexColor("#374151")
 GREEN = colors.HexColor("#1B7F5A")
-AMBER = colors.HexColor("#B7791F")
-RED = colors.HexColor("#B42318")
+AMBER = colors.HexColor("#92400E")
+RED = colors.HexColor("#991B1B")
+FOOTER_FONT_SIZE = 8.5
+
+RISK_BAR_BG = colors.HexColor("#E5E7EB")
+RISK_BAR_LOW = colors.HexColor("#14B8A6")
+RISK_BAR_MEDIUM = colors.HexColor("#F59E0B")
+RISK_BAR_HIGH = colors.HexColor("#EF4444")
+RISK_BAR_EXTREME = colors.HexColor("#DC2626")
+
+RISK_HEAT_PALETTE = {
+    "LOW": (colors.HexColor("#CCFBF1"), colors.HexColor("#134E4A")),
+    "MEDIUM": (colors.HexColor("#FEF3C7"), colors.HexColor("#92400E")),
+    "HIGH": (colors.HexColor("#FEE2E2"), colors.HexColor("#991B1B")),
+    "EXTREME": (colors.HexColor("#FECACA"), colors.HexColor("#7F1D1D")),
+}
 
 PDF_SYMBOL_STRIP = ("🟢", "🟡", "🔴", "✅", "❌", "⚠️", "⚠")
+
+
+PDF_OLD_WORDING_REPLACEMENTS = {
+    "Bull Case": "樂觀情景",
+    "Base Case": "基準情景",
+    "Bear Case": "保守情景",
+    "Investment Conclusion Engine composite score": "投資委員會綜合分",
+    "Disclaimer heading": "免責聲明",
+    "Disclaimer": "免責聲明",
+}
+
+
+def sanitize_pdf_payload(value: Any) -> Any:
+    value = sanitize_report_payload(value)
+    if isinstance(value, dict):
+        return {key: sanitize_pdf_payload(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [sanitize_pdf_payload(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(sanitize_pdf_payload(item) for item in value)
+    if isinstance(value, str):
+        text = value
+        for old, new in PDF_OLD_WORDING_REPLACEMENTS.items():
+            text = text.replace(old, new)
+        return text
+    return value
 
 
 def _pdf_text(value: Any) -> str:
@@ -79,6 +122,14 @@ def _pdf_has_valid_value(value: Any) -> bool:
     if text in {"", "N/A", "0", "0.0", "0.00", "資料待補充", "資料未完整取得", "暫無資料", "暫未接入即時新聞資料"}:
         return False
     return not any(token in text for token in ("HK$0.00", "0.0%", "0.00x", "0.0x"))
+
+
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    try:
+        text = str(value).replace("/10", "").replace("%", "").strip()
+        return float(text)
+    except (TypeError, ValueError):
+        return default
 
 
 def _pdf_valid_rows(rows: Sequence[Any]) -> List[Any]:
@@ -290,7 +341,8 @@ class PDFGenerator:
     """Render a nine-page institutional investment report."""
 
     def __init__(self, logo_path: str | None = None, build_version: str = ""):
-        self.logo_path = str(logo_path) if logo_path else None
+        resolved_logo = str(logo_path) if logo_path and os.path.exists(str(logo_path)) else resolve_logo_path_or_url({}, "")
+        self.logo_path = resolved_logo or None
         self.font_name, self.bold_font_name = FontManager.setup()
         self.styles = self._styles()
         # Build version shown in PDF footer for cross-platform consistency checks
@@ -301,6 +353,7 @@ class PDFGenerator:
             self.build_version = build_version or ""
 
     def generate(self, report_sections: Dict[str, Any], output_path: str) -> str:
+        report_sections = sanitize_pdf_payload(report_sections or {})
         cover = report_sections.get("cover", {})
         print(f"[PDF] stock_code = {cover.get('ticker', 'N/A')} | font = {self.font_name}")
         doc = SimpleDocTemplate(
@@ -375,8 +428,8 @@ class PDFGenerator:
             name="SectionTitle",
             parent=styles["Heading1"],
             fontName=self.bold_font_name,
-            fontSize=15,
-            leading=20,
+            fontSize=16,
+            leading=21,
             textColor=colors.white,
             backColor=NAVY,
             borderPadding=(7, 8, 7),
@@ -396,8 +449,8 @@ class PDFGenerator:
             name="BodyTC",
             parent=styles["BodyText"],
             fontName=self.font_name,
-            fontSize=9.5,
-            leading=14,
+            fontSize=10.5,
+            leading=15,
             textColor=TEXT,
             spaceAfter=6,
         ))
@@ -405,8 +458,8 @@ class PDFGenerator:
             name="SmallTC",
             parent=styles["BodyText"],
             fontName=self.font_name,
-            fontSize=8,
-            leading=11,
+            fontSize=9,
+            leading=12.5,
             textColor=MUTED,
             spaceAfter=4,
         ))
@@ -414,16 +467,16 @@ class PDFGenerator:
             name="TableTC",
             parent=styles["BodyText"],
             fontName=self.font_name,
-            fontSize=8,
-            leading=10.5,
+            fontSize=9,
+            leading=12,
             textColor=TEXT,
         ))
         styles.add(ParagraphStyle(
             name="TableHeaderTC",
             parent=styles["BodyText"],
             fontName=self.bold_font_name,
-            fontSize=8.2,
-            leading=10.5,
+            fontSize=9.5,
+            leading=12,
             textColor=colors.white,
             alignment=TA_CENTER,
         ))
@@ -440,11 +493,11 @@ class PDFGenerator:
             name="Notice",
             parent=styles["BodyText"],
             fontName=self.bold_font_name,
-            fontSize=9,
-            leading=13,
+            fontSize=10,
+            leading=14,
             textColor=TEXT,
             backColor=colors.HexColor("#FFF8E6"),
-            borderColor=colors.HexColor("#E8C36A"),
+            borderColor=colors.HexColor("#B45309"),
             borderWidth=0.8,
             borderPadding=(7, 8, 7),
             spaceBefore=6,
@@ -468,7 +521,7 @@ class PDFGenerator:
         canvas.line(1.55 * cm, 1.25 * cm, A4[0] - 1.55 * cm, 1.25 * cm)
 
         # Footer text
-        canvas.setFont(self.font_name, 7.5)
+        canvas.setFont(self.font_name, FOOTER_FONT_SIZE)
         canvas.setFillColor(MUTED)
         canvas.drawString(1.55 * cm, 0.85 * cm, "Buildway Tech (HK) Limited | 香港股票智能分析系統")
         canvas.drawString(1.55 * cm, 0.55 * cm, "本報告只作教育、研究及客戶試用用途，不構成投資建議。")
@@ -691,6 +744,9 @@ class PDFGenerator:
     def _risk(self, section: Dict[str, Any]) -> List[Any]:
         elements = [self._title("風險分析")]
         elements.append(Paragraph(f"加權風險評分：<b>{section.get('composite_score')}</b> - {section.get('risk_label')}", self.styles["BodyTC"]))
+        dashboard = self._risk_dashboard(section)
+        if dashboard:
+            elements.extend([Spacer(1, 0.25 * cm), dashboard, Spacer(1, 0.35 * cm)])
         # Deduplicate risk_table rows by dimension before rendering
         seen_dims = set()
         deduped_rows = []
@@ -769,10 +825,29 @@ class PDFGenerator:
 
     def _conclusion(self, section: Dict[str, Any], disclaimer: Dict[str, Any]) -> List[Any]:
         elements = [self._title("投資委員會最終結論")]
-        elements.append(Paragraph(f"最終委員會結論：<b>{section.get('final_decision', 'N/A')}</b>", self.styles["BodyTC"]))
+        elements.append(self._conclusion_card(section))
+        key_rows = [
+            ["投資評級", section.get("final_decision", "未評級")],
+            ["投資週期", section.get("investment_horizon", "未提供")],
+            ["適合投資者", section.get("suitable_investor", "未提供")],
+            ["目標價", section.get("target_price", "目標價：未提供")],
+            ["潛在升幅", section.get("potential_upside", "潛在升幅：未提供")],
+            ["資料覆蓋", section.get("data_coverage_label", section.get("data_coverage", "未提供"))],
+            ["風險分數", section.get("risk_score", "未提供")],
+        ]
+        elements.extend([Spacer(1, 0.25 * cm), self._table(key_rows, [4.2 * cm, 11.2 * cm])])
         elements.append(Paragraph(section.get("multi_agent_statement", ""), self.styles["BodyTC"]))
         elements.extend([Spacer(1, 0.2 * cm), Paragraph("評級原因", self.styles["SubTitle"]), Paragraph(section.get("why", ""), self.styles["BodyTC"])])
         elements.append(Paragraph("後續監察事項", self.styles["SubTitle"]))
+        basis = section.get("decision_basis", []) or []
+        if basis:
+            elements.append(Paragraph("主要依據", self.styles["SubTitle"]))
+            rows = [["因子", "權重", "分數", "說明"]]
+            for item in basis[:6]:
+                if isinstance(item, dict):
+                    rows.append([item.get("factor", ""), item.get("weight", ""), item.get("score", ""), item.get("summary", "")])
+            if len(rows) > 1:
+                elements.append(self._table(rows, [3.1 * cm, 2.4 * cm, 2.4 * cm, 7.5 * cm], header=True))
         for item in section.get("monitor_next", []):
             elements.append(Paragraph(f"- {item}", self.styles["BodyTC"]))
         elements.extend([
@@ -790,6 +865,134 @@ class PDFGenerator:
             Paragraph(disclaimer.get("content", ""), self.styles["SmallTC"]),
         ])
         return elements
+
+    def _risk_color(self, level: Any = "", score: Any = None):
+        text = str(level or "")
+        raw_score = _safe_float(score)
+        if "極高" in text or raw_score >= 8.5:
+            return RISK_BAR_EXTREME
+        if "高" in text or raw_score >= 6.5:
+            return RISK_BAR_HIGH
+        if "中" in text or raw_score >= 3.5:
+            return RISK_BAR_MEDIUM
+        return RISK_BAR_LOW
+
+    def _risk_bucket(self, level: Any = "", score: Any = None) -> str:
+        text = str(level or "").lower()
+        raw_score = _safe_float(score)
+        if "extreme" in text or "very high" in text or "極高" in text or raw_score >= 8.5:
+            return "EXTREME"
+        if "high" in text or "高" in text or raw_score >= 6.5:
+            return "HIGH"
+        if "medium" in text or "中" in text or raw_score >= 3.5:
+            return "MEDIUM"
+        return "LOW"
+
+    def _risk_heat_colors(self, level: Any = "", score: Any = None):
+        return RISK_HEAT_PALETTE[self._risk_bucket(level, score)]
+
+    def _risk_bar(self, score: Any, width: float = 4.3 * cm, height: float = 0.28 * cm) -> Drawing:
+        raw = max(0.0, min(10.0, _safe_float(score)))
+        drawing = Drawing(width, height)
+        drawing.add(Rect(0, 0, width, height, fillColor=RISK_BAR_BG, strokeColor=None))
+        drawing.add(Rect(0, 0, width * raw / 10.0, height, fillColor=self._risk_color(score=raw), strokeColor=None))
+        return drawing
+
+    def _risk_dashboard(self, section: Dict[str, Any]) -> Table | None:
+        items = section.get("risk_items") or section.get("risk_table") or []
+        if not items:
+            return None
+        rows = [[
+            self._p("風險類別", True),
+            self._p("分數", True),
+            self._p("權重", True),
+            self._p("等級", True),
+            self._p("視覺條", True),
+        ]]
+        for item in items[:7]:
+            name = item.get("risk_name") or item.get("dimension") or "風險項目"
+            score_raw = item.get("score_raw")
+            score_text = item.get("score", "")
+            if score_raw is None:
+                score_raw = _safe_float(score_text)
+            level = item.get("level", "")
+            weight = item.get("weight", "")
+            rows.append([
+                self._p(name),
+                self._p(score_text or f"{_safe_float(score_raw):.1f}/10"),
+                self._p(weight),
+                self._p(level),
+                self._risk_bar(score_raw),
+            ])
+        table = Table(rows, colWidths=[4.4 * cm, 2.0 * cm, 1.8 * cm, 2.6 * cm, 4.6 * cm], repeatRows=1)
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), NAVY),
+            ("GRID", (0, 0), (-1, -1), 0.35, MID_GREY),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT_GREY]),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ("TOPPADDING", (0, 0), (-1, -1), 7),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+        ]))
+        return table
+
+    def _rating_color(self, rating: Any):
+        text = str(rating or "")
+        if text in {"買入", "增持", "觀察"}:
+            return GREEN
+        if text in {"減持", "避免", "賣出"}:
+            return RED
+        if text in {"資料不足", "無法評估"}:
+            return MUTED
+        return AMBER
+
+    def _conclusion_card(self, section: Dict[str, Any]) -> Table:
+        rating = _pdf_text(section.get("final_decision", "N/A"))
+        risk_score = _pdf_text(section.get("risk_score", "N/A"))
+        coverage = _pdf_text(section.get("data_coverage_label", section.get("data_coverage", "N/A")))
+        action = _pdf_text(section.get("action_category", section.get("recommendation", rating)))
+        rating_style = ParagraphStyle(
+            "ConclusionRating",
+            parent=self.styles["Metric"],
+            fontName=self.bold_font_name,
+            fontSize=18,
+            leading=22,
+            textColor=colors.white,
+            alignment=TA_CENTER,
+        )
+        label_style = ParagraphStyle(
+            "ConclusionLabel",
+            parent=self.styles["TableTC"],
+            fontName=self.bold_font_name,
+            textColor=NAVY,
+            alignment=TA_CENTER,
+        )
+        value_style = ParagraphStyle(
+            "ConclusionValue",
+            parent=self.styles["Metric"],
+            fontName=self.bold_font_name,
+            fontSize=12.5,
+            leading=16,
+            textColor=TEXT,
+            alignment=TA_CENTER,
+        )
+        data = [
+            [Paragraph(f"最終評級<br/><font size='18'>{rating}</font>", rating_style)],
+            [Paragraph("風險分數", label_style), Paragraph("資料覆蓋", label_style), Paragraph("行動分類", label_style)],
+            [Paragraph(risk_score, value_style), Paragraph(coverage, value_style), Paragraph(action, value_style)],
+        ]
+        table = Table(data, colWidths=[5.1 * cm, 5.1 * cm, 5.1 * cm])
+        table.setStyle(TableStyle([
+            ("SPAN", (0, 0), (-1, 0)),
+            ("BACKGROUND", (0, 0), (-1, 0), self._rating_color(rating)),
+            ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#F8FAFC")),
+            ("GRID", (0, 0), (-1, -1), 0.45, MID_GREY),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("TOPPADDING", (0, 0), (-1, -1), 8),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+        ]))
+        return table
 
     def _title(self, text: str) -> Paragraph:
         return Paragraph(_pdf_text(text), self.styles["SectionTitle"])
@@ -833,17 +1036,43 @@ class PDFGenerator:
         return table
 
     def _risk_table(self, rows: Sequence[Sequence[Any]]) -> Table:
-        table = self._table(rows, [4.6 * cm, 2.0 * cm, 3.0 * cm, 2.0 * cm, 3.8 * cm], header=True)
+        heat_style_cache = {}
+        data = []
+        for row_index, row in enumerate(rows):
+            rendered = []
+            for col_index, cell in enumerate(row):
+                if row_index > 0 and col_index == 4:
+                    _heat_bg, heat_text = self._risk_heat_colors(cell)
+                    style_key = str(heat_text)
+                    if style_key not in heat_style_cache:
+                        heat_style_cache[style_key] = ParagraphStyle(
+                            f"RiskHeat{len(heat_style_cache)}",
+                            parent=self.styles["TableTC"],
+                            fontName=self.bold_font_name,
+                            fontSize=9,
+                            leading=12,
+                            textColor=heat_text,
+                            alignment=TA_CENTER,
+                        )
+                    rendered.append(Paragraph(_pdf_text(cell), heat_style_cache[style_key]))
+                else:
+                    rendered.append(self._p(cell, row_index == 0))
+            data.append(rendered)
+
+        table = Table(data, colWidths=[4.6 * cm, 2.0 * cm, 3.0 * cm, 2.0 * cm, 3.8 * cm], repeatRows=1)
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), NAVY),
+            ("GRID", (0, 0), (-1, -1), 0.35, MID_GREY),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT_GREY]),
+            ("LEFTPADDING", (0, 0), (-1, -1), 7),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+            ("TOPPADDING", (0, 0), (-1, -1), 7),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+        ]))
         for row_index, row in enumerate(rows[1:], start=1):
-            heat = str(row[-1])
-            if heat in {"高", "極高"}:
-                color = RED
-            elif heat == "中":
-                color = AMBER
-            else:
-                color = GREEN
+            heat_bg, _heat_text = self._risk_heat_colors(row[-1])
             table.setStyle(TableStyle([
-                ("BACKGROUND", (4, row_index), (4, row_index), color),
-                ("TEXTCOLOR", (4, row_index), (4, row_index), colors.white),
+                ("BACKGROUND", (4, row_index), (4, row_index), heat_bg),
             ]))
         return table

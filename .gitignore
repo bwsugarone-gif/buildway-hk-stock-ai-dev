@@ -4,6 +4,8 @@
 
 # Python
 __pycache__/
+**/__pycache__/
+*.pyc
 *.py[cod]
 *.pyo
 *.pyd
@@ -17,6 +19,7 @@ build/
 venv/
 env/
 .venv/
+.python311/
 
 # Reports output (generated PDFs)
 reports/*.pdf

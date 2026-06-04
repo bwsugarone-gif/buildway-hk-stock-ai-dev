@@ -6,6 +6,15 @@ v3.5.0: Peer Comparison, Source Transparency, Bull vs Bear Debate, Risk Dashboar
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
 import streamlit as st
+from core.client_polish import (
+    INSUFFICIENT_RATING_TEXT,
+    INVALID_TICKER_MESSAGE,
+    NEUTRAL_CLIENT_SUMMARY,
+    TARGET_PRICE_NOT_PROVIDED,
+    UPSIDE_NOT_PROVIDED,
+    clean_client_text,
+    sanitize_decision_basis,
+)
 
 
 # ─── helpers ──────────────────────────────────────────────────────────────────
@@ -119,8 +128,8 @@ def render_competitive_landscape(report_data: Dict[str, Any]) -> None:
 
         def _lines(value: Any) -> str:
             if isinstance(value, list):
-                return "<br>".join(f"? {item}" for item in value if item)
-            return str(value)
+                return "<br>".join(f"• {item}" for item in value if item)
+            return str(value) if value else "資料未收錄"
 
         for label, val in [
             ("📦 產品線", products),
@@ -134,17 +143,57 @@ def render_competitive_landscape(report_data: Dict[str, Any]) -> None:
     with col2:
         st.markdown("#### 競爭對手摘要")
         peers = cl.get("peers", []) or peer.get("peers", []) or comp.get("competitors", []) or []
+
+        # RC-1 v4.2.1: Build readable peer summaries from profile data
+        def _build_peer_summary(p: dict) -> str:
+            """Build a readable summary from peer profile data."""
+            # Priority 1: explicit summary/description field
+            raw = p.get("summary") or p.get("description") or ""
+            # Filter out blank / placeholder values
+            _bad = {"—", "-", "N/A", "", "待補充", "暫無競爭摘要資料"}
+            if raw and raw not in _bad:
+                return raw
+
+            # Priority 2: build from product_lines (up to 3 bullets)
+            products = p.get("product_lines") or []
+            if isinstance(products, list) and products:
+                # Remove generic English filler lines
+                clean = [
+                    item for item in products
+                    if item
+                    and "core services" not in str(item).lower()
+                    and "enterprise and retail" not in str(item).lower()
+                ]
+                if clean:
+                    return "・".join(clean[:3])
+
+            # Priority 3: sector + positioning
+            sector = p.get("sector") or ""
+            positioning = p.get("market_positioning") or ""
+            if positioning and "is covered as" not in positioning and len(positioning) < 80:
+                return positioning
+            if sector:
+                return sector
+
+            return "暫無競爭摘要資料"
+
         if peers:
             for p in peers[:4]:
                 if isinstance(p, dict):
-                    pname = p.get("name", p.get("ticker", "—"))
-                    pdesc = p.get("summary", p.get("description", "—"))
-                    st.markdown(f"**{pname}**  \n{pdesc}")
+                    pname = p.get("name") or p.get("company_name") or p.get("ticker", "—")
+                    pdesc = _build_peer_summary(p)
+                    st.markdown(
+                        f'<div style="margin-bottom:12px;">'
+                        f'<strong>{pname}</strong><br>'
+                        f'<span style="color:#5f6368;font-size:0.88rem;">{pdesc}</span>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
                     st.markdown("---")
                 else:
                     st.markdown(f"- {p}")
         else:
-            st.info("競爭對手資料待補充")
+            st.info("暫無競爭摘要資料")
 
 
 # ─── 3. Confidence Score Breakdown ────────────────────────────────────────────
@@ -544,7 +593,23 @@ def render_investment_conclusion(report_data: Dict[str, Any]) -> None:
     summary  = conc.get("summary", conc.get("conclusion_summary", ic.get("committee_summary", "")))
     target   = conc.get("target_price", conc.get("price_target", "—"))
     upside   = conc.get("upside", conc.get("upside_pct", "—"))
-    decision_basis = conc.get("decision_basis", []) or []
+    rating = clean_client_text(rating, "未評級")
+    horizon = clean_client_text(horizon, "未提供")
+    profile = clean_client_text(profile, "未提供")
+    summary = clean_client_text(summary)
+    target = clean_client_text(target, TARGET_PRICE_NOT_PROVIDED)
+    upside = clean_client_text(upside, UPSIDE_NOT_PROVIDED)
+    decision_basis = sanitize_decision_basis(conc.get("decision_basis", []) or [])
+    insufficient = str(rating).strip() == "資料不足"
+    if insufficient:
+        rating = "資料不足"
+        horizon = "暫不評級"
+        profile = "暫不適用"
+        summary = summary or "公司資料已驗證，但核心市場、財務或新聞資料不足。"
+        target = TARGET_PRICE_NOT_PROVIDED
+        upside = UPSIDE_NOT_PROVIDED
+    elif str(rating).strip() == "中性":
+        summary = summary or NEUTRAL_CLIENT_SUMMARY
 
     RATING_COLORS = {
         "買入": "#1e8e3e", "BUY": "#1e8e3e",
@@ -552,8 +617,34 @@ def render_investment_conclusion(report_data: Dict[str, Any]) -> None:
         "中性": "#5f6368", "NEUTRAL": "#5f6368", "HOLD": "#5f6368",
         "減持": "#f57c00", "REDUCE": "#f57c00",
         "避免": "#d93025", "AVOID": "#d93025", "SELL": "#d93025",
+        "資料不足": "#5f6368",
     }
     r_color = RATING_COLORS.get(str(rating).upper(), RATING_COLORS.get(str(rating), "#1a73e8"))
+
+    if insufficient:
+        st.markdown("## 🎯 最終投資結論")
+        st.warning("資料不足，暫不評級。公司資料已驗證，但核心市場、財務或新聞資料不足。")
+        st.markdown(
+            f'<div style="border:2px solid {r_color};border-radius:12px;padding:24px;'
+            f'background:#f8fafc;">'
+            f'<div style="font-size:2rem;font-weight:800;color:{r_color};">{rating}</div>'
+            f'<p style="color:#1f2933;">{summary}</p>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        if decision_basis:
+            st.markdown("#### 決策依據")
+            basis_rows = []
+            for item in decision_basis:
+                if isinstance(item, dict):
+                    basis_rows.append({
+                        "資料項目": item.get("factor", ""),
+                        "狀態": item.get("score", "N/A"),
+                        "說明": item.get("summary", ""),
+                    })
+            if basis_rows:
+                st.dataframe(basis_rows, use_container_width=True, hide_index=True)
+        return
 
     st.markdown("## 🎯 最終投資結論")
     st.markdown(
@@ -576,16 +667,16 @@ def render_investment_conclusion(report_data: Dict[str, Any]) -> None:
     )
 
     if decision_basis:
-        st.markdown("#### ????")
+        st.markdown("#### 決策依據")
         basis_rows = []
         for item in decision_basis:
             if not isinstance(item, dict):
                 continue
             basis_rows.append({
-                "??": item.get("factor", ""),
-                "??": item.get("weight", ""),
-                "??": item.get("score", ""),
-                "??": item.get("summary", ""),
+                "因子": item.get("factor", ""),
+                "權重": item.get("weight", ""),
+                "分數": item.get("score", ""),
+                "說明": item.get("summary", ""),
             })
         if basis_rows:
             st.dataframe(basis_rows, use_container_width=True, hide_index=True)
@@ -602,7 +693,7 @@ def render_peer_comparison(report_data: Dict[str, Any]) -> None:
     st.markdown("## 🏆 同行比較")
 
     if not peers and not subject:
-        st.info("同行比較資料待補充")
+        st.info("暫無同行比較資料")
         return
 
     # Build rows: subject first, then peers
@@ -617,7 +708,7 @@ def render_peer_comparison(report_data: Dict[str, Any]) -> None:
             all_rows.append({**p, "_is_subject": False})
 
     if not all_rows:
-        st.info("同行比較資料待補充")
+        st.info("暫無同行比較資料")
         return
 
     # Header
@@ -741,6 +832,15 @@ def render_source_transparency(report_data: Dict[str, Any]) -> None:
         verified_source_names = []
 
     reason = (report_data.get("source_transparency", {}) or {}).get("confidence_reason", "")
+    market_data = report_data.get("market_data", {}) or {}
+    price_unavailable = bool(
+        market_data.get("valid_ticker_price_unavailable")
+        or market_data.get("price_unavailable")
+        or market_data.get("market_data_status") == "price_unavailable"
+    )
+    if registry:
+        market_entry = registry.get("market_data", {}) or {}
+        price_unavailable = price_unavailable or "價格暫時未能取得" in str(market_entry.get("note", ""))
 
     LEVEL_COLOR = {
         "HIGH": "#1e8e3e",
@@ -770,6 +870,8 @@ def render_source_transparency(report_data: Dict[str, Any]) -> None:
             if reason:
                 st.markdown(f"**為何 {level_upper}？**")
                 st.markdown(reason)
+            if price_unavailable:
+                st.warning("市場價格暫時未能取得，以下公司資料來自已驗證公司資料庫。")
             if verified_source_names:
                 st.markdown("**已驗證來源**")
                 for name in verified_source_names:

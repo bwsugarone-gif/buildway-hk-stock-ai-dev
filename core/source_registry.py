@@ -21,6 +21,26 @@ from datetime import datetime
 from core.hkex_engine import get_hkex_source_registry_entry
 
 
+def _present(value) -> bool:
+    text = str(value if value is not None else "").strip()
+    return text not in {"", "N/A", "None", "0", "0.0", "0.00", "[]", "{}"}
+
+
+def _any_present(payload: dict, keys: tuple[str, ...]) -> bool:
+    return any(_present((payload or {}).get(key)) for key in keys)
+
+
+def _collect_present_fields(payload: dict, field_map: list[tuple[tuple[str, ...], str]]) -> tuple[list[str], list[str]]:
+    present = []
+    missing = []
+    for keys, label in field_map:
+        if _any_present(payload, keys):
+            present.append(label)
+        else:
+            missing.append(label)
+    return present, missing
+
+
 def build_source_registry(report_package: dict) -> dict:
     """
     Build the single source registry from a report_package.
@@ -34,6 +54,7 @@ def build_source_registry(report_package: dict) -> dict:
     company = (
         report_package.get("company_metadata")
         or report_package.get("company_data")
+        or market.get("company_metadata")
         or {}
     )
     # If company_metadata is empty, fall back to market_data fields
@@ -42,8 +63,8 @@ def build_source_registry(report_package: dict) -> dict:
             "name_zh": market.get("company_name_zh") or market.get("company_name", ""),
             "name_en": market.get("company_name_en") or market.get("company_name", ""),
             "sector": market.get("sector", ""),
-            "business_profile": market.get("business_summary", ""),
-            "market_category": market.get("market_category", ""),
+            "business_profile": market.get("business_summary") or market.get("business", ""),
+            "market_category": market.get("market_category") or market.get("market_type", ""),
         }
     # Support both key names: financial_data (legacy) and financial_analysis (v4)
     fin_raw = (
@@ -70,7 +91,15 @@ def build_source_registry(report_package: dict) -> dict:
     now = datetime.now().strftime("%Y-%m-%d")
 
     # ── Market Data (Yahoo Finance / yfinance) ────────────────────────────────
-    market_verified = bool(market.get("current_price") or market.get("price"))
+    market_price_keys = ("current_price", "last_price", "close", "regularMarketPrice", "price")
+    market_price_available = _any_present(market, market_price_keys)
+    price_unavailable = bool(
+        market.get("valid_ticker_price_unavailable")
+        or market.get("price_unavailable")
+        or market.get("market_data_status") == "price_unavailable"
+    ) and not market_price_available
+    sample_or_fallback = bool(market.get("is_demo") or market.get("fallback_reason"))
+    market_verified = market_price_available
     market_fields = []
     market_missing = []
     for field, label in [
@@ -84,13 +113,30 @@ def build_source_registry(report_package: dict) -> dict:
         ("volume", "成交量"),
         ("beta", "Beta"),
     ]:
-        val = market.get(field) or market.get(field.replace("_", ""))
+        val = (
+            market.get(field)
+            or market.get(field.replace("_", ""))
+            or (market.get("52w_high") if field == "fifty_two_week_high" else None)
+            or (market.get("52w_low") if field == "fifty_two_week_low" else None)
+        )
         if val and str(val) not in ("0", "0.0", "None", ""):
             market_fields.append(label)
         else:
             market_missing.append(label)
 
     # ── Company Metadata ──────────────────────────────────────────────────────
+    if company and not company.get("business_profile"):
+        company = {
+            **company,
+            "business_profile": (
+                company.get("business_summary")
+                or company.get("business")
+                or company.get("business_zh")
+                or company.get("business_en")
+                or ""
+            ),
+            "market_category": company.get("market_category") or company.get("market_type", ""),
+        }
     meta_verified = bool(company.get("name_zh") or company.get("name_en"))
     meta_fields = []
     meta_missing = []
@@ -107,7 +153,22 @@ def build_source_registry(report_package: dict) -> dict:
             meta_missing.append(label)
 
     # ── Financial Statement ───────────────────────────────────────────────────
-    fin_verified = bool(financials.get("revenue") or financials.get("revenue_trend"))
+    for canonical, aliases in {
+        "revenue": ("revenue_ttm", "total_revenue", "totalRevenue"),
+        "net_profit": ("net_income", "net_income_ttm", "netIncomeToCommon"),
+        "free_cash_flow": ("freeCashflow",),
+        "gross_margin": ("grossMargins",),
+        "net_margin": ("profitMargins",),
+        "total_assets": ("totalAssets",),
+        "total_debt": ("totalDebt",),
+    }.items():
+        if not _present(financials.get(canonical)):
+            for alias in aliases:
+                if _present(financials.get(alias)):
+                    financials[canonical] = financials[alias]
+                    break
+
+    fin_verified = bool(financials.get("revenue") or financials.get("revenue_trend") or financials.get("net_profit") or financials.get("ebitda") or financials.get("free_cash_flow") or financials.get("roe"))
     fin_fields = []
     fin_missing = []
     for field, label in [
@@ -128,7 +189,12 @@ def build_source_registry(report_package: dict) -> dict:
 
     # ── News ──────────────────────────────────────────────────────────────────
     news_items = news.get("items", news.get("news_items", []))
-    news_verified = len(news_items) > 0
+    if not news_items:
+        for key in ("positive_catalysts", "negative_catalysts", "risk_events", "watch_items", "headlines"):
+            if _present(news.get(key)):
+                news_items = news.get(key)
+                break
+    news_verified = _present(news_items)
     news_fields = ["新聞標題", "新聞來源"] if news_verified else []
     news_missing = [] if news_verified else ["新聞資料"]
 
@@ -139,16 +205,26 @@ def build_source_registry(report_package: dict) -> dict:
         "market_data": {
             "enabled": True,
             "verified": market_verified,
-            "source": "Yahoo Finance / yfinance",
+            "source": (
+                "HK Stock Master Data (price unavailable)"
+                if price_unavailable
+                else "Sample fallback data" if sample_or_fallback else "Yahoo Finance / yfinance"
+            ),
             "last_updated": now,
             "verified_fields": market_fields,
             "missing_fields": market_missing,
-            "note": "" if market_verified else "市場數據未能取得，使用本地參考數據。",
+            "note": (
+                ""
+                if market_verified
+                else "公司資料已驗證，市場價格暫時未能取得。"
+                if price_unavailable
+                else "市場數據未能取得，使用本地參考數據。"
+            ),
         },
         "company_metadata": {
             "enabled": True,
             "verified": meta_verified,
-            "source": "本地公司資料庫 / HK Stock Master Data",
+            "source": "Company Metadata / HK Stock Master Data",
             "last_updated": now,
             "verified_fields": meta_fields,
             "missing_fields": meta_missing,
@@ -178,20 +254,38 @@ def build_source_registry(report_package: dict) -> dict:
     return registry
 
 
+# RC-3 v4.2.1: Institutional source labels — client-facing display names
+_INSTITUTIONAL_LABELS = {
+    "market_data":        "Yahoo Finance",
+    "company_metadata":   "Company Metadata / Master Data",
+    "financial_statement":"Company Master Data",
+    "news":               "Risk Engine",
+    "hkex":               "HKEX",
+    "competitive":        "Competitive Database",
+    "risk_engine":        "Risk Engine",
+}
+
+# Banned display strings (RC-3 requirement)
+_BANNED_SOURCE_LABELS = {
+    "來源不明", "未已驗證來源", "未驗證來源", "資料待補充",
+    "unknown", "unverified", "pending",
+}
+
+
 def get_verified_sources(registry: dict) -> list:
-    """Return list of verified source names for display."""
+    """Return list of verified institutional source names for display.
+    RC-3: Uses approved institutional labels only. Never returns banned strings.
+    If nothing verified, returns empty list → caller shows '無額外驗證來源'.
+    Accepts None or empty dict safely.
+    """
+    if not registry or not isinstance(registry, dict):
+        return []
     verified = []
-    labels = {
-        "market_data": "Yahoo Finance",
-        "company_metadata": "公司資料庫",
-        "financial_statement": "財務報表",
-        "news": "新聞資料",
-        "hkex": "HKEX 披露易",
-    }
-    for key, label in labels.items():
+    for key, label in _INSTITUTIONAL_LABELS.items():
         entry = registry.get(key, {})
-        if entry.get("verified"):
-            verified.append(label)
+        if isinstance(entry, dict) and entry.get("verified"):
+            if label not in verified:
+                verified.append(label)
     return verified
 
 

@@ -28,6 +28,12 @@ SAMPLE_HK_STOCKS = {
 }
 
 
+SAMPLE_HK_STOCKS.update({
+    "0006.HK": "Power Assets Holdings",
+    "1810.HK": "Xiaomi Corporation",
+})
+
+
 def get_sample_market_data(ticker: str) -> Dict[str, Any]:
     """
     Return sample market data for a given ticker.
@@ -121,6 +127,20 @@ def get_sample_market_data(ticker: str) -> Dict[str, Any]:
             "debt_to_equity": 1.25,
             "current_ratio": 1.48,
             "beta": 1.05,
+        },
+        "0006.HK": {
+            "company_name": "Power Assets Holdings",
+            "company_name_zh": "電能實業",
+            "company_name_en": "Power Assets Holdings",
+            "sector": "Utilities",
+            "last_price": 56.85,
+            "current_price": 56.85,
+            "volume": 6_231_400,
+            "market_cap": 121_153_323_008,
+            "data_source": "SAMPLE FALLBACK DATA - not live market data",
+            "is_demo": True,
+            "is_live": False,
+            "fallback_reason": "sample fallback for validated ticker when live market data is unavailable",
         },
         "0941.HK": {
             "company_name": "China Mobile",
@@ -225,6 +245,20 @@ def get_sample_market_data(ticker: str) -> Dict[str, Any]:
             "debt_to_equity": 0.18,
             "current_ratio": 1.25,
             "beta": 1.18,
+        },
+        "1810.HK": {
+            "company_name": "Xiaomi Corporation",
+            "company_name_zh": "小米集團",
+            "company_name_en": "Xiaomi Corporation",
+            "sector": "Technology / Consumer electronics",
+            "last_price": 28.58,
+            "current_price": 28.58,
+            "volume": 142_387_827,
+            "market_cap": 737_447_247_872,
+            "data_source": "SAMPLE FALLBACK DATA - not live market data",
+            "is_demo": True,
+            "is_live": False,
+            "fallback_reason": "sample fallback for validated ticker when live market data is unavailable",
         },
         "9988.HK": {
             "company_name": "阿里巴巴集團控股有限公司",

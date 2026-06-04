@@ -10,6 +10,16 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from core.config import APP_NAME, APP_VERSION, USE_AI_ANALYSIS
+from core.client_polish import (
+    INSUFFICIENT_RATING_TEXT,
+    INVALID_TICKER_MESSAGE,
+    NEUTRAL_CLIENT_SUMMARY,
+    TARGET_PRICE_EXPLANATION,
+    TARGET_PRICE_NOT_PROVIDED,
+    UPSIDE_NOT_PROVIDED,
+    sanitize_decision_basis,
+    sanitize_report_payload,
+)
 from core.market_snapshot import build_market_snapshot
 from core.market_snapshot_engine import build_market_snapshot as build_unified_market_snapshot
 from core.scenario_engine import build_scenario_analysis
@@ -38,6 +48,9 @@ RATING_MAP = {
     "high_risk": "高風險",
     "avoid": "暫不建議",
 }
+
+INSUFFICIENT_DATA_RATING = "資料不足"
+INSUFFICIENT_DATA_SUMMARY = "公司資料已驗證，但市場價格、財務數據或新聞資料不足，暫不形成投資評級。"
 
 
 def _num(value: Any, default: float = 0.0) -> float:
@@ -121,6 +134,12 @@ class ReportBuilder:
             agent_opinions_v2 = build_agent_opinions(report_package)
         except Exception:
             agent_opinions_v2 = {}
+        if isinstance(agent_opinions_v2, dict):
+            agent_opinions_v2 = {
+                **agent_opinions_v2,
+                "news_count": self._news_count(news),
+                "news_confidence": news.get("news_confidence") or news.get("sentiment_analysis", {}).get("confidence") or "",
+            }
 
         try:
             competitive_landscape = build_competitive_landscape(ticker, report_package)
@@ -149,6 +168,16 @@ class ReportBuilder:
             )
         except Exception:
             investment_conclusion = {}
+        if investment_conclusion.get("rating") and investment_conclusion.get("rating") != INSUFFICIENT_DATA_RATING:
+            rating = investment_conclusion.get("rating")
+            executive_summary = self._build_executive_summary(
+                market, fin, risk_v2 or risk, news, portfolio, rating
+            )
+        elif investment_conclusion.get("rating") == INSUFFICIENT_DATA_RATING:
+            rating = INSUFFICIENT_DATA_RATING
+            executive_summary = self._build_executive_summary(
+                market, fin, risk_v2 or risk, news, portfolio, rating
+            )
 
         sections = {
             "metadata": {
@@ -161,7 +190,7 @@ class ReportBuilder:
                 "data_confidence": data_confidence,
                 "data_confidence_label": meta.get("data_confidence_label") or market.get("data_confidence_label") or confidence_label(data_confidence),
             },
-            "cover": self._build_cover(meta, market, risk, rating),
+            "cover": self._build_cover(meta, market, risk_v2 or risk, rating),
             "market_snapshot": build_market_snapshot(market),
             "executive_summary": executive_summary,
             "company_intelligence": self._build_company_intelligence(market),
@@ -182,11 +211,11 @@ class ReportBuilder:
             "news_catalyst_analysis": self._build_news_catalyst_analysis(news),
             "hkex_intelligence": self._build_hkex_intelligence(market),
             "scenario_analysis": build_scenario_analysis(market, fin, risk, self._build_news_catalyst_analysis(news)),
-            "portfolio_view": self._build_portfolio_view(portfolio, risk, rating),
+            "portfolio_view": self._build_portfolio_view(portfolio, risk_v2 or risk, rating),
             "ic_conclusion": self._build_ic_conclusion_from_engine(investment_conclusion, llm_warning) if investment_conclusion else self._build_ic_conclusion(ic, risk, rating, llm_warning, fin),
             "disclaimer": self._build_disclaimer(),
         }
-        return self._strip_placeholder_values(sections)
+        return sanitize_report_payload(self._strip_placeholder_values(sections))
 
     def build_fos_v3_sections(self, report_package: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -212,6 +241,13 @@ class ReportBuilder:
             out["agent_opinions_v2"] = build_agent_opinions(report_package)
         except Exception as exc:
             out["agent_opinions_v2"] = {"error": str(exc)}
+        if isinstance(out.get("agent_opinions_v2"), dict):
+            news = report_package.get("news_analysis", {}) or report_package.get("news_data", {}) or {}
+            out["agent_opinions_v2"] = {
+                **out["agent_opinions_v2"],
+                "news_count": self._news_count(news),
+                "news_confidence": news.get("news_confidence") or news.get("sentiment_analysis", {}).get("confidence") or "",
+            }
 
         try:
             out["competitive_landscape"] = build_competitive_landscape(ticker, report_package)
@@ -301,6 +337,13 @@ class ReportBuilder:
     def _final_rating(self, fin: Dict[str, Any], risk: Dict[str, Any], ic: Dict[str, Any]) -> str:
         if fin.get("data_confidence") == INVALID or risk.get("data_confidence") == INVALID:
             return "無法評估"
+        valuation = fin.get("valuation_range", {}) or {}
+        health = fin.get("health_score", {}) or {}
+        has_valuation = any(_num(valuation.get(key), 0) != 0 for key in ("low", "mid", "high", "upside_to_mid"))
+        has_financial_health = bool(health.get("dimension_scores")) or _num(health.get("overall_score"), 0) > 0
+        has_risk = _num(risk.get("composite_risk_score"), 0) > 0
+        if fin.get("data_confidence") in {"LOW", "MEDIUM"} and (not has_valuation or not has_financial_health or not has_risk):
+            return INSUFFICIENT_DATA_RATING
         risk_score = _num(risk.get("composite_risk_score"), 5)
         upside = _num(fin.get("valuation_range", {}).get("upside_to_mid"), 0)
 
@@ -335,8 +378,8 @@ class ReportBuilder:
             "metadata_source": market.get("metadata_source", ""),
             "report_date": meta.get("generated_at", get_timestamp()),
             "final_rating": rating,
-            "risk_score": f"{_num(risk.get('composite_risk_score'), 5):.1f}/10",
-            "risk_label": _risk_label(_num(risk.get("composite_risk_score"), 5)),
+            "risk_score": "N/A" if rating == INSUFFICIENT_DATA_RATING else f"{_num(risk.get('composite_risk_score'), 5):.1f}/10",
+            "risk_label": "資料不足" if rating == INSUFFICIENT_DATA_RATING else _risk_label(_num(risk.get("composite_risk_score"), 5)),
             "data_confidence": meta.get("data_confidence") or market.get("data_confidence", "LOW"),
             "data_confidence_label": meta.get("data_confidence_label") or market.get("data_confidence_label") or confidence_label(meta.get("data_confidence") or market.get("data_confidence", "LOW")),
             "data_completeness_note": meta.get("data_completeness_note", ""),
@@ -368,6 +411,21 @@ class ReportBuilder:
                 "llm_narrative": "",
             }
         risk_score = _num(risk.get("composite_risk_score"), 5)
+        if rating == INSUFFICIENT_DATA_RATING:
+            return {
+                "title": "Executive Summary",
+                "bullets": [
+                    INSUFFICIENT_DATA_SUMMARY,
+                    "資料不足，暫不評級。",
+                    "公司資料可作識別用途；投資結論需等待核心市場、財務及新聞資料補齊。",
+                ],
+                "final_rating": INSUFFICIENT_DATA_RATING,
+                "key_risk": "核心資料不足",
+                "key_opportunity": "待資料補齊後再評估",
+                "recommended_action": "暫不評級",
+                "data_confidence_label": market.get("data_confidence_label", confidence_label(market.get("data_confidence", "LOW"))),
+                "llm_narrative": "",
+            }
         current = _num(market.get("current_price"))
         mid = _num(vr.get("mid"))
         opportunity = (
@@ -651,6 +709,32 @@ class ReportBuilder:
             "total_weight": risk_v2.get("total_weight", "100%"),
         }
 
+    def _news_count(self, news: Dict[str, Any]) -> int:
+        if not isinstance(news, dict):
+            return 0
+        count = 0
+        for key in (
+            "items",
+            "news_items",
+            "headlines",
+            "recent_headlines",
+            "positive_catalysts",
+            "negative_catalysts",
+            "neutral_events",
+            "risk_events",
+            "monitor_items",
+        ):
+            value = news.get(key)
+            if isinstance(value, list):
+                count = max(count, len(value))
+        sentiment = news.get("sentiment_analysis", {}) or {}
+        if isinstance(sentiment, dict):
+            count = max(
+                count,
+                int(_num(sentiment.get("positive_count")) + _num(sentiment.get("negative_count")) + _num(sentiment.get("neutral_count"))),
+            )
+        return count
+
     def _build_news_catalyst_analysis(self, news: Dict[str, Any]) -> Dict[str, Any]:
         confidence = news.get("news_confidence") or news.get("sentiment_analysis", {}).get("confidence") or "未接入"
         positive = news.get("positive_catalysts") or news.get("positive_factors") or []
@@ -703,9 +787,9 @@ class ReportBuilder:
             return {
                 "title": "Scenario Analysis",
                 "rows": [
-                    ["Bull case", "收入增長及估值倍數改善", "盈利上修", "市場風險偏好回升"],
-                    ["Base case", "業務維持穩定", "估值接近中位", "等待業績確認"],
-                    ["Bear case", "收入或利潤率下滑", "估值收縮", "高槓桿或現金流壓力"],
+                    ["樂觀情景", "收入增長及估值倍數改善", "盈利上修", "市場風險偏好回升"],
+                    ["基準情景", "業務維持穩定", "估值接近中位", "等待業績確認"],
+                    ["保守情景", "收入或利潤率下滑", "估值收縮", "高槓桿或現金流壓力"],
                 ],
                 "triggers": ["盈利預警", "現金流惡化", "政策或融資環境轉差", "成交量急跌並跌穿重要支持位"],
             }
@@ -758,7 +842,7 @@ class ReportBuilder:
         conclusion: Dict[str, Any],
         llm_warning: str,
     ) -> Dict[str, Any]:
-        basis = conclusion.get("decision_basis", []) or []
+        basis = sanitize_decision_basis(conclusion.get("decision_basis", []) or [])
         monitor_next = [
             f"{item.get('factor', '決策因子')}：{item.get('score', '')}，{item.get('summary', '')}"
             for item in basis[:5]
@@ -766,14 +850,24 @@ class ReportBuilder:
         if not monitor_next:
             monitor_next = ["持續監察估值、風險、財務、新聞及市場五項決策因子。"]
         return {
-            "title": "Investment Committee Final Conclusion",
+            "title": "投資委員會最終結論",
             "final_decision": conclusion.get("rating", ""),
-            "why": conclusion.get("final_summary", ""),
+            "investment_horizon": conclusion.get("investment_horizon") or conclusion.get("horizon"),
+            "suitable_investor": conclusion.get("suitable_investor") or conclusion.get("investor_type"),
+            "target_price": conclusion.get("target_price") or TARGET_PRICE_NOT_PROVIDED,
+            "potential_upside": conclusion.get("potential_upside") or UPSIDE_NOT_PROVIDED,
+            "why": NEUTRAL_CLIENT_SUMMARY if conclusion.get("rating") == "中性" else conclusion.get("final_summary", ""),
+            "decision_basis": basis,
             "monitor_next": monitor_next,
-            "data_limitations": conclusion.get("target_price", ""),
+            "data_limitations": conclusion.get("target_price_explanation") or TARGET_PRICE_EXPLANATION,
             "data_completeness_note": "",
             "llm_warning": llm_warning,
-            "multi_agent_statement": f"Investment Conclusion Engine composite score: {conclusion.get('composite_score', '')}",
+            "multi_agent_statement": f"投資委員會綜合分：{conclusion.get('composite_score', '')}",
+            "risk_score": conclusion.get("risk_score", "N/A"),
+            "data_coverage": conclusion.get("data_coverage", "N/A"),
+            "data_coverage_label": conclusion.get("data_coverage_label", "N/A"),
+            "action_category": conclusion.get("recommendation") or conclusion.get("rating", ""),
+            "recommendation": conclusion.get("recommendation") or conclusion.get("rating", ""),
         }
 
     def _build_ic_conclusion(
@@ -787,7 +881,7 @@ class ReportBuilder:
         fin = fin or {}
         if risk.get("data_confidence") == INVALID or fin.get("data_confidence") == INVALID:
             return {
-                "title": "Investment Committee Final Conclusion",
+                "title": "投資委員會最終結論",
                 "final_decision": "無法評估",
                 "why": INVALID_MARKET_DATA_MESSAGE,
                 "monitor_next": ["核對股票代號", "確認市場資料供應商是否支援該代號", "重新提交有效香港股票代號"],
@@ -795,10 +889,15 @@ class ReportBuilder:
                 "data_completeness_note": INVALID_PDF_NOTICE,
                 "llm_warning": llm_warning,
                 "multi_agent_statement": "本系統未能取得有效市場資料，因此不生成公司或投資敘事。",
+                "risk_score": "N/A",
+                "data_coverage": "INVALID",
+                "data_coverage_label": "無法驗證",
+                "action_category": "無法評估",
+                "recommendation": "無法評估",
             }
         completeness_note = "資料完整度提示：部分市場或財務資料未能取得，系統已使用保守假設進行分析。" if fin.get("missing_data_flags") else ""
         return {
-            "title": "Investment Committee Final Conclusion",
+            "title": "投資委員會最終結論",
             "final_decision": rating,
             "why": f"最終分類主要基於加權風險分數{_num(risk.get('composite_risk_score'), 5):.1f}/10、估值區間、財務健康度及市場訊號的綜合判斷。",
             "monitor_next": [
@@ -811,11 +910,16 @@ class ReportBuilder:
             "data_completeness_note": completeness_note,
             "llm_warning": llm_warning,
             "multi_agent_statement": f"經 Multi-Agent Team 綜合討論後，本系統將該股票列為：{rating}",
+            "risk_score": f"{_num(risk.get('composite_risk_score'), 5):.1f}/10",
+            "data_coverage": "LEGACY",
+            "data_coverage_label": "標準資料覆蓋",
+            "action_category": rating,
+            "recommendation": rating,
         }
 
     def _build_disclaimer(self) -> Dict[str, str]:
         return {
-            "title": "Disclaimer",
+            "title": "免責聲明",
             "content": (
                 "本報告由 Buildway Tech (HK) Limited 的 AI Multi-Agent Financial Intelligence System 生成，"
                 "僅供教育、研究及客戶試用參考，不構成投資建議、招攬、要約或任何受規管財務意見。"
@@ -888,14 +992,14 @@ class ReportBuilder:
     def _scenario_name(self, raw: str) -> str:
         text = str(raw).lower()
         if "bull" in text or "up" in text:
-            return "Bull case"
+            return "樂觀情景"
         if "bear" in text or "down" in text:
-            return "Bear case"
+            return "保守情景"
         if "base" in text:
-            return "Base case"
+            return "基準情景"
         if not hasattr(self, "_scenario_counter"):
             self._scenario_counter = 0
-        names = ["Bull case", "Base case", "Bear case"]
+        names = ["樂觀情景", "基準情景", "保守情景"]
         name = names[self._scenario_counter % len(names)]
         self._scenario_counter += 1
         return name

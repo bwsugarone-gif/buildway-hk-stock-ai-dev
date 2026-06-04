@@ -73,9 +73,13 @@ def test_yfinance_failure_with_master_data_is_not_invalid() -> None:
         assert not data.get("invalid_symbol"), f"{ticker} incorrectly flagged invalid_symbol"
         assert data.get("company_metadata"), f"{ticker} lost company_metadata"
         assert data.get("company_name_zh") or data.get("company_name_en"), f"{ticker} lost names"
-        assert data.get("price_unavailable") or data.get("valid_ticker_price_unavailable"), (
-            f"{ticker} should expose price unavailable/stale fallback status"
-        )
+        if float(data.get("current_price") or 0) > 0:
+            assert data.get("price_unavailable") is False, f"{ticker} has price but still marks price_unavailable"
+            assert data.get("valid_ticker_price_unavailable") is False, f"{ticker} has price but still marks valid_ticker_price_unavailable"
+        else:
+            assert data.get("price_unavailable") or data.get("valid_ticker_price_unavailable"), (
+                f"{ticker} metadata-only fallback should expose price unavailable status"
+            )
 
         registry = _registry_for(data)
         assert registry["company_metadata"]["verified"] is True, f"{ticker} metadata not verified"

@@ -32,6 +32,34 @@ MASTER_DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "hk_stock_m
 YFINANCE_CACHE_DIR = Path(os.getenv("YFINANCE_CACHE_DIR", Path(tempfile.gettempdir()) / "yfinance_cache"))
 
 
+PRICE_FIELDS = ("current_price", "last_price", "close", "regularMarketPrice", "price")
+
+
+def has_valid_price(payload: Dict[str, Any]) -> bool:
+    """Return True when any accepted market price field has a positive number."""
+    if not isinstance(payload, dict):
+        return False
+    return any(safe_number(payload.get(field), 0.0) > 0 for field in PRICE_FIELDS)
+
+
+def normalize_market_payload_flags(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Keep price availability flags consistent with the actual price payload."""
+    if not isinstance(payload, dict):
+        return payload
+    if has_valid_price(payload):
+        payload["price_unavailable"] = False
+        payload["valid_ticker_price_unavailable"] = False
+        if payload.get("market_data_status") in {"price_unavailable", "sample_fallback_price_stale"}:
+            payload["market_data_status"] = "price_available"
+        payload.setdefault("is_live", False)
+    else:
+        if payload.get("company_metadata") or payload.get("company_name"):
+            payload["price_unavailable"] = True
+            payload["valid_ticker_price_unavailable"] = True
+            payload.setdefault("market_data_status", "price_unavailable")
+    return payload
+
+
 class MarketDataAgent:
     """
     Market Data Agent
@@ -230,9 +258,11 @@ class MarketDataAgent:
             return data
 
         sanitized = self._sanitize_numeric_fields(data)
+        sanitized = normalize_market_payload_flags(sanitized)
         sanitized = self._coverage_engine.enhance(sanitized)
         confidence = assess_market_data_confidence(sanitized)
         coverage = sanitized.get("coverage_score") or confidence
+        sanitized = normalize_market_payload_flags(sanitized)
         sanitized["data_confidence"] = coverage
         if sanitized.get("valid_ticker_price_unavailable") or sanitized.get("price_unavailable"):
             sanitized["data_confidence_label"] = confidence_label("VALID_TICKER_PRICE_UNAVAILABLE")

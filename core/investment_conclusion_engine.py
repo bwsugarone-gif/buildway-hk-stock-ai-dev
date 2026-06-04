@@ -36,6 +36,16 @@ def _has_positive(value) -> bool:
     return safe_float(value) > 0
 
 
+def _has_valid_market_price(*payloads) -> bool:
+    price_fields = ("current_price", "price", "last_price", "close", "regularMarketPrice")
+    for payload in payloads:
+        if not isinstance(payload, dict):
+            continue
+        if any(_has_positive(payload.get(field)) for field in price_fields):
+            return True
+    return False
+
+
 def _raw_market(market_snapshot: dict) -> dict:
     raw = market_snapshot.get("_raw", {}) if isinstance(market_snapshot, dict) else {}
     return raw if isinstance(raw, dict) else {}
@@ -89,15 +99,7 @@ def _coverage_flags(
     risk_assessment = risk_assessment or {}
     source_registry = source_registry or {}
 
-    price_available = any(
-        _has_positive(v)
-        for v in (
-            raw.get("current_price"),
-            raw.get("price"),
-            financial_data.get("current_price"),
-            financial_data.get("last_price"),
-        )
-    )
+    price_available = _has_valid_market_price(raw, financial_data)
     price_unavailable_flag = bool(
         raw.get("price_unavailable")
         or raw.get("valid_ticker_price_unavailable")
@@ -154,8 +156,9 @@ def _coverage_flags(
 
     return {
         "metadata_available": metadata_available,
-        "price_available": price_available and not price_unavailable_flag,
+        "price_available": price_available,
         "price_unavailable_flag": price_unavailable_flag,
+        "stale_price_unavailable_flag_ignored": bool(price_available and price_unavailable_flag),
         "valuation_available": valuation_available,
         "financial_available": financial_available,
         "risk_available": risk_available,
@@ -186,7 +189,7 @@ def _data_sufficiency_issues(
     flags = _coverage_flags(market_snapshot, financial_data, risk_assessment, agent_opinions, source_registry)
 
     issues = []
-    if flags["price_unavailable_flag"] or not flags["price_available"]:
+    if not flags["price_available"]:
         issues.append({"factor": "市場價格", "weight": "必要", "score": "N/A", "summary": "市場價格暫時未能取得"})
     if not flags["valuation_available"]:
         issues.append({"factor": "估值資料", "weight": "必要", "score": "N/A", "summary": "缺少 P/E、P/B 或其他估值輸入"})
@@ -606,6 +609,13 @@ def build_investment_conclusion(
 
     # ── Decision basis ────────────────────────────────────────────────────────
     decision_basis = []
+    if coverage_flags.get("stale_price_unavailable_flag_ignored"):
+        decision_basis.append({
+            "factor": "Market price",
+            "weight": "Required",
+            "score": "Verified",
+            "summary": "市場價格存在，已忽略過時 price_unavailable flag。",
+        })
     factor_weights = {"估值": "25%", "風險": "25%", "財務": "20%", "新聞": "15%", "市場": "15%"}
     for name, score, _weight, summary in score_components:
         decision_basis.append({

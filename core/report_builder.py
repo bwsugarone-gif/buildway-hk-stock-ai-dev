@@ -152,10 +152,15 @@ class ReportBuilder:
             )
         except Exception:
             investment_conclusion = {}
-        if investment_conclusion.get("rating") == INSUFFICIENT_DATA_RATING:
+        if investment_conclusion.get("rating") and investment_conclusion.get("rating") != INSUFFICIENT_DATA_RATING:
+            rating = investment_conclusion.get("rating")
+            executive_summary = self._build_executive_summary(
+                market, fin, risk_v2 or risk, news, portfolio, rating
+            )
+        elif investment_conclusion.get("rating") == INSUFFICIENT_DATA_RATING:
             rating = INSUFFICIENT_DATA_RATING
             executive_summary = self._build_executive_summary(
-                market, fin, risk, news, portfolio, rating
+                market, fin, risk_v2 or risk, news, portfolio, rating
             )
 
         sections = {
@@ -169,7 +174,7 @@ class ReportBuilder:
                 "data_confidence": data_confidence,
                 "data_confidence_label": meta.get("data_confidence_label") or market.get("data_confidence_label") or confidence_label(data_confidence),
             },
-            "cover": self._build_cover(meta, market, risk, rating),
+            "cover": self._build_cover(meta, market, risk_v2 or risk, rating),
             "market_snapshot": build_market_snapshot(market),
             "executive_summary": executive_summary,
             "company_intelligence": self._build_company_intelligence(market),
@@ -190,7 +195,7 @@ class ReportBuilder:
             "news_catalyst_analysis": self._build_news_catalyst_analysis(news),
             "hkex_intelligence": self._build_hkex_intelligence(market),
             "scenario_analysis": build_scenario_analysis(market, fin, risk, self._build_news_catalyst_analysis(news)),
-            "portfolio_view": self._build_portfolio_view(portfolio, risk, rating),
+            "portfolio_view": self._build_portfolio_view(portfolio, risk_v2 or risk, rating),
             "ic_conclusion": self._build_ic_conclusion_from_engine(investment_conclusion, llm_warning) if investment_conclusion else self._build_ic_conclusion(ic, risk, rating, llm_warning, fin),
             "disclaimer": self._build_disclaimer(),
         }

@@ -31,7 +31,7 @@ def test_config_version():
     print("\n[CONFIG] Version check")
     try:
         from core.config import APP_VERSION, BUILD_STAGE
-        assert APP_VERSION in {"v4.2.1", "v4.2.2", "v4.2.3", "v4.2.4"}, f"Expected v4.2.1/v4.2.2/v4.2.3/v4.2.4, got {APP_VERSION}"
+        assert APP_VERSION in {"v4.2.1", "v4.2.2", "v4.2.3", "v4.2.4", "v4.2.5"}, f"Expected v4.2.1/v4.2.2/v4.2.3/v4.2.4/v4.2.5, got {APP_VERSION}"
         assert BUILD_STAGE, "BUILD_STAGE must not be empty"
         ok("CONFIG-version", f"{APP_VERSION} / {BUILD_STAGE}")
     except Exception as e:

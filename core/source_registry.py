@@ -21,6 +21,26 @@ from datetime import datetime
 from core.hkex_engine import get_hkex_source_registry_entry
 
 
+def _present(value) -> bool:
+    text = str(value if value is not None else "").strip()
+    return text not in {"", "N/A", "None", "0", "0.0", "0.00", "[]", "{}"}
+
+
+def _any_present(payload: dict, keys: tuple[str, ...]) -> bool:
+    return any(_present((payload or {}).get(key)) for key in keys)
+
+
+def _collect_present_fields(payload: dict, field_map: list[tuple[tuple[str, ...], str]]) -> tuple[list[str], list[str]]:
+    present = []
+    missing = []
+    for keys, label in field_map:
+        if _any_present(payload, keys):
+            present.append(label)
+        else:
+            missing.append(label)
+    return present, missing
+
+
 def build_source_registry(report_package: dict) -> dict:
     """
     Build the single source registry from a report_package.
@@ -71,13 +91,15 @@ def build_source_registry(report_package: dict) -> dict:
     now = datetime.now().strftime("%Y-%m-%d")
 
     # ── Market Data (Yahoo Finance / yfinance) ────────────────────────────────
+    market_price_keys = ("current_price", "last_price", "close", "regularMarketPrice", "price")
+    market_price_available = _any_present(market, market_price_keys)
     price_unavailable = bool(
         market.get("valid_ticker_price_unavailable")
         or market.get("price_unavailable")
         or market.get("market_data_status") == "price_unavailable"
-    )
+    ) and not market_price_available
     sample_or_fallback = bool(market.get("is_demo") or market.get("fallback_reason"))
-    market_verified = bool(market.get("current_price") or market.get("price")) and not price_unavailable
+    market_verified = market_price_available
     market_fields = []
     market_missing = []
     for field, label in [
@@ -131,7 +153,22 @@ def build_source_registry(report_package: dict) -> dict:
             meta_missing.append(label)
 
     # ── Financial Statement ───────────────────────────────────────────────────
-    fin_verified = bool(financials.get("revenue") or financials.get("revenue_trend"))
+    for canonical, aliases in {
+        "revenue": ("revenue_ttm", "total_revenue", "totalRevenue"),
+        "net_profit": ("net_income", "net_income_ttm", "netIncomeToCommon"),
+        "free_cash_flow": ("freeCashflow",),
+        "gross_margin": ("grossMargins",),
+        "net_margin": ("profitMargins",),
+        "total_assets": ("totalAssets",),
+        "total_debt": ("totalDebt",),
+    }.items():
+        if not _present(financials.get(canonical)):
+            for alias in aliases:
+                if _present(financials.get(alias)):
+                    financials[canonical] = financials[alias]
+                    break
+
+    fin_verified = bool(financials.get("revenue") or financials.get("revenue_trend") or financials.get("net_profit") or financials.get("ebitda") or financials.get("free_cash_flow") or financials.get("roe"))
     fin_fields = []
     fin_missing = []
     for field, label in [
@@ -152,7 +189,12 @@ def build_source_registry(report_package: dict) -> dict:
 
     # ── News ──────────────────────────────────────────────────────────────────
     news_items = news.get("items", news.get("news_items", []))
-    news_verified = len(news_items) > 0
+    if not news_items:
+        for key in ("positive_catalysts", "negative_catalysts", "risk_events", "watch_items", "headlines"):
+            if _present(news.get(key)):
+                news_items = news.get(key)
+                break
+    news_verified = _present(news_items)
     news_fields = ["新聞標題", "新聞來源"] if news_verified else []
     news_missing = [] if news_verified else ["新聞資料"]
 

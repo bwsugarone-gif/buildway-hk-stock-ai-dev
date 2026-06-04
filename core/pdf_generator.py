@@ -43,6 +43,31 @@ FOOTER_FONT_SIZE = 8.5
 PDF_SYMBOL_STRIP = ("🟢", "🟡", "🔴", "✅", "❌", "⚠️", "⚠")
 
 
+PDF_OLD_WORDING_REPLACEMENTS = {
+    "Bull Case": "樂觀情景",
+    "Base Case": "基準情景",
+    "Bear Case": "保守情景",
+    "Investment Conclusion Engine composite score": "投資委員會綜合分",
+    "Disclaimer heading": "免責聲明",
+    "Disclaimer": "免責聲明",
+}
+
+
+def sanitize_pdf_payload(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {key: sanitize_pdf_payload(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [sanitize_pdf_payload(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(sanitize_pdf_payload(item) for item in value)
+    if isinstance(value, str):
+        text = value
+        for old, new in PDF_OLD_WORDING_REPLACEMENTS.items():
+            text = text.replace(old, new)
+        return text
+    return value
+
+
 def _pdf_text(value: Any) -> str:
     text = str(value if value not in (None, "") else "N/A")
     for symbol in PDF_SYMBOL_STRIP:
@@ -311,6 +336,7 @@ class PDFGenerator:
             self.build_version = build_version or ""
 
     def generate(self, report_sections: Dict[str, Any], output_path: str) -> str:
+        report_sections = sanitize_pdf_payload(report_sections or {})
         cover = report_sections.get("cover", {})
         print(f"[PDF] stock_code = {cover.get('ticker', 'N/A')} | font = {self.font_name}")
         doc = SimpleDocTemplate(

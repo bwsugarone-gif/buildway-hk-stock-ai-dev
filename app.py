@@ -23,6 +23,7 @@ from core.config import (
     LOGO_PATH,
 )
 from core.pdf_generator import PDFGenerator
+from core.pdf_freshness import build_fresh_pdf_path, pdf_path_matches_active_report, should_regenerate_pdf
 from core.report_builder import ReportBuilder
 from core.utils import format_currency_hkd, normalize_hk_ticker, validate_hk_ticker
 
@@ -475,12 +476,22 @@ def _set_demo_ticker(ticker: str) -> None:
     st.rerun()
 
 
+def _clear_active_report_state() -> None:
+    for key in ("pdf_path", "pdf_bytes", "report_package", "report_data", "report_sections"):
+        st.session_state[key] = None
+    st.session_state["pdf_warning"] = ""
+    st.session_state["llm_warning"] = ""
+
+
 def _request_analysis(
     ticker: str,
     risk_preference: str = "銝剔?",
     portfolio_size: int = 0,
 ) -> None:
     normalized = normalize_hk_ticker(ticker)
+    current = normalize_hk_ticker(str(st.session_state.get("selected_ticker") or ""))
+    if current and current != normalized:
+        _clear_active_report_state()
     st.session_state["pending_ticker_value"] = normalized.replace(".HK", "")
     st.session_state["selected_ticker"] = normalized.replace(".HK", "")
     st.session_state["rerun_analysis_request"] = {
@@ -557,7 +568,8 @@ def _save_report_history(
 def _open_history_record(record: dict[str, Any]) -> None:
     st.session_state.report_package = record.get("report_package")
     st.session_state.report_sections = record.get("report_sections")
-    st.session_state.pdf_path = record.get("pdf_path")
+    st.session_state.pdf_path = None
+    st.session_state.pdf_bytes = None
     st.session_state.pdf_warning = record.get("pdf_warning", "")
     st.session_state.llm_warning = record.get("llm_warning", "")
     st.session_state.selected_ticker = str(record.get("ticker", "")).replace(".HK", "")
@@ -1404,6 +1416,9 @@ if analysis_requested:
         st.session_state.is_generating = True
         st.session_state.pdf_warning = ""
         ticker = normalize_hk_ticker(request_ticker_input)
+        active_ticker = normalize_hk_ticker(str(st.session_state.get("selected_ticker") or ""))
+        if active_ticker and active_ticker != ticker:
+            _clear_active_report_state()
         st.session_state.selected_ticker = ticker.replace(".HK", "")
         print(f"[APP] User input stock_code = {ticker}")
         progress = st.progress(0)
@@ -1462,9 +1477,7 @@ if analysis_requested:
 
             status_text.text("正在生成PDF報告...")
             os.makedirs("reports", exist_ok=True)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            pdf_filename = f"Buildway_HK_Investment_Report_{ticker.replace('.', '_')}_{timestamp}.pdf"
-            pdf_path = os.path.join("reports", pdf_filename)
+            pdf_path = build_fresh_pdf_path(ticker, APP_VERSION)
 
             try:
                 pdf_gen = PDFGenerator(logo_path=str(LOGO_PATH) if os.path.exists(LOGO_PATH) else None)
@@ -1601,6 +1614,17 @@ if st.session_state.report_sections:
         st.rerun()
 
     # Download button (green)
+    if should_regenerate_pdf(st.session_state.get("pdf_path"), str(current_ticker), APP_VERSION):
+        try:
+            os.makedirs("reports", exist_ok=True)
+            fresh_pdf_path = build_fresh_pdf_path(str(current_ticker), APP_VERSION)
+            PDFGenerator(logo_path=str(LOGO_PATH) if os.path.exists(LOGO_PATH) else None).generate(sections, fresh_pdf_path)
+            st.session_state.pdf_path = fresh_pdf_path
+            st.session_state.pdf_warning = ""
+        except Exception as pdf_exc:
+            print(f"[APP] Fresh PDF regeneration failed: {pdf_exc}")
+            st.session_state.pdf_path = None
+            st.session_state.pdf_warning = "PDF regeneration failed for the active report."
     if st.session_state.pdf_path and os.path.exists(st.session_state.pdf_path):
         with open(st.session_state.pdf_path, "rb") as pdf_file:
             action_cols[2].download_button(

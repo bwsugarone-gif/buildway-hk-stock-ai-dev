@@ -53,6 +53,10 @@ def _raw_market(market_snapshot: dict) -> dict:
 
 
 def _news_available(agent_opinions, source_registry: dict) -> bool:
+    coverage = _news_coverage(agent_opinions)
+    if coverage["count"] > 0 or coverage["high_confidence"]:
+        return True
+
     news_entry = (source_registry or {}).get("news", {})
     if isinstance(news_entry, dict) and news_entry.get("verified"):
         return True
@@ -72,6 +76,67 @@ def _news_available(agent_opinions, source_registry: dict) -> bool:
         if any(token in text.lower() for token in ("news", "新聞", "sentiment", "catalyst")):
             return True
     return False
+
+
+def _news_coverage(agent_opinions) -> dict:
+    if isinstance(agent_opinions, dict):
+        count = int(safe_float(
+            agent_opinions.get("news_count")
+            or agent_opinions.get("verified_news_count")
+            or agent_opinions.get("article_count")
+            or 0
+        ))
+        confidence_raw = str(agent_opinions.get("news_confidence") or agent_opinions.get("confidence") or "").upper()
+        agents_list = agent_opinions.get("agents", [])
+    elif isinstance(agent_opinions, list):
+        count = 0
+        confidence_raw = ""
+        agents_list = agent_opinions
+    else:
+        count = 0
+        confidence_raw = ""
+        agents_list = []
+
+    if isinstance(agents_list, dict):
+        agents_list = list(agents_list.values())
+
+    for item in agents_list or []:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("Agent", item.get("agent_name", ""))).lower()
+        summary = str(item.get("summary", ""))
+        if not any(token in name for token in ("news", "sentiment", "?啗?")):
+            continue
+        count = max(count, int(safe_float(
+            item.get("news_count")
+            or item.get("verified_news_count")
+            or item.get("article_count")
+            or item.get("data_points_used")
+            or 0
+        )))
+        confidence_raw = confidence_raw or str(item.get("news_confidence") or item.get("confidence") or "").upper()
+        if count == 0:
+            import re
+            match = re.search(r"(\d+)", summary)
+            if match:
+                count = max(count, int(match.group(1)))
+
+    high_confidence = (
+        "HIGH" in confidence_raw
+        or "高" in confidence_raw
+        or safe_float(confidence_raw) >= 75
+    )
+    return {"count": count, "confidence": confidence_raw, "high_confidence": high_confidence}
+
+
+def _news_basis_summary(agent_opinions) -> str:
+    coverage = _news_coverage(agent_opinions)
+    count = coverage["count"]
+    if count >= 5 or coverage["high_confidence"]:
+        return "新聞資料已取得，市場情緒以已驗證新聞為基礎評估。"
+    if count == 0:
+        return "新聞資料不足，暫不納入主要評級依據。"
+    return "新聞資料有限，僅作輔助參考。"
 
 
 def _coverage_pct(source_registry: dict) -> float:
@@ -461,6 +526,13 @@ def _extract_news_score(agent_opinions) -> tuple:
     """Extract news/sentiment score from agent opinions.
     Accepts either a list of opinion dicts or a dict with an 'agents' key.
     """
+    coverage = _news_coverage(agent_opinions)
+    if coverage["count"] >= 5 or coverage["high_confidence"]:
+        return 5.0, _news_basis_summary(agent_opinions)
+    if coverage["count"] == 0:
+        return None, _news_basis_summary(agent_opinions)
+    return 5.0, _news_basis_summary(agent_opinions)
+
     # Normalise to a flat list
     if isinstance(agent_opinions, dict):
         agents_list = agent_opinions.get("agents", [])

@@ -42,6 +42,19 @@ AMBER = colors.HexColor("#92400E")
 RED = colors.HexColor("#991B1B")
 FOOTER_FONT_SIZE = 8.5
 
+RISK_BAR_BG = colors.HexColor("#E5E7EB")
+RISK_BAR_LOW = colors.HexColor("#14B8A6")
+RISK_BAR_MEDIUM = colors.HexColor("#F59E0B")
+RISK_BAR_HIGH = colors.HexColor("#EF4444")
+RISK_BAR_EXTREME = colors.HexColor("#DC2626")
+
+RISK_HEAT_PALETTE = {
+    "LOW": (colors.HexColor("#CCFBF1"), colors.HexColor("#134E4A")),
+    "MEDIUM": (colors.HexColor("#FEF3C7"), colors.HexColor("#92400E")),
+    "HIGH": (colors.HexColor("#FEE2E2"), colors.HexColor("#991B1B")),
+    "EXTREME": (colors.HexColor("#FECACA"), colors.HexColor("#7F1D1D")),
+}
+
 PDF_SYMBOL_STRIP = ("🟢", "🟡", "🔴", "✅", "❌", "⚠️", "⚠")
 
 
@@ -857,17 +870,31 @@ class PDFGenerator:
         text = str(level or "")
         raw_score = _safe_float(score)
         if "極高" in text or raw_score >= 8.5:
-            return RED
+            return RISK_BAR_EXTREME
         if "高" in text or raw_score >= 6.5:
-            return RED
+            return RISK_BAR_HIGH
         if "中" in text or raw_score >= 3.5:
-            return AMBER
-        return GREEN
+            return RISK_BAR_MEDIUM
+        return RISK_BAR_LOW
+
+    def _risk_bucket(self, level: Any = "", score: Any = None) -> str:
+        text = str(level or "").lower()
+        raw_score = _safe_float(score)
+        if "extreme" in text or "very high" in text or "極高" in text or raw_score >= 8.5:
+            return "EXTREME"
+        if "high" in text or "高" in text or raw_score >= 6.5:
+            return "HIGH"
+        if "medium" in text or "中" in text or raw_score >= 3.5:
+            return "MEDIUM"
+        return "LOW"
+
+    def _risk_heat_colors(self, level: Any = "", score: Any = None):
+        return RISK_HEAT_PALETTE[self._risk_bucket(level, score)]
 
     def _risk_bar(self, score: Any, width: float = 4.3 * cm, height: float = 0.28 * cm) -> Drawing:
         raw = max(0.0, min(10.0, _safe_float(score)))
         drawing = Drawing(width, height)
-        drawing.add(Rect(0, 0, width, height, fillColor=MID_GREY, strokeColor=None))
+        drawing.add(Rect(0, 0, width, height, fillColor=RISK_BAR_BG, strokeColor=None))
         drawing.add(Rect(0, 0, width * raw / 10.0, height, fillColor=self._risk_color(score=raw), strokeColor=None))
         return drawing
 
@@ -1009,12 +1036,43 @@ class PDFGenerator:
         return table
 
     def _risk_table(self, rows: Sequence[Sequence[Any]]) -> Table:
-        table = self._table(rows, [4.6 * cm, 2.0 * cm, 3.0 * cm, 2.0 * cm, 3.8 * cm], header=True)
+        heat_style_cache = {}
+        data = []
+        for row_index, row in enumerate(rows):
+            rendered = []
+            for col_index, cell in enumerate(row):
+                if row_index > 0 and col_index == 4:
+                    _heat_bg, heat_text = self._risk_heat_colors(cell)
+                    style_key = str(heat_text)
+                    if style_key not in heat_style_cache:
+                        heat_style_cache[style_key] = ParagraphStyle(
+                            f"RiskHeat{len(heat_style_cache)}",
+                            parent=self.styles["TableTC"],
+                            fontName=self.bold_font_name,
+                            fontSize=9,
+                            leading=12,
+                            textColor=heat_text,
+                            alignment=TA_CENTER,
+                        )
+                    rendered.append(Paragraph(_pdf_text(cell), heat_style_cache[style_key]))
+                else:
+                    rendered.append(self._p(cell, row_index == 0))
+            data.append(rendered)
+
+        table = Table(data, colWidths=[4.6 * cm, 2.0 * cm, 3.0 * cm, 2.0 * cm, 3.8 * cm], repeatRows=1)
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), NAVY),
+            ("GRID", (0, 0), (-1, -1), 0.35, MID_GREY),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT_GREY]),
+            ("LEFTPADDING", (0, 0), (-1, -1), 7),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+            ("TOPPADDING", (0, 0), (-1, -1), 7),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+        ]))
         for row_index, row in enumerate(rows[1:], start=1):
-            heat = str(row[-1])
-            color = self._risk_color(heat)
+            heat_bg, _heat_text = self._risk_heat_colors(row[-1])
             table.setStyle(TableStyle([
-                ("BACKGROUND", (4, row_index), (4, row_index), color),
-                ("TEXTCOLOR", (4, row_index), (4, row_index), colors.white),
+                ("BACKGROUND", (4, row_index), (4, row_index), heat_bg),
             ]))
         return table

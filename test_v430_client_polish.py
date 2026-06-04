@@ -181,8 +181,8 @@ def test_pdf_text_sanitizer_and_dashboard() -> None:
 
 
 def test_app_version() -> None:
-    assert APP_VERSION == "v4.3.0", APP_VERSION
-    assert BUILD_STAGE == "Client Polish Release", BUILD_STAGE
+    assert APP_VERSION in {"v4.3.0", "v4.3.1"}, APP_VERSION
+    assert BUILD_STAGE in {"Client Polish Release", "PDF Risk Readability Patch"}, BUILD_STAGE
     ok("app-version")
 
 

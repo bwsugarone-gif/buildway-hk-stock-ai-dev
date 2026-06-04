@@ -134,6 +134,12 @@ class ReportBuilder:
             agent_opinions_v2 = build_agent_opinions(report_package)
         except Exception:
             agent_opinions_v2 = {}
+        if isinstance(agent_opinions_v2, dict):
+            agent_opinions_v2 = {
+                **agent_opinions_v2,
+                "news_count": self._news_count(news),
+                "news_confidence": news.get("news_confidence") or news.get("sentiment_analysis", {}).get("confidence") or "",
+            }
 
         try:
             competitive_landscape = build_competitive_landscape(ticker, report_package)
@@ -235,6 +241,13 @@ class ReportBuilder:
             out["agent_opinions_v2"] = build_agent_opinions(report_package)
         except Exception as exc:
             out["agent_opinions_v2"] = {"error": str(exc)}
+        if isinstance(out.get("agent_opinions_v2"), dict):
+            news = report_package.get("news_analysis", {}) or report_package.get("news_data", {}) or {}
+            out["agent_opinions_v2"] = {
+                **out["agent_opinions_v2"],
+                "news_count": self._news_count(news),
+                "news_confidence": news.get("news_confidence") or news.get("sentiment_analysis", {}).get("confidence") or "",
+            }
 
         try:
             out["competitive_landscape"] = build_competitive_landscape(ticker, report_package)
@@ -695,6 +708,32 @@ class ReportBuilder:
             "top_risks": risk_v2.get("top_risks", risk_items[:3]),
             "total_weight": risk_v2.get("total_weight", "100%"),
         }
+
+    def _news_count(self, news: Dict[str, Any]) -> int:
+        if not isinstance(news, dict):
+            return 0
+        count = 0
+        for key in (
+            "items",
+            "news_items",
+            "headlines",
+            "recent_headlines",
+            "positive_catalysts",
+            "negative_catalysts",
+            "neutral_events",
+            "risk_events",
+            "monitor_items",
+        ):
+            value = news.get(key)
+            if isinstance(value, list):
+                count = max(count, len(value))
+        sentiment = news.get("sentiment_analysis", {}) or {}
+        if isinstance(sentiment, dict):
+            count = max(
+                count,
+                int(_num(sentiment.get("positive_count")) + _num(sentiment.get("negative_count")) + _num(sentiment.get("neutral_count"))),
+            )
+        return count
 
     def _build_news_catalyst_analysis(self, news: Dict[str, Any]) -> Dict[str, Any]:
         confidence = news.get("news_confidence") or news.get("sentiment_analysis", {}).get("confidence") or "未接入"

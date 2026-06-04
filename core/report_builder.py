@@ -10,6 +10,16 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from core.config import APP_NAME, APP_VERSION, USE_AI_ANALYSIS
+from core.client_polish import (
+    INSUFFICIENT_RATING_TEXT,
+    INVALID_TICKER_MESSAGE,
+    NEUTRAL_CLIENT_SUMMARY,
+    TARGET_PRICE_EXPLANATION,
+    TARGET_PRICE_NOT_PROVIDED,
+    UPSIDE_NOT_PROVIDED,
+    sanitize_decision_basis,
+    sanitize_report_payload,
+)
 from core.market_snapshot import build_market_snapshot
 from core.market_snapshot_engine import build_market_snapshot as build_unified_market_snapshot
 from core.scenario_engine import build_scenario_analysis
@@ -199,7 +209,7 @@ class ReportBuilder:
             "ic_conclusion": self._build_ic_conclusion_from_engine(investment_conclusion, llm_warning) if investment_conclusion else self._build_ic_conclusion(ic, risk, rating, llm_warning, fin),
             "disclaimer": self._build_disclaimer(),
         }
-        return self._strip_placeholder_values(sections)
+        return sanitize_report_payload(self._strip_placeholder_values(sections))
 
     def build_fos_v3_sections(self, report_package: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -793,7 +803,7 @@ class ReportBuilder:
         conclusion: Dict[str, Any],
         llm_warning: str,
     ) -> Dict[str, Any]:
-        basis = conclusion.get("decision_basis", []) or []
+        basis = sanitize_decision_basis(conclusion.get("decision_basis", []) or [])
         monitor_next = [
             f"{item.get('factor', '決策因子')}：{item.get('score', '')}，{item.get('summary', '')}"
             for item in basis[:5]
@@ -803,9 +813,14 @@ class ReportBuilder:
         return {
             "title": "投資委員會最終結論",
             "final_decision": conclusion.get("rating", ""),
-            "why": conclusion.get("final_summary", ""),
+            "investment_horizon": conclusion.get("investment_horizon") or conclusion.get("horizon"),
+            "suitable_investor": conclusion.get("suitable_investor") or conclusion.get("investor_type"),
+            "target_price": conclusion.get("target_price") or TARGET_PRICE_NOT_PROVIDED,
+            "potential_upside": conclusion.get("potential_upside") or UPSIDE_NOT_PROVIDED,
+            "why": NEUTRAL_CLIENT_SUMMARY if conclusion.get("rating") == "中性" else conclusion.get("final_summary", ""),
+            "decision_basis": basis,
             "monitor_next": monitor_next,
-            "data_limitations": conclusion.get("target_price", ""),
+            "data_limitations": conclusion.get("target_price_explanation") or TARGET_PRICE_EXPLANATION,
             "data_completeness_note": "",
             "llm_warning": llm_warning,
             "multi_agent_statement": f"投資委員會綜合分：{conclusion.get('composite_score', '')}",

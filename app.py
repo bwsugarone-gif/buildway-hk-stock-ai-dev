@@ -22,6 +22,13 @@ from core.config import (
     APP_NAME, APP_VERSION, BUILD_STAGE, BUILD_VERSION, BUILD_COMMIT,
     LOGO_PATH,
 )
+from core.client_polish import (
+    TARGET_PRICE_NOT_PROVIDED,
+    UPSIDE_NOT_PROVIDED,
+    clean_client_text,
+    resolve_logo_path_or_url,
+    sanitize_decision_basis,
+)
 from core.pdf_generator import PDFGenerator
 from core.pdf_freshness import build_fresh_pdf_path, pdf_path_matches_active_report, should_regenerate_pdf
 from core.report_builder import ReportBuilder
@@ -893,7 +900,7 @@ def _company_profile_panel(cover: dict[str, Any]) -> None:
 def _logo_url_for_cover(cover: dict[str, Any]) -> str:
     ticker = normalize_hk_ticker(str(cover.get("ticker", ""))) if cover.get("ticker") else ""
     metadata = _load_hk_master_data().get(ticker, {})
-    return str(cover.get("logo_url") or metadata.get("logo_url") or "").strip()
+    return resolve_logo_path_or_url({"cover": cover, "company_metadata": metadata}, ticker)
 
 
 def _render_company_logo(cover: dict[str, Any], width: int = 76) -> None:
@@ -901,10 +908,11 @@ def _render_company_logo(cover: dict[str, Any], width: int = 76) -> None:
     try:
         if logo_url:
             st.image(logo_url, width=width)
-        elif os.path.exists(LOGO_PATH):
-            st.image(str(LOGO_PATH), width=width)
     except Exception as exc:
         print(f"[APP] Company logo unavailable: {exc}")
+        fallback = resolve_logo_path_or_url({}, "")
+        if fallback:
+            st.image(fallback, width=width)
 
 
 def _render_report_summary_card(cover: dict[str, Any]) -> None:
@@ -1855,16 +1863,16 @@ if st.session_state.report_sections:
     _ic_horizon = _ic_engine.get("investment_horizon") or _ic_engine.get("horizon") or report_package.get("investment_horizon", "中線")
     _ic_investor = _ic_engine.get("suitable_investor") or _ic_engine.get("investor_type") or (request_risk_preference if request_risk_preference in ("保守", "平衡", "進取") else "平衡")
     _ic_summary = _ic_engine.get("final_summary") or _ic_engine.get("summary") or cover.get("executive_summary", cover.get("summary", "綜合分析後，請參閱完整報告。"))
-    _ic_target = _ic_engine.get("target_price") or "目標價未能可靠估算"
-    _ic_upside = _ic_engine.get("potential_upside") or "升幅未能可靠估算"
-    _ic_decision_basis = _ic_engine.get("decision_basis") or []
+    _ic_target = _ic_engine.get("target_price") or TARGET_PRICE_NOT_PROVIDED
+    _ic_upside = _ic_engine.get("potential_upside") or UPSIDE_NOT_PROVIDED
+    _ic_decision_basis = sanitize_decision_basis(_ic_engine.get("decision_basis") or [])
 
     render_investment_conclusion({
         "investment_conclusion": {
             "rating": _ic_rating,
             "horizon": _ic_horizon,
             "investor_type": _ic_investor,
-            "summary": _ic_summary,
+            "summary": clean_client_text(_ic_summary, _ic_summary),
             "target_price": _ic_target,
             "upside": _ic_upside,
             "decision_basis": _ic_decision_basis,

@@ -6,6 +6,15 @@ v3.5.0: Peer Comparison, Source Transparency, Bull vs Bear Debate, Risk Dashboar
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
 import streamlit as st
+from core.client_polish import (
+    INSUFFICIENT_RATING_TEXT,
+    INVALID_TICKER_MESSAGE,
+    NEUTRAL_CLIENT_SUMMARY,
+    TARGET_PRICE_NOT_PROVIDED,
+    UPSIDE_NOT_PROVIDED,
+    clean_client_text,
+    sanitize_decision_basis,
+)
 
 
 # ─── helpers ──────────────────────────────────────────────────────────────────
@@ -584,15 +593,23 @@ def render_investment_conclusion(report_data: Dict[str, Any]) -> None:
     summary  = conc.get("summary", conc.get("conclusion_summary", ic.get("committee_summary", "")))
     target   = conc.get("target_price", conc.get("price_target", "—"))
     upside   = conc.get("upside", conc.get("upside_pct", "—"))
-    decision_basis = conc.get("decision_basis", []) or []
+    rating = clean_client_text(rating, "未評級")
+    horizon = clean_client_text(horizon, "未提供")
+    profile = clean_client_text(profile, "未提供")
+    summary = clean_client_text(summary)
+    target = clean_client_text(target, TARGET_PRICE_NOT_PROVIDED)
+    upside = clean_client_text(upside, UPSIDE_NOT_PROVIDED)
+    decision_basis = sanitize_decision_basis(conc.get("decision_basis", []) or [])
     insufficient = str(rating).strip() == "資料不足"
     if insufficient:
         rating = "資料不足"
         horizon = "暫不評級"
         profile = "暫不適用"
         summary = summary or "公司資料已驗證，但核心市場、財務或新聞資料不足。"
-        target = "N/A"
-        upside = "N/A"
+        target = TARGET_PRICE_NOT_PROVIDED
+        upside = UPSIDE_NOT_PROVIDED
+    elif str(rating).strip() == "中性":
+        summary = summary or NEUTRAL_CLIENT_SUMMARY
 
     RATING_COLORS = {
         "買入": "#1e8e3e", "BUY": "#1e8e3e",
@@ -656,10 +673,10 @@ def render_investment_conclusion(report_data: Dict[str, Any]) -> None:
             if not isinstance(item, dict):
                 continue
             basis_rows.append({
-                "??": item.get("factor", ""),
-                "??": item.get("weight", ""),
-                "??": item.get("score", ""),
-                "??": item.get("summary", ""),
+                "因子": item.get("factor", ""),
+                "權重": item.get("weight", ""),
+                "分數": item.get("score", ""),
+                "說明": item.get("summary", ""),
             })
         if basis_rows:
             st.dataframe(basis_rows, use_container_width=True, hide_index=True)

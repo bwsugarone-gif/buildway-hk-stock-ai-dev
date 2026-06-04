@@ -28,6 +28,8 @@ from reportlab.platypus import (
     TableStyle,
 )
 
+from core.client_polish import resolve_logo_path_or_url, sanitize_report_payload
+
 
 NAVY = colors.HexColor("#0B1F33")
 NAVY_2 = colors.HexColor("#173A5E")
@@ -54,6 +56,7 @@ PDF_OLD_WORDING_REPLACEMENTS = {
 
 
 def sanitize_pdf_payload(value: Any) -> Any:
+    value = sanitize_report_payload(value)
     if isinstance(value, dict):
         return {key: sanitize_pdf_payload(item) for key, item in value.items()}
     if isinstance(value, list):
@@ -325,7 +328,8 @@ class PDFGenerator:
     """Render a nine-page institutional investment report."""
 
     def __init__(self, logo_path: str | None = None, build_version: str = ""):
-        self.logo_path = str(logo_path) if logo_path else None
+        resolved_logo = str(logo_path) if logo_path and os.path.exists(str(logo_path)) else resolve_logo_path_or_url({}, "")
+        self.logo_path = resolved_logo or None
         self.font_name, self.bold_font_name = FontManager.setup()
         self.styles = self._styles()
         # Build version shown in PDF footer for cross-platform consistency checks
@@ -809,9 +813,28 @@ class PDFGenerator:
     def _conclusion(self, section: Dict[str, Any], disclaimer: Dict[str, Any]) -> List[Any]:
         elements = [self._title("投資委員會最終結論")]
         elements.append(self._conclusion_card(section))
+        key_rows = [
+            ["投資評級", section.get("final_decision", "未評級")],
+            ["投資週期", section.get("investment_horizon", "未提供")],
+            ["適合投資者", section.get("suitable_investor", "未提供")],
+            ["目標價", section.get("target_price", "目標價：未提供")],
+            ["潛在升幅", section.get("potential_upside", "潛在升幅：未提供")],
+            ["資料覆蓋", section.get("data_coverage_label", section.get("data_coverage", "未提供"))],
+            ["風險分數", section.get("risk_score", "未提供")],
+        ]
+        elements.extend([Spacer(1, 0.25 * cm), self._table(key_rows, [4.2 * cm, 11.2 * cm])])
         elements.append(Paragraph(section.get("multi_agent_statement", ""), self.styles["BodyTC"]))
         elements.extend([Spacer(1, 0.2 * cm), Paragraph("評級原因", self.styles["SubTitle"]), Paragraph(section.get("why", ""), self.styles["BodyTC"])])
         elements.append(Paragraph("後續監察事項", self.styles["SubTitle"]))
+        basis = section.get("decision_basis", []) or []
+        if basis:
+            elements.append(Paragraph("主要依據", self.styles["SubTitle"]))
+            rows = [["因子", "權重", "分數", "說明"]]
+            for item in basis[:6]:
+                if isinstance(item, dict):
+                    rows.append([item.get("factor", ""), item.get("weight", ""), item.get("score", ""), item.get("summary", "")])
+            if len(rows) > 1:
+                elements.append(self._table(rows, [3.1 * cm, 2.4 * cm, 2.4 * cm, 7.5 * cm], header=True))
         for item in section.get("monitor_next", []):
             elements.append(Paragraph(f"- {item}", self.styles["BodyTC"]))
         elements.extend([

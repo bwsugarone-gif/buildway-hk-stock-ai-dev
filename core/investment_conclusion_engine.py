@@ -9,6 +9,7 @@ Never outputs blank, placeholder conclusions, or legacy neutral fallback wording
 """
 
 from core.safe_math import safe_float
+from core.client_polish import TARGET_PRICE_EXPLANATION, TARGET_PRICE_NOT_PROVIDED, UPSIDE_NOT_PROVIDED, NEUTRAL_CLIENT_SUMMARY
 
 
 # ── Rating definitions ────────────────────────────────────────────────────────
@@ -600,12 +601,9 @@ def build_investment_conclusion(
     # ── Target price ─────────────────────────────────────────────────────────
     # Cannot reliably estimate without DCF/analyst consensus — say so clearly
     current_price = safe_float(market_snapshot.get("_raw", {}).get("current_price"))
-    if current_price and current_price > 0:
-        target_price_note = "目標價未能可靠估算（需要分析師共識或 DCF 模型）"
-        potential_upside   = "升幅未能可靠估算"
-    else:
-        target_price_note = "目標價未能可靠估算（現價數據不足）"
-        potential_upside   = "升幅未能可靠估算"
+    target_price_note = TARGET_PRICE_NOT_PROVIDED
+    potential_upside = UPSIDE_NOT_PROVIDED
+    target_price_explanation = TARGET_PRICE_EXPLANATION
 
     # ── Decision basis ────────────────────────────────────────────────────────
     decision_basis = []
@@ -647,6 +645,8 @@ def build_investment_conclusion(
     )
     if coverage_state == "PARTIAL":
         final_summary = f"{PARTIAL_DATA_LABEL}：{final_summary}"
+    if rating == "中性":
+        final_summary = NEUTRAL_CLIENT_SUMMARY
 
     return {
         "rating":             rating,
@@ -656,6 +656,7 @@ def build_investment_conclusion(
         "target_price":       target_price_note,
         "potential_upside":   potential_upside,
         "upside":             potential_upside,
+        "target_price_explanation": target_price_explanation,
         "recommendation":     rating,
         "investment_view":    f"{rating}（{PARTIAL_DATA_LABEL}）" if coverage_state == "PARTIAL" else rating,
         "allocation_suggestion": "以小注觀察或等待資料補齊後再提高倉位" if coverage_state == "PARTIAL" else "按投資者風險承受能力分段配置",

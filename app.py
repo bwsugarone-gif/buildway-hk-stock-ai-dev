@@ -1822,7 +1822,7 @@ if st.session_state.report_sections:
     # ── 9. 最終投資結論 ───────────────────────────────────────────────────────
     _section_title("最終投資結論", "最終投資結論", "")
     rating_raw = cover.get("final_rating", "觀察")
-    rating_map = {"買入": "買入", "增持": "買入", "中性": "中性", "減持": "減持", "賣出": "避免", "避免": "避免"}
+    rating_map = {"買入": "買入", "增持": "買入", "中性": "中性", "減持": "減持", "賣出": "避免", "避免": "避免", "資料不足": "資料不足"}
     mapped_rating = rating_map.get(rating_raw, "觀察")
 
     # v4.1 wiring fix: use investment_conclusion engine output when available
@@ -1848,7 +1848,7 @@ if st.session_state.report_sections:
     })
 
     # ── 10. 情景分析 + 組合倉位（保留）──────────────────────────────────────
-    if confidence_level in {"HIGH", "MEDIUM"}:
+    if confidence_level in {"HIGH", "MEDIUM"} and _ic_rating != "資料不足":
         _render_scenario_section(sections.get("scenario_analysis", {}))
         _render_allocation_section(
             request_portfolio_size,

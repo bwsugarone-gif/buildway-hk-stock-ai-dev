@@ -31,7 +31,7 @@ def test_config_version():
     print("\n[CONFIG] Version check")
     try:
         from core.config import APP_VERSION, BUILD_STAGE
-        assert APP_VERSION in {"v4.2.1", "v4.2.2"}, f"Expected v4.2.1/v4.2.2, got {APP_VERSION}"
+        assert APP_VERSION in {"v4.2.1", "v4.2.2", "v4.2.3"}, f"Expected v4.2.1/v4.2.2/v4.2.3, got {APP_VERSION}"
         assert BUILD_STAGE, "BUILD_STAGE must not be empty"
         ok("CONFIG-version", f"{APP_VERSION} / {BUILD_STAGE}")
     except Exception as e:
@@ -152,6 +152,7 @@ def test_rc2_investment_committee_20():
         valid_ratings = [
             "買入", "觀察", "中性", "減持", "避免",
             "Buy", "Watch", "Neutral", "Reduce", "Avoid",
+            "資料不足",
             "OVERWEIGHT", "NEUTRAL", "UNDERWEIGHT",
         ]
         rating = ic.get("rating", "")

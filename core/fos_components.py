@@ -585,6 +585,14 @@ def render_investment_conclusion(report_data: Dict[str, Any]) -> None:
     target   = conc.get("target_price", conc.get("price_target", "—"))
     upside   = conc.get("upside", conc.get("upside_pct", "—"))
     decision_basis = conc.get("decision_basis", []) or []
+    insufficient = str(rating).strip() == "資料不足"
+    if insufficient:
+        rating = "資料不足"
+        horizon = "暫不評級"
+        profile = "暫不適用"
+        summary = summary or "公司資料已驗證，但核心市場、財務或新聞資料不足。"
+        target = "N/A"
+        upside = "N/A"
 
     RATING_COLORS = {
         "買入": "#1e8e3e", "BUY": "#1e8e3e",
@@ -592,8 +600,34 @@ def render_investment_conclusion(report_data: Dict[str, Any]) -> None:
         "中性": "#5f6368", "NEUTRAL": "#5f6368", "HOLD": "#5f6368",
         "減持": "#f57c00", "REDUCE": "#f57c00",
         "避免": "#d93025", "AVOID": "#d93025", "SELL": "#d93025",
+        "資料不足": "#5f6368",
     }
     r_color = RATING_COLORS.get(str(rating).upper(), RATING_COLORS.get(str(rating), "#1a73e8"))
+
+    if insufficient:
+        st.markdown("## 🎯 最終投資結論")
+        st.warning("資料不足，暫不評級。公司資料已驗證，但核心市場、財務或新聞資料不足。")
+        st.markdown(
+            f'<div style="border:2px solid {r_color};border-radius:12px;padding:24px;'
+            f'background:#f8fafc;">'
+            f'<div style="font-size:2rem;font-weight:800;color:{r_color};">{rating}</div>'
+            f'<p style="color:#1f2933;">{summary}</p>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        if decision_basis:
+            st.markdown("#### 決策依據")
+            basis_rows = []
+            for item in decision_basis:
+                if isinstance(item, dict):
+                    basis_rows.append({
+                        "資料項目": item.get("factor", ""),
+                        "狀態": item.get("score", "N/A"),
+                        "說明": item.get("summary", ""),
+                    })
+            if basis_rows:
+                st.dataframe(basis_rows, use_container_width=True, hide_index=True)
+        return
 
     st.markdown("## 🎯 最終投資結論")
     st.markdown(
@@ -616,7 +650,7 @@ def render_investment_conclusion(report_data: Dict[str, Any]) -> None:
     )
 
     if decision_basis:
-        st.markdown("#### ????")
+        st.markdown("#### 決策依據")
         basis_rows = []
         for item in decision_basis:
             if not isinstance(item, dict):

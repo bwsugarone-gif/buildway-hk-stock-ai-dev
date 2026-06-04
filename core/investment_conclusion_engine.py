@@ -26,6 +26,219 @@ DECISION_FACTORS = [
     {"factor": "市場",  "weight": "15%", "weight_num": 0.15},
 ]
 
+INSUFFICIENT_DATA_RATING = "資料不足"
+INSUFFICIENT_DATA_VIEW = "資料不足，暫不評級"
+INSUFFICIENT_DATA_SUMMARY = "公司資料已驗證，但市場價格、財務數據或新聞資料不足，暫不形成投資評級。"
+
+
+def _has_positive(value) -> bool:
+    return safe_float(value) > 0
+
+
+def _raw_market(market_snapshot: dict) -> dict:
+    raw = market_snapshot.get("_raw", {}) if isinstance(market_snapshot, dict) else {}
+    return raw if isinstance(raw, dict) else {}
+
+
+def _news_available(agent_opinions, source_registry: dict) -> bool:
+    news_entry = (source_registry or {}).get("news", {})
+    if isinstance(news_entry, dict) and news_entry.get("verified"):
+        return True
+
+    agents_list = []
+    if isinstance(agent_opinions, dict):
+        agents_list = agent_opinions.get("agents", [])
+    elif isinstance(agent_opinions, list):
+        agents_list = agent_opinions
+    if isinstance(agents_list, dict):
+        agents_list = list(agents_list.values())
+
+    for item in agents_list or []:
+        if not isinstance(item, dict):
+            continue
+        text = " ".join(str(item.get(k, "")) for k in ("Agent", "agent_name", "source", "stance", "summary"))
+        if any(token in text.lower() for token in ("news", "新聞", "sentiment", "catalyst")):
+            return True
+    return False
+
+
+def _coverage_pct(source_registry: dict) -> float:
+    try:
+        from core.source_registry import compute_coverage_pct
+
+        return float(compute_coverage_pct(source_registry or {}))
+    except Exception:
+        return 0.0
+
+
+def _source_verified(source_registry: dict, key: str) -> bool:
+    entry = (source_registry or {}).get(key, {})
+    return isinstance(entry, dict) and bool(entry.get("verified"))
+
+
+def _data_sufficiency_issues(
+    market_snapshot: dict,
+    financial_data: dict,
+    risk_assessment: dict,
+    agent_opinions,
+    source_registry: dict,
+) -> list[dict]:
+    raw = _raw_market(market_snapshot)
+    financial_data = financial_data or {}
+    risk_assessment = risk_assessment or {}
+    source_registry = source_registry or {}
+
+    price_available = any(
+        _has_positive(v)
+        for v in (
+            raw.get("current_price"),
+            raw.get("price"),
+            financial_data.get("current_price"),
+            financial_data.get("last_price"),
+        )
+    )
+    price_unavailable_flag = bool(
+        raw.get("price_unavailable")
+        or raw.get("valid_ticker_price_unavailable")
+        or financial_data.get("price_unavailable")
+        or financial_data.get("valid_ticker_price_unavailable")
+    )
+
+    valuation_available = any(
+        _has_positive(v)
+        for v in (
+            raw.get("pe"),
+            raw.get("pb"),
+            raw.get("pe_ratio"),
+            raw.get("pb_ratio"),
+            financial_data.get("pe_ratio"),
+            financial_data.get("pb_ratio"),
+            financial_data.get("trailingPE"),
+            financial_data.get("priceToBook"),
+        )
+    )
+    financial_available = any(
+        _has_positive(v)
+        for v in (
+            financial_data.get("revenue"),
+            financial_data.get("revenue_ttm"),
+            financial_data.get("totalRevenue"),
+            financial_data.get("net_profit"),
+            financial_data.get("net_income"),
+            financial_data.get("net_income_ttm"),
+            financial_data.get("roe"),
+            financial_data.get("net_margin"),
+            financial_data.get("ebitda"),
+        )
+    )
+    risk_available = bool(
+        risk_assessment.get("risk_items")
+        or risk_assessment.get("dimension_scores")
+        or risk_assessment.get("composite_score")
+        or risk_assessment.get("composite_risk_score")
+    )
+    news_available = _news_available(agent_opinions, source_registry)
+
+    issues = []
+    if price_unavailable_flag or not price_available:
+        issues.append({"factor": "市場價格", "weight": "必要", "score": "N/A", "summary": "市場價格暫時未能取得"})
+    if not valuation_available:
+        issues.append({"factor": "估值資料", "weight": "必要", "score": "N/A", "summary": "缺少 P/E、P/B 或其他估值輸入"})
+    if not financial_available:
+        issues.append({"factor": "財務資料", "weight": "必要", "score": "N/A", "summary": "缺少收入、盈利、ROE、利潤率或 EBITDA 等財務資料"})
+    if not news_available:
+        issues.append({"factor": "新聞情緒", "weight": "必要", "score": "N/A", "summary": "缺少已驗證新聞或情緒資料"})
+    if not risk_available:
+        issues.append({"factor": "風險評估", "weight": "必要", "score": "N/A", "summary": "缺少有效風險評估輸入"})
+
+    if source_registry:
+        market_verified = _source_verified(source_registry, "market_data")
+        financial_verified = _source_verified(source_registry, "financial_statement")
+        news_verified = _source_verified(source_registry, "news")
+        if not any((market_verified, financial_verified, news_verified)):
+            issues.append({
+                "factor": "來源覆蓋",
+                "weight": "必要",
+                "score": "N/A",
+                "summary": "source_registry 只顯示 metadata/master data，缺少核心市場、財務或新聞來源",
+            })
+        coverage = _coverage_pct(source_registry)
+        if coverage and coverage < 50:
+            issues.append({
+                "factor": "資料覆蓋率",
+                "weight": "必要",
+                "score": "N/A",
+                "summary": f"資料覆蓋率過低（{coverage:.1f}%）",
+            })
+
+    deduped = []
+    seen = set()
+    for issue in issues:
+        key = issue["factor"]
+        if key not in seen:
+            seen.add(key)
+            deduped.append(issue)
+    return deduped
+
+
+def _insufficient_data_result(decision_basis: list[dict]) -> dict:
+    return {
+        "rating": INSUFFICIENT_DATA_RATING,
+        "score": None,
+        "composite_score": "N/A",
+        "investment_view": INSUFFICIENT_DATA_VIEW,
+        "recommendation": "暫不評級",
+        "investment_horizon": None,
+        "horizon": None,
+        "suitable_investor": None,
+        "investor_type": None,
+        "target_price": None,
+        "potential_upside": None,
+        "upside": None,
+        "allocation_suggestion": None,
+        "confidence": 0,
+        "decision_basis": decision_basis,
+        "final_summary": INSUFFICIENT_DATA_SUMMARY,
+        "conclusion_summary": INSUFFICIENT_DATA_SUMMARY,
+        "summary": INSUFFICIENT_DATA_SUMMARY,
+        "valuation_score": None,
+        "risk_score": None,
+        "financial_score": None,
+        "news_score": None,
+        "market_score": None,
+        "data_sufficient": False,
+    }
+
+
+def _invalid_result(reason: str = "股票代號或市場資料無法驗證") -> dict:
+    return {
+        "rating": "無法評估",
+        "score": None,
+        "composite_score": "N/A",
+        "investment_view": "資料驗證未完成",
+        "recommendation": "無法評估",
+        "investment_horizon": None,
+        "horizon": None,
+        "suitable_investor": None,
+        "investor_type": None,
+        "target_price": None,
+        "potential_upside": None,
+        "upside": None,
+        "allocation_suggestion": None,
+        "confidence": 0,
+        "decision_basis": [{"factor": "股票代號驗證", "weight": "必要", "score": "N/A", "summary": reason}],
+        "final_summary": "股票代號或市場資料無法驗證，系統不形成投資評級。",
+        "conclusion_summary": "股票代號或市場資料無法驗證，系統不形成投資評級。",
+        "summary": "股票代號或市場資料無法驗證，系統不形成投資評級。",
+        "valuation_score": None,
+        "risk_score": None,
+        "financial_score": None,
+        "news_score": None,
+        "market_score": None,
+        "data_sufficient": False,
+        "invalid_symbol": True,
+    }
+
 
 def _safe_score(val, default=5.0) -> float:
     """Extract a numeric score safely."""
@@ -39,6 +252,19 @@ def _safe_score(val, default=5.0) -> float:
     except (TypeError, ValueError):
         pass
     return default
+
+
+def _score_or_none(val) -> float | None:
+    try:
+        s = str(val).replace("/10", "").replace("%", "").strip()
+        f = float(s)
+        if 0 <= f <= 10:
+            return f
+        if 0 <= f <= 100:
+            return f / 10
+    except (TypeError, ValueError):
+        return None
+    return None
 
 
 def _score_to_rating(score: float) -> str:
@@ -77,11 +303,12 @@ def _score_to_investor_type(score: float, risk_score: float) -> str:
 
 def _extract_valuation_score(market_snapshot: dict, financial_data: dict) -> tuple:
     """Extract valuation score and summary."""
-    pe = safe_float(market_snapshot.get("_raw", {}).get("pe"))
-    pb = safe_float(market_snapshot.get("_raw", {}).get("pb"))
+    raw = market_snapshot.get("_raw", {}) or {}
+    pe = safe_float(raw.get("pe") or raw.get("pe_ratio") or financial_data.get("pe_ratio"))
+    pb = safe_float(raw.get("pb") or raw.get("pb_ratio") or financial_data.get("pb_ratio"))
 
     if not pe and not pb:
-        return 5.0, "估值數據不足，採用中性評分"
+        return None, "估值資料不足"
 
     score = 5.0
     notes = []
@@ -118,8 +345,10 @@ def _extract_valuation_score(market_snapshot: dict, financial_data: dict) -> tup
 
 def _extract_risk_score(risk_assessment: dict) -> tuple:
     """Extract risk score and summary."""
-    composite = risk_assessment.get("composite_score", "5.0/10")
-    score = _safe_score(composite)
+    composite = risk_assessment.get("composite_score") or risk_assessment.get("composite_risk_score")
+    score = _score_or_none(composite)
+    if score is None:
+        return None, "風險評估資料不足", None
     # Risk score: higher = more risky = lower investment attractiveness
     inv_score = 10.0 - score  # invert for conclusion scoring
     level = risk_assessment.get("risk_level", "中等風險")
@@ -139,7 +368,7 @@ def _extract_financial_score(financial_data: dict) -> tuple:
     net_margin = safe_float(financial_data.get("net_margin"))
 
     if not any([revenue, net_profit, roe]):
-        return 5.0, "財務數據不足，採用中性評分"
+        return None, "財務資料不足"
 
     score = 5.0
     notes = []
@@ -187,11 +416,14 @@ def _extract_news_score(agent_opinions) -> tuple:
         agents_list = []
 
     news_agent = next(
-        (a for a in agents_list if "新聞" in str(a.get("Agent", a.get("agent_name", "")))),
+        (
+            a for a in agents_list
+            if any(token in str(a.get("Agent", a.get("agent_name", ""))).lower() for token in ("新聞", "news", "sentiment"))
+        ),
         None
     )
     if not news_agent:
-        return 5.0, "新聞情緒數據不足，採用中性評分"
+        return None, "新聞情緒資料不足"
 
     stance = news_agent.get("stance", "中性")
     confidence = safe_float(news_agent.get("confidence", 50)) / 10
@@ -213,11 +445,11 @@ def _extract_market_score(market_snapshot: dict) -> tuple:
     """Extract market momentum score."""
     raw = market_snapshot.get("_raw", {})
     current = safe_float(raw.get("current_price"))
-    wk52_high = safe_float(raw.get("fifty_two_week_high"))
-    wk52_low = safe_float(raw.get("fifty_two_week_low"))
+    wk52_high = safe_float(raw.get("fifty_two_week_high") or raw.get("52w_high"))
+    wk52_low = safe_float(raw.get("fifty_two_week_low") or raw.get("52w_low"))
 
     if not current or not wk52_high or not wk52_low:
-        return 5.0, "市場數據不足，採用中性評分"
+        return None, "市場資料不足"
 
     if (wk52_high - wk52_low) > 0:
         position = (current - wk52_low) / (wk52_high - wk52_low)
@@ -246,11 +478,34 @@ def build_investment_conclusion(
     If target_price cannot be reliably estimated, says so explicitly.
     """
     # ── Extract scores per factor ─────────────────────────────────────────────
+    raw = _raw_market(market_snapshot)
+    financial_data = financial_data or {}
+    if raw.get("invalid_symbol") or financial_data.get("invalid_symbol") or financial_data.get("data_confidence") == "INVALID":
+        return _invalid_result(
+            financial_data.get("validation_reason")
+            or raw.get("validation_reason")
+            or "股票代號或市場資料無法驗證"
+        )
+
+    insufficiency_issues = _data_sufficiency_issues(
+        market_snapshot,
+        financial_data,
+        risk_assessment,
+        agent_opinions,
+        source_registry,
+    )
+    if insufficiency_issues:
+        return _insufficient_data_result(insufficiency_issues)
+
     val_score, val_summary   = _extract_valuation_score(market_snapshot, financial_data)
     risk_inv, risk_summary, raw_risk = _extract_risk_score(risk_assessment)
     fin_score, fin_summary   = _extract_financial_score(financial_data)
     news_score, news_summary = _extract_news_score(agent_opinions)
     mkt_score, mkt_summary   = _extract_market_score(market_snapshot)
+    if any(value is None for value in (val_score, risk_inv, raw_risk, fin_score, news_score, mkt_score)):
+        return _insufficient_data_result([
+            {"factor": "投資結論輸入", "weight": "必要", "score": "N/A", "summary": "部分核心評分因資料不足未能計算"}
+        ])
 
     # ── Weighted composite score ──────────────────────────────────────────────
     composite = (
@@ -291,7 +546,7 @@ def build_investment_conclusion(
     rating_desc = {
         "買入": "綜合分析顯示股票具備投資吸引力，建議考慮買入。",
         "觀察": "股票具備一定潛力，但需等待更明確催化劑，建議列入觀察名單。",
-        "中性": "股票估值合理，風險與回報相對平衡，建議中性持有。",
+        "中性": "股票估值合理，風險與回報相對平衡，建議維持觀察。",
         "減持": "股票面臨較大下行風險，建議考慮減持。",
         "避免": "股票風險偏高或估值過貴，建議暫時避免。",
     }

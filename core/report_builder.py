@@ -39,6 +39,9 @@ RATING_MAP = {
     "avoid": "暫不建議",
 }
 
+INSUFFICIENT_DATA_RATING = "資料不足"
+INSUFFICIENT_DATA_SUMMARY = "公司資料已驗證，但市場價格、財務數據或新聞資料不足，暫不形成投資評級。"
+
 
 def _num(value: Any, default: float = 0.0) -> float:
     return safe_number(value, default)
@@ -149,6 +152,11 @@ class ReportBuilder:
             )
         except Exception:
             investment_conclusion = {}
+        if investment_conclusion.get("rating") == INSUFFICIENT_DATA_RATING:
+            rating = INSUFFICIENT_DATA_RATING
+            executive_summary = self._build_executive_summary(
+                market, fin, risk, news, portfolio, rating
+            )
 
         sections = {
             "metadata": {
@@ -301,6 +309,13 @@ class ReportBuilder:
     def _final_rating(self, fin: Dict[str, Any], risk: Dict[str, Any], ic: Dict[str, Any]) -> str:
         if fin.get("data_confidence") == INVALID or risk.get("data_confidence") == INVALID:
             return "無法評估"
+        valuation = fin.get("valuation_range", {}) or {}
+        health = fin.get("health_score", {}) or {}
+        has_valuation = any(_num(valuation.get(key), 0) != 0 for key in ("low", "mid", "high", "upside_to_mid"))
+        has_financial_health = bool(health.get("dimension_scores")) or _num(health.get("overall_score"), 0) > 0
+        has_risk = _num(risk.get("composite_risk_score"), 0) > 0
+        if fin.get("data_confidence") in {"LOW", "MEDIUM"} and (not has_valuation or not has_financial_health or not has_risk):
+            return INSUFFICIENT_DATA_RATING
         risk_score = _num(risk.get("composite_risk_score"), 5)
         upside = _num(fin.get("valuation_range", {}).get("upside_to_mid"), 0)
 
@@ -335,8 +350,8 @@ class ReportBuilder:
             "metadata_source": market.get("metadata_source", ""),
             "report_date": meta.get("generated_at", get_timestamp()),
             "final_rating": rating,
-            "risk_score": f"{_num(risk.get('composite_risk_score'), 5):.1f}/10",
-            "risk_label": _risk_label(_num(risk.get("composite_risk_score"), 5)),
+            "risk_score": "N/A" if rating == INSUFFICIENT_DATA_RATING else f"{_num(risk.get('composite_risk_score'), 5):.1f}/10",
+            "risk_label": "資料不足" if rating == INSUFFICIENT_DATA_RATING else _risk_label(_num(risk.get("composite_risk_score"), 5)),
             "data_confidence": meta.get("data_confidence") or market.get("data_confidence", "LOW"),
             "data_confidence_label": meta.get("data_confidence_label") or market.get("data_confidence_label") or confidence_label(meta.get("data_confidence") or market.get("data_confidence", "LOW")),
             "data_completeness_note": meta.get("data_completeness_note", ""),
@@ -368,6 +383,21 @@ class ReportBuilder:
                 "llm_narrative": "",
             }
         risk_score = _num(risk.get("composite_risk_score"), 5)
+        if rating == INSUFFICIENT_DATA_RATING:
+            return {
+                "title": "Executive Summary",
+                "bullets": [
+                    INSUFFICIENT_DATA_SUMMARY,
+                    "資料不足，暫不評級。",
+                    "公司資料可作識別用途；投資結論需等待核心市場、財務及新聞資料補齊。",
+                ],
+                "final_rating": INSUFFICIENT_DATA_RATING,
+                "key_risk": "核心資料不足",
+                "key_opportunity": "待資料補齊後再評估",
+                "recommended_action": "暫不評級",
+                "data_confidence_label": market.get("data_confidence_label", confidence_label(market.get("data_confidence", "LOW"))),
+                "llm_narrative": "",
+            }
         current = _num(market.get("current_price"))
         mid = _num(vr.get("mid"))
         opportunity = (
